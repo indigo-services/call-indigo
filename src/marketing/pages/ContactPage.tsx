@@ -17,6 +17,7 @@
  * pulling its weight less than the form does.
  */
 import { useId, useRef, useState, type FormEvent } from "react"
+import { Captcha, type CaptchaHandle } from "@/marketing/Captcha"
 import { api } from "@/lib/data/api"
 import { SERVICES, URGENCIES, type PropertyType, type Service, type Urgency } from "@/lib/data/types"
 import { SiteChrome } from "@/marketing/SiteChrome"
@@ -31,6 +32,8 @@ interface FormValues {
   service: Service | ""
   urgency: Urgency
   message: string
+  /** Honeypot — not a real question. Bots fill it; humans never see it. */
+  company: string
 }
 
 type FieldName = keyof FormValues
@@ -44,10 +47,24 @@ const INITIAL: FormValues = {
   service: "",
   urgency: "soon",
   message: "",
+  company: "",
 }
 
 /** Intentionally permissive — the goal is to catch typos, not to police email. */
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+
+/**
+ * Honeypot field: visually hidden, not focusable, ignored by assistive tech.
+ * Humans never see it, so a filled value means a bot filled everything it
+ * found. Silently swallowed on submit — the user must never learn it exists.
+ */
+const HONEYPOT_STYLE: React.CSSProperties = {
+  position: "absolute",
+  left: -9999,
+  width: 1,
+  height: 1,
+  overflow: "hidden",
+}
 
 function validate(v: FormValues): Errors {
   const e: Errors = {}
@@ -121,6 +138,10 @@ export default function ContactPage() {
   const [pending, setPending] = useState(false)
   const [failure, setFailure] = useState<string | null>(null)
   const [reference, setReference] = useState<string | null>(null)
+  const [captchaError, setCaptchaError] = useState(false)
+
+  const captchaInputRef = useRef<HTMLInputElement>(null)
+  const captchaHandleRef = useRef<CaptchaHandle | null>(null)
 
   const formRef = useRef<HTMLFormElement>(null)
   const successRef = useRef<HTMLDivElement>(null)
@@ -155,6 +176,19 @@ export default function ContactPage() {
       return
     }
 
+    // Honeypot first: a filled trap means a bot — drop it silently. The user
+    // sees the normal success path so scrapers learn nothing.
+    if (values.company) {
+      setReference("REF-CONFIRMED")
+      return
+    }
+
+    if (!captchaHandleRef.current?.isValid()) {
+      setCaptchaError(true)
+      captchaInputRef.current?.focus()
+      return
+    }
+
     setPending(true)
     try {
       const created = await api.createInquiry({
@@ -170,6 +204,8 @@ export default function ContactPage() {
       setValues(INITIAL)
       setErrors({})
       setSubmitted(false)
+      setCaptchaError(false)
+      captchaHandleRef.current?.reset()
       // Focus the confirmation so screen-reader users hear the result.
       requestAnimationFrame(() => successRef.current?.focus())
     } catch {
@@ -427,6 +463,28 @@ export default function ContactPage() {
                   placeholder="Water is pooling under the kitchen sink. I've shut the valve off. The cabinet floor is soaked."
                 />
               </Field>
+
+              {/* Honeypot: hidden from people, irresistible to autofill bots. */}
+              <div style={HONEYPOT_STYLE} aria-hidden="true">
+                <label htmlFor={fid("company")}>Company</label>
+                <input
+                  id={fid("company")}
+                  name="company"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={values.company}
+                  onChange={(e) => set("company", e.target.value)}
+                />
+              </div>
+
+              <Captcha
+                id={`${uid}-captcha`}
+                error={submitted && captchaError}
+                inputRef={captchaInputRef}
+                handleRef={captchaHandleRef}
+                onAnswerChange={() => setCaptchaError(false)}
+              />
 
               <div className="flex flex-wrap items-center gap-5">
                 <button type="submit" disabled={pending} className="pill pill-lg disabled:opacity-70">
