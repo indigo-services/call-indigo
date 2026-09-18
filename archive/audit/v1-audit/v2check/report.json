@@ -1,0 +1,101 @@
+{
+  "1920": {
+    "navItems": [
+      "Home -> #top",
+      "Residential -> #services",
+      "Commercial -> #area",
+      "Contact -> #contact"
+    ],
+    "drawerItems": [
+      "Home",
+      "Residential",
+      "Commercial",
+      "Contact",
+      "(512) 608-4999"
+    ],
+    "ribbonText": "Residential & commercial services | Hays, Travis, and Williamson counties | Est. 2012 \u00b7 Indigo Home & Facility Services",
+    "radii": {
+      "slab": "16px",
+      "topbar": "12px / top 0px",
+      "headerCard": "10px",
+      "navPill": "8px",
+      "panel": "14px"
+    },
+    "scrollWidth": 1920,
+    "innerWidth": 1920,
+    "brokenImgs": [],
+    "anchorTargets": [
+      "top:true",
+      "services:true",
+      "area:true",
+      "contact:true"
+    ],
+    "consoleErrors": []
+  },
+  "1440": {
+    "navItems": [
+      "Home -> #top",
+      "Residential -> #services",
+      "Commercial -> #area",
+      "Contact -> #contact"
+    ],
+    "drawerItems": [
+      "Home",
+      "Residential",
+      "Commercial",
+      "Contact",
+      "(512) 608-4999"
+    ],
+    "ribbonText": "Residential & commercial services | Hays, Travis, and Williamson counties | Est. 2012 \u00b7 Indigo Home & Facility Services",
+    "radii": {
+      "slab": "16px",
+      "topbar": "12px / top 0px",
+      "headerCard": "10px",
+      "navPill": "8px",
+      "panel": "14px"
+    },
+    "scrollWidth": 1440,
+    "innerWidth": 1440,
+    "brokenImgs": [],
+    "anchorTargets": [
+      "top:true",
+      "services:true",
+      "area:true",
+      "contact:true"
+    ],
+    "consoleErrors": []
+  },
+  "390": {
+    "navItems": [
+      "Home -> #top",
+      "Residential -> #services",
+      "Commercial -> #area",
+      "Contact -> #contact"
+    ],
+    "drawerItems": [
+      "Home",
+      "Residential",
+      "Commercial",
+      "Contact",
+      "(512) 608-4999"
+    ],
+    "ribbonText": "Residential & commercial services | Hays, Travis, and Williamson counties",
+    "radii": {
+      "slab": "16px",
+      "topbar": "12px / top 0px",
+      "headerCard": "10px",
+      "navPill": "8px",
+      "panel": "14px"
+    },
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "brokenImgs": [],
+    "anchorTargets": [
+      "top:true",
+      "services:true",
+      "area:true",
+      "contact:true"
+    ],
+    "consoleErrors": []
+  }
+}

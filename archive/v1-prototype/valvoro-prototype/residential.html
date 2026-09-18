@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Indigo Homes — Residential Home Services & Membership | Austin TX</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/call-indigo-mark.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon.png">
+  <meta name="theme-color" content="#1f1c4a">
+  <meta name="description" content="Locally licensed and insured home services including plumbing, electrical, HVAC, carpentry, remodeling, painting, flooring, landscaping, handyman services, repairs, and more. Serving Hays, Travis, and Williamson counties since 2012.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+/* Call Indigo design system — browser build imports tailwindcss automatically.
+   css/tw.css is GENERATED from this block for CLI/Vite builds. Regenerate with
+   `python _audit/v2check/sync_tw.py`; do not hand-edit it. */
+
+@theme {
+  /* ---- Brand colors — read off the template's own :root (style.css:52-67)
+     rather than eyeballed. Each line names the template token it comes from and
+     the value it replaces. Every one of these is confirmed against 01_Home.jpg:
+     the mist fill samples #f4f7fe, the body copy #696969, the eyebrows and pill
+     buttons #30c3eb (17-38 px modal hits each), the h2 pure #000000. ---- */
+  --color-brand: #2a5aa2;       /* --blue--color      (was #4a5ea3) */
+  --color-brand-deep: #154d9f;  /* --blue--color2     (was #42549b) */
+  --color-sky: #30c3eb;         /* --primary--color   (was #7ec1e9) */
+  --color-sky-soft: #aed8f1;
+  --color-ink: #121b3c;         /* headings use #000 — see .h-section */
+  --color-ink-2: #091f41;       /* --accent--color    (was #0b1228) */
+  --color-topbar: #091f41;      /* --accent--color    (was #152040) */
+  --color-ring: #a8cdf0;
+  --color-star: #e9bd4b;
+  --color-mist: #f4f8fe;        /* --light--bg--color (was #f5f8ff) */
+  --color-body: #696969;        /* --text--color      (was #5a6478) */
+  --color-line: #e3e8f2;
+  /* The two scrim colours, quoted from the template's ::before layers. */
+  --color-scrim-hero: rgb(25 80 160 / 88%);   /* .banner-con::before            */
+  --color-scrim-blue: rgb(42 90 162 / 90%);   /* price-estimation / check / cta */
+  /* --secondary--color in the template; resolves to white inside the hero. */
+  --color-secondary: #ffffff;
+
+  /* ---- Typography ---- */
+  --font-sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
+
+  /* ---- Radii --------------------------------------------------------------
+     v2 brief, 2026-09-18: "less rounded corners". The previous values were the
+     template's measured geometry (--radius-card 52, --radius-panel 26, slab 50,
+     topbar 40, outer-card 30, header-card 20). Every RECTANGULAR corner is now
+     tightened — slabs 50->16, panels 26->14, topbar 40->12, outer 30->14,
+     header 20->10, images 40->18 / 30->14, and the button family (`.pill`,
+     `.pill-lg` 32.5px) plus the chip rows and the ZIP input -> 10.
+     EXEMPT, because they are shapes rather than corners: the hero arch
+     (`.arch`), the hero oval photo (188px), the about lozenge badge (104px),
+     `.pill-circle`, avatars, rating discs, the scroll ring and the numbered step
+     dots. Reducing those would change what the element IS, not how sharp it looks.
+     Rule of thumb for anything new: 16px is the largest radius on the page. */
+  --radius-card: 18px;          /* was 52px */
+  --radius-panel: 14px;         /* was 26px */
+
+  /* ---- Shadows ---- */
+  --shadow-lift: 0 18px 44px rgba(13, 21, 49, .12);
+  --shadow-drop: 0 30px 70px rgba(9, 14, 33, .35);
+
+  /* ---- Animations ---- */
+  --animate-fade-up: fade-up .7s ease both;
+  --animate-drawer-in: drawer-in .4s cubic-bezier(.7, 0, .2, 1) forwards;
+  --animate-drawer-out: drawer-out .3s ease forwards;
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes drawer-in {
+    from { transform: translateX(105%); }
+    to { transform: translateX(0); }
+  }
+  @keyframes drawer-out {
+    from { transform: translateX(0); }
+    to { transform: translateX(105%); }
+  }
+}
+
+/* ---- Base ---- */
+@layer base {
+  /* ==========================================================================
+     GUTTER SYSTEM — v2, 2026-09-18.
+
+     Three nested layers, each with exactly one job, each driven by one token:
+
+       viewport
+        └── .pad-rl   -> --gut     viewport edge  -> card edge
+             └── .mbox -> --inset  card edge      -> section text
+                  └── .shell -> --col  the max text column (>=1200 only)
+
+     WHY THIS REPLACED THE TEMPLATE'S NUMBERS. The template paid the outer
+     gutter at `50px` (or `2%` at <=1870) and the inner inset at `1%`, so the
+     two moved together and BOTH collapsed on small screens. Measured on the
+     build this replaces (_audit/v2check/diag.py, "BEFORE"):
+
+       viewport  card edge -> text      note
+       1440      13.8px                  a 16px-radius card, text 13.8px in
+       1024       9.8px
+        768       7.4px
+        390       3.7px                  text effectively on the rounded corner
+
+     and the card-less bands paid only the inner inset, so their text sat at
+     14.4px at 1440 and at 0px at 1920 — i.e. hard against the page edge.
+
+     The ladder below is monotonic and bottoms out at --gut: 0 at <=767, where
+     the outer gutter is dropped ON PURPOSE: the cards go full-bleed so no
+     viewport width is spent on margin, and the text keeps a 16px inset of its
+     own. That is the "on mobile the side padding IS exactly butted up" rule.
+
+       breakpoint     --gut   --inset
+       >= 1871         50      50
+       <= 1870         40      40
+       <= 1439         32      32
+       <= 1199         24      28
+       <=  991         16      24
+       <=  767          0      16
+     ========================================================================== */
+  :root {
+    --gut:   50px;   /* viewport edge -> card edge    */
+    --inset: 50px;   /* card edge     -> section text */
+    --col:   1417px; /* the template's .main-container */
+  }
+  @media (max-width: 1870px) { :root { --gut: 40px; --inset: 40px; } }
+  @media (max-width: 1439px) { :root { --gut: 32px; --inset: 32px; } }
+  @media (max-width: 1199px) { :root { --gut: 24px; --inset: 28px; } }
+  @media (max-width: 991px)  { :root { --gut: 16px; --inset: 24px; } }
+  @media (max-width: 767px)  { :root { --gut: 0px;  --inset: 16px; } }
+
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-white font-sans text-body antialiased;
+    overflow-x: hidden;
+  }
+  img { max-width: 100%; }
+}
+
+/* ---- Components ---- */
+@layer components {
+  /* ==========================================================================
+     FRAME MODEL — transcribed from the template's own stylesheets, not inferred.
+     The template's markup shape (_audit/vlv/index.html) is:
+
+       <div class="padding-rl">
+         <section class="main-box br-50 bg-grey"> … </section>
+       </div>
+
+     · .padding-rl  — the OUTER gutter.  style.css:414 says `padding: 0 50px`
+       flat. responsive.css overrides it to `1% !important` inside the
+       1441-1710 and 1711-1870 blocks only; there is NO override above 1870, so
+       at the reference's 1920 canvas the gutter is exactly 50px and the slab is
+       1920 - 100 = 1820 wide at x = 50.
+       Measured off 01_Home.jpg: L = 50, R = 1868  ->  1820. Exact.
+
+     · .main-box    — the SLAB itself. style.css has no base rule; the same two
+       responsive blocks add `padding: 0 1%`. Percentage padding resolves against
+       .padding-rl's content box, which is already 98% of the viewport, so the
+       stacked 1% + 1% is 3.96% total and the slab is 96.04% wide.
+       Measured: 374.59/390 = .96049 and 1383.00/1440 = .96042. Both hold.
+
+     · .br-50       — `border-radius: 50px` (style.css:391). Never overridden at
+       any breakpoint, so the template's slab radius is 50px all the way down.
+       v2 DIVERGES HERE ON PURPOSE: `.slab` below is 16px, per the 2026-09-18
+       "less rounded corners" brief. The 50px figure stays documented because it
+       is what the reference measures, not because it still ships.
+
+     · .main-container — responsive.css:4, inside @media (min-width:1200px):
+       `max-width: 1417px; margin: auto`. At 1920 the slab is 1820 and the content
+       box is 1417 centred inside it — which is the 1417-wide element measured at
+       x 250..1666. Below 1200 the cap lifts and the container is the slab's full
+       content width.
+     ========================================================================== */
+  .pad-rl { padding-left: var(--gut);   padding-right: var(--gut); }
+  .mbox   { padding-left: var(--inset); padding-right: var(--inset); }
+  /* v2 DIVERGES FROM THE TEMPLATE HERE, on purpose.
+     The template's `.padding-rl` was `50px` above 1870 and `2%` at or below it,
+     with `.main-box` adding a further `1%`. Both insets therefore moved
+     together and both collapsed on small screens, and the card-less bands —
+     which carry `.main-box` with no `.padding-rl` wrapper — paid only the 1%.
+     The two are now independent named tokens with their own ladders, so the
+     card edge and the text line can be controlled separately. See the token
+     block in @layer base for the values and the measurements that motivated
+     them. */
+  /* v2: the template's 50px slab radius is cut to 16px. This is the single
+     biggest change in the "less rounded corners" pass — nine sections carry
+     `.slab`, so it is what the page reads as. */
+  .slab { border-radius: 16px; }
+  /* .home-outer-wrapper br-30 / .header-con br-20 — the two smaller cards. */
+  .outer-card  { border-radius: 14px; }
+  .header-card { border-radius: 10px; }
+  /* .top-bar-inner-content (style.css:433-437) is `br-40` PLUS an explicit
+     `border-top-left-radius: 0; border-top-right-radius: 0`. Zeroing the top
+     radii is why the authored radius is never clamped by CSS's adjacent-corner
+     rule (0 + r < the bar's 43px height), so the bottom arc renders at its full
+     value against square top corners. v2 keeps that shape, at 12px not 40px. */
+  .pill-topbar { border-radius: 0 0 12px 12px; }
+
+  /* The content container: the template's `.main-container`. Every band's text
+     lands on this one column, so the ribbon, the header brand, the section
+     headings and the footer share a single left edge. */
+  .shell { margin-inline: auto; }
+  @media (min-width: 1200px) { .shell { max-width: var(--col); } }
+
+  /* `.band` — a CARD-LESS section: a white band with no `.slab` background.
+     Its text has to land on the same line as a card's text, and a card's text
+     sits at (outer gutter + inner inset). A card-less band has no card edge to
+     measure from, so it pays both at once. Below 1200 the inner `.shell` is
+     inert and the two are on the same pixel; above it, both are capped by the
+     same `.shell`, so they stay on the same pixel there too.
+     Before this, `#services`, `#process` and `#reviews` carried `.mbox` alone:
+     measured text at x=14.4 at 1440 and x=0 at 1920 against the cards' 42.6 and
+     251.5. */
+  .band {
+    padding-left: calc(var(--gut) + var(--inset));
+    padding-right: calc(var(--gut) + var(--inset));
+  }
+
+  /* Vertical rhythm — `.padding-top` / `.padding-bottom` (style.css:319-325 =
+     140px) with the template's own cascade from responsive.css. */
+  .pad-140 { padding-top: 140px; padding-bottom: 140px; }
+  @media (max-width: 1440px) { .pad-140 { padding-top: 90px; padding-bottom: 90px; } }
+  @media (max-width: 1199px) { .pad-140 { padding-top: 80px; padding-bottom: 80px; } }
+  @media (max-width: 991px)  { .pad-140 { padding-top: 60px; padding-bottom: 60px; } }
+  @media (max-width: 767px)  { .pad-140 { padding-top: 50px; padding-bottom: 50px; } }
+  @media (max-width: 575px)  { .pad-140 { padding-top: 40px; padding-bottom: 40px; } }
+  /* .check-availability-con (style.css:1392) = 78px, halved at <=1440. */
+  .pad-78 { padding-top: 78px; padding-bottom: 78px; }
+  @media (max-width: 1440px) { .pad-78 { padding-top: 50px; padding-bottom: 50px; } }
+  /* .about-us-con (style.css:2099) and .cta-con (style.css:1008) = 30px. */
+  .pad-30 { padding-top: 30px; padding-bottom: 30px; }
+  /* .spacer (style.css:408) = 50px, 20px at <=1440. v2 keeps both endpoints
+     but spreads the collapse over four steps, so the gap between two cards no
+     longer halves at a single breakpoint while the section padding is still
+     near its desktop size. */
+  .spacer { height: 50px; }
+  @media (max-width: 1439px) { .spacer { height: 40px; } }
+  @media (max-width: 1199px) { .spacer { height: 32px; } }
+  @media (max-width: 991px)  { .spacer { height: 24px; } }
+  @media (max-width: 767px)  { .spacer { height: 20px; } }
+
+  /* Photo-backed slabs: the template paints the photo as the section's own
+     background-image and then a ::before carrying the same 50px radius. */
+  .slab-photo {
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+  }
+  /* z-index 1 on the scrim / 2 on the body so the paint order is
+     background -> photo <img> (z-0) -> scrim -> content, which is the order the
+     template gets for free by using a background-image instead of a child img. */
+  .slab-photo::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    /* Must track `.slab` — the scrim is a sibling layer, so a mismatch shows the
+       photo bleeding past the slab's corners. */
+    border-radius: 16px;
+  }
+  .scrim-hero::before { background-color: var(--color-scrim-hero); }
+  .scrim-blue::before { background-color: var(--color-scrim-blue); }
+  .slab-body { position: relative; z-index: 2; }
+
+  /* At <=767 the outer gutter is 0, so every card is full-bleed. A radius on a
+     full-bleed card can only show as white notches at the screen corners, so
+     the corner language is dropped there entirely — the same "less rounded
+     corners" decision, taken to its limit. Declared AFTER the rules it
+     overrides (`.slab`, `.slab-photo::before`, `.pill-topbar`) so it wins on
+     source order inside the same layer. */
+  @media (max-width: 767px) {
+    .slab, .slab-photo::before, .outer-card, .header-card, .pill-topbar {
+      border-radius: 0;
+    }
+  }
+
+  /* The per-section background images the template sets in CSS
+     (`.price-estimation-con`, `.check-availability-con`, `.cta-con`).
+     NOTE: the template's check-availability points at check-bg-img.jpg, which is
+     not present in this workspace; sub-banner-img.jpg (also 1820px wide) stands
+     in for it. Flagged as a remaining difference. */
+  .bg-img-estimate { background-image: url(assets/images/price-estimation-bg-img.jpg); }
+  .bg-img-area     { background-image: url(assets/images/sub-banner-img.jpg); }
+  .bg-img-cta      { background-image: url(assets/images/cta-bg-img.jpg); }
+
+  /* The hero's inner wrapper: the template's `.wrapper1711 { max-width:1711px;
+     margin:auto }` (responsive.css:9).
+     KEPT AT 1711 — this is the ONE band that must not fold into `--col`. The
+     hero's display heading needs the width: measured at 1920 (probe.py) the h1's
+     text is 753px wide, and a 1417 column leaves its box only 618.5px, so the
+     heading is clipped by the slab's `overflow: hidden`. 1711 is the smallest
+     cap that clears it, which is presumably why the template picked it.
+     Consequence, and it is the template's own composition rather than a defect:
+     at wide viewports the hero's text line sits left of the section text line
+     (x 179.5 vs x 251.5 at 1920). The hero's SLAB EDGE does align with every
+     other card, which is what the 2026-09-18 brief asked for. */
+  .hero-wrap { margin-inline: auto; max-width: 1711px; }
+
+  /* .banner-con (style.css:1095) — 55px top / 80px bottom, plus the responsive
+     cascade: 40/40 at <=1440, 40/30 at <=1199, 30/30 at <=991. The horizontal
+     gutter is NOT set here — it comes from `.mbox` (the template's `main-box`)
+     exactly as it does upstream. */
+  .hero-card { padding-top: 55px; padding-bottom: 80px; }
+  @media (max-width: 1440px) { .hero-card { padding-top: 40px; padding-bottom: 40px; } }
+  @media (max-width: 1199px) { .hero-card { padding-bottom: 30px; } }
+  @media (max-width: 991px)  { .hero-card { padding-top: 30px; } }
+
+  /* CTA button — the signature component. v2: no longer a stadium. The 2026-09-18
+     brief squares every rectangular corner on the page, and a button is a
+     rectangle; only true circles keep a full radius. 10px, same as the panels. */
+  .pill {
+    @apply inline-flex items-center gap-4 rounded-[10px] bg-sky font-sans font-bold text-white;
+    padding: 10px 12px 10px 28px;
+    transition: transform .25s, box-shadow .25s, background-color .25s;
+  }
+  .pill:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); background-color: var(--color-sky-soft); }
+  .pill-circle {
+    @apply grid size-11 shrink-0 place-items-center rounded-full bg-white text-ink;
+    transition: transform .25s;
+  }
+  .pill:hover .pill-circle { transform: rotate(45deg); }
+  .pill-circle svg { @apply size-[18px]; }
+  .pill-circle img { @apply size-5 object-contain; }
+  /* `.primary_btn` base (style.css:210) is height/line-height 65px, radius 32.5px,
+     font 18px/700, padding-right 30px; `.banner-con .primary_btn` (style.css:1167)
+     raises min-width to 260px and adds margin-left 56 / margin-bottom 143.
+     responsive.css:512 relaxes min-width to 250 and padding-right to 35 at ≤1440.
+     The reference measures this pill at exactly 260 x 65 (01_Home.jpg, x 477-736,
+     y 710-774) — the previous 250x60 was the ≤1440 pair applied at 1920.
+     RADIUS: 32.5px (a stadium on a 65px-tall button) is the template's value and
+     is deliberately NOT shipped in v2 — see the `.pill` note above. The box
+     metrics stay; only the corner does not. */
+  .pill-lg {
+    position: relative;
+    /* Padding-right is NOT the template's 30px. `.pill-lg .pill-circle` below is
+       absolutely positioned at `right:11px` and 42px wide, so the label needs
+       53px of reserved space or it runs under the disc — measured on the
+       "Book an Appointment" label at 1440: 19px of overlap with the template's
+       35px. 62px leaves a 9px gap. The box metrics that the reference pins down
+       (260 x 65 at 1920, min-width 260/250) are unchanged: at 1920 the label is
+       still narrower than min-width, so the pill still measures exactly 260. */
+    padding: 0 62px 0 32px;
+    min-width: 260px;
+    height: 65px;
+    line-height: 65px;
+    font-size: 18px;
+    border-radius: 10px;
+    justify-content: flex-start;
+  }
+  /* `.primary_btn, .elementary_btn, .secondary_btn { height:60px;
+     line-height:60px }` (responsive.css:694) is the ≤1440 step, and
+     `height:56px; line-height:56px` (responsive.css:2486) the ≤991 one. */
+  @media (max-width: 1440px) { .pill-lg { padding-right: 62px; min-width: 250px; height: 60px; line-height: 60px; } }
+  /* `.banner-con .primary_btn` in the ≤991 block: min-width 220, margin-left 0,
+     margin-bottom 25, font-size 15. */
+  @media (max-width: 991px) {
+    .pill-lg { min-width: 220px; margin-left: 0; margin-bottom: 25px; font-size: 15px; height: 56px; line-height: 56px; }
+  }
+  /* `.primary_btn figure` — 42x42, `right: 11px; top: 11px`, absolute (NOT a
+     translateY(-50%) centring): at height 65 that leaves 11px above and 12 below.
+     The ≤991 block moves it to right/top 7px to suit the 56px button. */
+  .pill-lg .pill-circle {
+    position: absolute;
+    right: 11px;
+    top: 11px;
+    width: 42px;
+    height: 42px;
+    transform: none;
+  }
+  @media (max-width: 991px) { .pill-lg .pill-circle { right: 7px; top: 7px; } }
+  .pill-lg:hover .pill-circle { transform: rotate(45deg); }
+  .pill-lg .pill-circle svg { width: 10px; height: 10px; }
+  .pill-sm { padding: 7px 8px 7px 20px; font-size: 15px; }
+  .pill-sm .pill-circle { width: 36px; height: 36px; }
+  .pill-navy { @apply bg-ink text-white; }
+  .pill-navy:hover { background-color: var(--color-brand); }
+  .pill-navy .pill-circle { @apply text-ink; }
+  .pill-block { @apply w-full justify-between; }
+
+  /* Hero arch — ELLIPSE frame around the plumber (reference: fully rounded
+     top AND bottom, pale-blue ring inset ~10px, thin ~2px stroke).
+     DELIBERATELY EXEMPT from the "less rounded corners" pass: this is a shape,
+     not a corner. The same exemption covers only genuinely circular elements —
+     the hero's oval photo (`rounded-[188px]`), the about lozenge badge
+     (`rounded-[104px]`), `.pill-circle`, avatars, rating discs, the scroll ring
+     and the numbered step dots. Everything rectangular, including the pill
+     buttons, was squared off. */
+  .arch {
+    border-radius: 9999px;
+    border: 2px solid var(--color-ring);
+    padding: 10px;
+  }
+
+  /* banner-con h1 — `.text-size-126 { font-size:126px; line-height:119px;
+     font-weight:800; letter-spacing:normal; color:var(--secondary--color) }`
+     with the template's own responsive cascade: 90/80 @≤1440, 70/65 @≤1199,
+     55/60 @≤991. Real renders with NO letter-spacing — adding tracking shrinks
+     the line boxes and breaks the 160px two-line height. */
+  .hero-h1 { font-size: 126px; line-height: 119px; font-weight: 800; letter-spacing: normal; }
+  @media (max-width: 1440px) { .hero-h1 { font-size: 90px;  line-height: 80px; } }
+  @media (max-width: 1199px) { .hero-h1 { font-size: 70px;  line-height: 65px; } }
+  @media (max-width: 991px)  { .hero-h1 { font-size: 55px;  line-height: 60px; } }
+  @media (max-width: 767px)  { .hero-h1 { font-size: 44px;  line-height: 50px; } }
+
+  /* ==========================================================================
+     HERO RESPONSIVE CASCADE — transcribed from the template's responsive.css.
+     Blocks and their line ranges: 1440(250) 1199(1063) 991(1926) 767(3149)
+     575(4419). Every value below is quoted from the real stylesheet, not guessed.
+
+     The single most important fact: the images resize at ≤991, NOT ≤1199.
+     `.plumber-img img { width:390px }` appears in BOTH the 1199 and 991 blocks,
+     but the arch (`320`) only starts at 991. Measured real render confirms:
+        vw=1200 -> arch 350   vw=992 -> arch 320
+     ========================================================================== */
+
+  /* ==========================================================================
+     BASE BRANCH — style.css, i.e. NO media query at all, so these apply >1440.
+     CORRECTION (measured, not assumed): the previous pass had transcribed the
+     ≤1440 values from responsive.css:250ff as if they were the base. They are
+     not — every one of them is overridden at >1440. The effect at the reference's
+     1920 canvas was that the ENTIRE hero right column rendered ~1.6x too small
+     (arch 350 vs 406, plumber 440 vs 671, oval 168 vs 266) and the left column's
+     stats block was undersized. Verified by rendering the real template at 1920
+     and reading its DOM (see _audit/full/tpl_hero.py).
+     ========================================================================== */
+  .banner-img1 img { width: 406px; }   /* natural 376 content + 12px pad + 3px border */
+  /* `.plumber-img` is a FIGURE; the WIDTH lives on its inner img — that is how the
+     template writes it (`<figure class="plumber-img"><img></figure>`). Above 1440
+     NO width is authored at all, so it renders at the PNG's natural 671x880.
+     Keeping the size on the img (not the figure) is what lets the ≤767 branch give
+     the figure the full column and centre the 300px img inside it. */
+  .plumber-img     { width: 671px; }
+  .plumber-img img { width: 100%; }
+  /* `.banner-content-con .banner-img2 img { padding:12px; border:3px solid
+     var(--secondary--color) }` (style.css:1134) and NO width rule anywhere above
+     1199 — so the oval is the image's natural 236x346 CONTENT box plus 30px of
+     padding+border => a 266x376 border-box. The FIGURE stretches to the row
+     height (the template's `.banner-bottom` is a plain d-flex, so align-items is
+     `stretch`), which is why the real template renders the figure 266x387.
+     Our replacement photo is 745x669 (landscape) and cannot supply the tall
+     236x346 intrinsic ratio, so we pin the ratio explicitly instead. */
+  .banner-img2     { flex: 0 1 auto; width: 266px; }
+  .banner-img2 img { width: 100%; aspect-ratio: 266 / 376; height: auto; }
+  /* `.banner-con .dot-img img` has no base width — the element is the IMG itself
+     here, so it renders at dots.png's natural 54x52. */
+  .dot-img img, img.dot-img { width: 54px; height: auto; }
+
+  /* The first responsive step for the hero photos: 350 / 440. */
+  @media (max-width: 1440px) {
+    .banner-img1 img { width: 350px; }
+    .plumber-img     { width: 440px; }
+  }
+
+  /* --------------------------------------------------------------------------
+     The rest of the hero's base-branch values, same correction as above.
+     -------------------------------------------------------------------------- */
+
+  /* `.banner-content-con .banner-bottom { gap:31px }` base; responsive.css:502
+     relaxes it to 20px at ≤1440. The template's `.banner-bottom` is a plain
+     `d-flex` with NO `align-items`, so it is `stretch` — that is what makes the
+     oval FIGURE stretch to the row height (266x387 rather than 266x376). */
+  .banner-bottom { gap: 31px; }
+  @media (max-width: 1440px) { .banner-bottom { gap: 20px; } }
+
+  /* `.banner-con .navy-box { right:50px; top:126px; padding:19px 25px }` base;
+     responsive.css:495 => right:0 / top:39px / 13px 20px at ≤1440,
+     :513 => right:0 / top:28px / 10px 15px at ≤1199. */
+  .navy-box { right: 50px; top: 126px; padding: 19px 25px; }
+  @media (max-width: 1440px) { .navy-box { right: 0;    top: 39px; padding: 13px 20px; } }
+  @media (max-width: 1199px) { .navy-box { right: 0;    top: 28px; padding: 10px 15px; } }
+
+  /* `.banner-con .dot-img { bottom: 0 }` base, 15px at ≤1440, and the IMG is
+     54px (its natural size) above 1440, 40px at ≤1440 (responsive.css:797),
+     34px at ≤1199 — then the whole thing is hidden at ≤991. */
+  .dot-img { bottom: 0; }
+  @media (max-width: 1440px) { .dot-img { bottom: 15px; } }
+  @media (max-width: 1440px) { .dot-img img, img.dot-img { width: 40px; } }
+  @media (max-width: 991px)  { .dot-img { display: none; } }
+
+  /* `.banner-con .scrol-outer span.text-size-14 { margin-bottom: 12px }` base,
+     2px at ≤1440. `.banner-con .scrol-outer { bottom: 60px }` never changes. */
+  .scrol-outer span { margin-bottom: 12px; }
+  @media (max-width: 1440px) { .scrol-outer span { margin-bottom: 2px; } }
+
+  /* `.banner-con .banner-inner-con a.scroll-down-arrow figure` — 80x80 base,
+     60x60 at ≤1440, 40x40 at ≤1199. */
+  .scroll-down-arrow .grid { width: 80px; height: 80px; }
+  @media (max-width: 1440px) { .scroll-down-arrow .grid { width: 60px; height: 60px; } }
+  @media (max-width: 1199px) { .scroll-down-arrow .grid { width: 40px; height: 40px; } }
+
+  /* --------------------------------------------------------------------------
+     statistics — base from style.css:1173-1229.
+     -------------------------------------------------------------------------- */
+  .statistics-wrapper { margin-left: 22px; }
+  @media (max-width: 1440px) { .statistics-wrapper { margin-left: 0; } }
+  .statistics-box { position: relative; padding: 0 34px; }
+  @media (max-width: 1440px) { .statistics-box { padding: 0 20px; } }
+  @media (max-width: 991px)  { .statistics-box { padding: 0 10px; } }
+  /* The 1px x 68px divider sits on the RIGHT edge of box 1 only — the template's
+     second box carries `.var2`, whose ::before is `display:none`. This rule was
+     missing entirely, and it is clearly visible in the reference. */
+  .statistics-box::before {
+    content: ""; position: absolute; right: 0; top: 0; bottom: 0; margin: auto;
+    background-color: rgb(255 255 255 / 30%); height: 68px; width: 1px;
+  }
+  .statistics-box.var2::before { display: none; }
+  @media (max-width: 575px) { .statistics-box::before { height: 50px; } }
+  .statistics-box .stat-num {
+    display: block; color: #fff; font-weight: 800;
+    font-size: 36px; line-height: 36px; margin-bottom: 5px;
+  }
+  @media (max-width: 1440px) { .statistics-box .stat-num { font-size: 32px; line-height: 32px; } }
+  @media (max-width: 991px)  { .statistics-box .stat-num { font-size: 28px; line-height: 30px; margin-bottom: 6px; } }
+  /* The `k` span and the `+` sup both inherit the number's size. `sup` keeps its
+     default `vertical-align: super`, which is exactly what lifts the + in the
+     reference — the template only resets `top` and the font metrics. */
+  .statistics-box .stat-num span,
+  .statistics-box .stat-num sup { font-size: inherit; line-height: inherit; font-weight: 800; }
+  @media (max-width: 991px) { .statistics-box .stat-num sup { font-size: 26px; line-height: 26px; } }
+  .statistics-box .span-text {
+    display: block; font-size: 16px; line-height: 29px; font-weight: 500; color: #fff;
+  }
+  @media (max-width: 991px) { .statistics-box .span-text { font-size: 14px; line-height: 24px; } }
+  @media (max-width: 575px) { .statistics-box .span-text { font-size: 13px; line-height: 19px; } }
+
+  @media (max-width: 1199px) {
+    .banner-img1 img { width: 320px; }
+    .plumber-img     { width: 390px; }
+    /* responsive.css:1507/1511 — the figure gets `flex-shrink: 0` and the IMG
+       becomes a fixed 140px. Both sizes live on the img, not the figure. */
+    .banner-img2     { flex: 0 0 auto; width: 140px; }
+    .banner-img2 img { width: 100%; aspect-ratio: 140 / 191; }
+    .dot-img img, img.dot-img { width: 34px; height: auto; }
+    /* responsive.css:1553 — the ring shrinks 80 -> 60 -> 40 across the steps. */
+    .scroll-down-arrow .grid { width: 40px; height: 40px; }
+    .scroll-down-arrow svg  { width: 10px; height: 10px; }
+  }
+
+  /* --------------------------------------------------------------------------
+     ≤991 — a block this build previously skipped almost entirely. The template
+     hides the oval, the dots, the navy box AND the scroll cue HERE, not at ≤767
+     (responsive.css:3130 .banner-img2{display:none}, :617 .scrol-outer, :621
+     .dot-img img, :662 .navy-box). It also re-sizes both photos, turns off the
+     lead's dash, drops the paragraph to 15px/26px with no indent, and shrinks
+     the button to 220x56.
+     Verified against the real template at BOTH 991 and 768: archImg 330x474 and
+     plumberImg 340x446 at each, and img2/navyBox/dotImg/scrol all 0x0 — so this
+     is one block, not two. Previously these fired at ≤767, which left the oval,
+     the Emergency card and the dots on screen through the whole 768-991 range.
+     -------------------------------------------------------------------------- */
+  @media (max-width: 991px) {
+    .banner-content-con { padding-top: 20px; }
+    /* `!important` is REQUIRED on these two: the markup carries `md:block` on
+       the oval and `flex` on the navy box, and Tailwind emits generated
+       utilities in a later cascade layer than bare rules written in this same
+       <style type="text/tailwindcss"> block. Without it the oval stayed visible
+       from 768-991 and the Emergency card overflowed the viewport (docW 773 vs
+       winW 768 at 768px). */
+    .banner-img2  { display: none !important; }
+    .navy-box     { display: none !important; }
+    .scrol-outer  { display: none; }
+    .dot-img      { display: none; }
+    .banner-img1     { text-align: right; }
+    .banner-img1 img { width: 330px; }
+    .plumber-img     { right: -20px; top: 50px; }
+    .plumber-img img { width: 340px; }
+    /* NOTE: the `.banner-lead` overrides for this width live further down, AFTER
+       the base + ≤1440 + ≤1199 `.banner-lead` rules — a bare rule here is
+       shadowed by them (same specificity, later source order wins). */
+    .rating-num { font-size: 36px; line-height: 36px; }
+  }
+
+  /* The hero columns are `col-lg-6 col-md-6` — they stay SIDE BY SIDE down to
+     768 and only collapse to one column at ≤767 (Bootstrap's md gate). Verified
+     against the real render: sameRow is true at 992/991/768, false at 767/576.
+     At ≤767 the template flips to a centred stack: `.banner-con{text-align:center}`,
+     oval hidden, scroll cue hidden, dots hidden, and the photo pair SHRINKS
+     (arch 260, plumber 300) so the absolutely-positioned plumber can no longer
+     overflow the column — which is the 768 bug in the tablet range, fixed here
+     by applying the template's own 767 rules rather than by clamping. */
+  @media (max-width: 767px) {
+    /* NOTE the `!important`. This whole block is Tailwind source
+       (`<style type="text/tailwindcss">`), so the browser build re-emits it and
+       places the generated UTILITIES in a later cascade layer than any bare rule
+       written here. `grid-cols-2` is such a utility, so a plain
+       `.hero-row { grid-template-columns: ... }` — at ANY selector specificity —
+       cannot override it. That was the bug: the row stayed two-up at 767/600/390
+       and the hero images got crushed to 111px. `!important` is the dependable
+       escape for beating a generated utility from the same source block.
+       (The same trap bit a stray `w-full` on the oval image earlier.) */
+    .hero-row { grid-template-columns: minmax(0, 1fr) !important; }
+    .hero-inner { text-align: center; }
+    .rating-con { justify-content: center; gap: 10px; margin-bottom: 13px; }
+    .rating-num { font-size: 32px; line-height: 32px; }
+    .banner-content-con { padding-top: 0; }
+    .hero-h1 { margin-bottom: 22px !important; }
+    .hero-row .banner-bottom { display: inline-block !important; }
+    .banner-img2 { display: none; }
+    .statistics-wrapper { margin-left: 0; margin-bottom: 25px; justify-content: center; }
+    /* The template does NOT shrink the figures at ≤767 — it makes BOTH figures
+       full-column `block`s with `text-align:center` and sizes only their inner
+       imgs (arch 260, plumber 300). Measured reference at 767: .banner-img1 and
+       .plumber-img are both 691.9 wide, with a 260/300 img centred inside.
+       Putting the width on the figure instead (the old approach) left the
+       absolutely-positioned plumber un-centred on mobile. */
+    .banner-img1 { display: block; width: auto; text-align: center; }
+    .banner-img1 img { width: 260px; }
+    .plumber-img { right: 0; left: 0; width: auto; text-align: center; }
+    .plumber-img img { width: 300px; }
+    .dot-img { display: none; }
+    .scrol-outer { display: none; }
+    .banner-img-con { text-align: center; }
+  }
+
+  /* ---------------------------------------------------------------------------
+     HERO: the base (>=1441) branch, which this file had been skipping entirely.
+     Everything in the hero had been written with the <=1440 numbers applied at
+     every width, so at the reference's 1920 canvas the hero came out 778px tall
+     against the reference's 924px — a 146px shortfall traced to exactly one
+     declaration: `.banner-con .primary_btn { margin-bottom: 143px }`
+     (style.css:1167-1170), which the <=1440 branch relaxes to 30px.
+     --------------------------------------------------------------------------- */
+
+  /* `.banner-content-con .banner-top { padding-left: 60px }` base, ZEROED at
+     <=1440 (responsive.css:716). */
+  .banner-top { padding-left: 60px; }
+  @media (max-width: 1440px) { .banner-top { padding-left: 0; } }
+
+  /* `.rating-text { font-size:42px; line-height:42px }` (style.css:1106), then
+     36px/36px at ≤991 and 32px/32px at ≤767.
+     `.rating-con { gap:14px; margin-bottom:23px }` (style.css:1116), then
+     `gap:12px; margin-bottom:13px` at ≤991 and `gap:10px; margin-bottom:13px`
+     at ≤767 — the 23 -> 13px drop is what keeps the hero from being 10px too
+     tall in the tablet range. */
+  .rating-con { gap: 14px; margin-bottom: 23px; }
+  @media (max-width: 991px) { .rating-con { gap: 12px; margin-bottom: 13px; } }
+  .rating-num { font-size: 42px; line-height: 42px; }
+
+  /* `.banner-content-con p` — 22px/29px with `padding-left:54px; margin-top:12px;
+     margin-bottom:39px` (style.css:1139-1146); then 18/27 pl30 mt5 mb25 at <=1440
+     (responsive.css:720); then 16/26 pl27 mb20 at <=1199 (:1515).
+     Its dash `::before` is 36px at base and 20px at <=1440.
+     NO `max-width`: the template never authors one. The paragraph's width is
+     whatever the flex row leaves it, and the two-line break is produced by a
+     HARD `<br>` in the markup (see the hero), not by wrapping. The `max-width:
+     459px` that used to sit here was the <=1440 measured line box applied at
+     1920 — it forced a third line and made the hero 29px too tall. */
+  .banner-lead {
+    font-size: 22px;
+    line-height: 29px;
+    padding-left: 54px;
+    margin-top: 12px;
+    margin-bottom: 39px;
+  }
+  .banner-lead::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 36px;
+    height: 3px;
+    background-color: var(--color-secondary, #fff);
+  }
+  @media (max-width: 1440px) {
+    .banner-lead { font-size: 18px; line-height: 27px; padding-left: 30px; margin-top: 5px; margin-bottom: 25px; }
+    .banner-lead::before { width: 20px; }
+    /* responsive.css:723 — `.banner-content-con p br { display: none }` */
+    .banner-lead br { display: none; }
+  }
+  @media (max-width: 1199px) {
+    .banner-lead { font-size: 16px; line-height: 26px; padding-left: 27px; margin-bottom: 20px; }
+  }
+  /* These two blocks MUST sit AFTER the rules above. Same specificity, so later
+     source order wins — a bare `.banner-lead` override placed earlier in this
+     stylesheet is silently shadowed by the base rule at line 524 and does
+     nothing. That bug left the paragraph at 16px/26px with a 27px indent at 768
+     instead of 15px/26px with none, which pushed it from two lines to three and
+     made the hero 31px too tall there. */
+  @media (max-width: 991px) {
+    .banner-lead { font-size: 15px; line-height: 26px; padding-left: 0; margin-top: 5px; margin-bottom: 15px; }
+    .banner-lead::before { display: none; }
+  }
+  @media (max-width: 767px) {
+    .banner-lead { font-size: 16px; line-height: 25px; text-align: center; margin: 5px 0 12px; }
+  }
+
+  /* `.banner-con .primary_btn { margin-left: 56px; margin-bottom: 143px }`
+     (style.css:1167). The 143px is the whole hero-height discrepancy.
+     <=1440 relaxes it to ml 20 / mb 30 (responsive.css:761), <=1199 to ml 0 /
+     mb 25 (:2580). */
+  .hero-cta { margin-left: 56px; margin-bottom: 143px; }
+  @media (max-width: 1440px) { .hero-cta { margin-left: 20px; margin-bottom: 30px; } }
+  @media (max-width: 1199px) { .hero-cta { margin-left: 0; margin-bottom: 25px; } }
+
+  /* .special-text (style.css:199) — the eyebrow. 16px / 24px, weight 600,
+     letter-spacing 1.5px, colour var(--primary--color) = #30c3eb, margin-bottom
+     7px, display inline-block. It cascades to 15px / 23px at <=767
+     (responsive.css:3728).
+     NOTE what is NOT here: there is no text-transform and no ::before dash. The
+     previous `.eyebrow` was uppercase, 12px, tracked .3em, #818cf8 and drew a
+     36px rule before the label — none of which exists upstream. 01_Home.jpg
+     agrees: the about eyebrow reads "About Us" in title case, cyan, no dash, and
+     the same cyan 16px row appears on the indigo slabs (sampled #30c4ec on the
+     service-area slab) — so the eyebrow stays cyan on dark bands too, not white. */
+  .eyebrow {
+    display: inline-block;
+    margin-bottom: 7px;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--color-sky);
+  }
+  @media (max-width: 767px) { .eyebrow { font-size: 15px; line-height: 23px; } }
+
+  /* .text-size-56 (style.css:108) — 56px / 64px, weight 800, colour
+     var(--black--color) = #000. The cascade below is quoted from responsive.css
+     (1440 -> 46/54, 1199 -> 40/48, 991 -> 34/40, 767 -> 30/36, 575 -> 24/32).
+     Verified against 01_Home.jpg: the about h2's two glyph rows measure 51px tall
+     on a 64px pitch — 0.91em of 56px, exactly the authored line-height — and its
+     ink samples #000000 over 13,245 px. The body copy beside it samples #696969,
+     which is the --text--color token now on --color-body. */
+  .h-section {
+    font-weight: 800;
+    letter-spacing: normal;
+    color: #000;
+    font-size: 56px;
+    line-height: 64px;
+  }
+  @media (max-width: 1440px) { .h-section { font-size: 46px; line-height: 54px; } }
+  @media (max-width: 1199px) { .h-section { font-size: 40px; line-height: 48px; } }
+  @media (max-width: 991px)  { .h-section { font-size: 34px; line-height: 40px; } }
+  @media (max-width: 767px)  { .h-section { font-size: 30px; line-height: 36px; } }
+  @media (max-width: 575px)  { .h-section { font-size: 24px; line-height: 32px; } }
+
+  /* Retained for the three bands whose vertical padding the template does not
+     declare (.why-choose-us, .client-reviews, .trusted-companies) — upstream
+     those get their rhythm from `.spacer` plus the content box, so a local pad is
+     closer to the reference than the flat 88px this file used on every band. */
+  .section-pad { @apply py-16 md:py-[88px]; }
+  .section-mist { @apply bg-mist; }
+
+  /* Cards */
+  .card {
+    @apply rounded-panel border border-line bg-white transition duration-300;
+  }
+  .card-hover:hover { transform: translateY(-8px); box-shadow: var(--shadow-lift); border-color: transparent; }
+
+  /* FAQ chevron */
+  .chev { @apply size-2.5 flex-none border-r-2 border-b-2 border-brand transition-transform duration-300; }
+  details[open] .chev { transform: rotate(225deg); }
+}
+
+/* ==========================================================================
+   FULL-PAGE LEGAL MODALS — Terms of Service / Privacy Policy
+   --------------------------------------------------------------------------
+   Same open/close vocabulary as the menu drawer (`#menu-panel` toggles `.open`,
+   its scrim toggles `.show`), so the site has one interaction idiom, not two.
+   Three deliberate differences from the drawer, each with a reason:
+
+   · The sheet is FULL PAGE — `height: 100%` of the viewport and the full width
+     on mobile, capped at 980px and centred from 768px up. The cap is what keeps
+     a clickable scrim on desktop; on mobile there is no scrim, so the sticky
+     close button and the closing button at the foot of the document carry the
+     "easy to close" requirement on their own.
+   · `visibility` is delayed by the same .3s as the fade, so the exit animates
+     instead of snapping. The drawer gets that for free from its transform; the
+     modal has to declare it.
+   · The header bar is a flex SIBLING of the scrolling body, not `position:
+     sticky`. Pinning it this way does not depend on scroll containment inside a
+     transformed ancestor, and the close button is reachable at any scroll depth.
+   ========================================================================== */
+@layer components {
+  .legal { position: fixed; inset: 0; z-index: 60; visibility: hidden; transition: visibility 0s linear .3s; }
+  .legal.open { visibility: visible; transition-delay: 0s; }
+  .legal-scrim {
+    position: absolute; inset: 0; background: rgba(9, 14, 33, .78);
+    opacity: 0; transition: opacity .3s;
+  }
+  .legal.open .legal-scrim { opacity: 1; }
+  .legal-sheet {
+    position: relative; margin-inline: auto;
+    display: flex; flex-direction: column;
+    height: 100%; width: 100%; max-width: 980px;
+    background: #fff; color: var(--color-body);
+    box-shadow: 0 24px 80px rgba(9, 14, 33, .35);
+    opacity: 0; transform: translateY(20px);
+    transition: opacity .3s, transform .35s cubic-bezier(.7, 0, .2, 1);
+  }
+  .legal.open .legal-sheet { opacity: 1; transform: none; }
+
+  .legal-bar {
+    flex: none; display: flex; align-items: center; gap: 14px;
+    padding: 12px clamp(16px, 3vw, 34px);
+    background: var(--color-topbar); color: #fff;
+    /* Without this the section heading that happens to be passing under the bar
+       sits flush against it and reads as a collision rather than a layer. */
+    box-shadow: 0 8px 20px -8px rgba(9, 14, 33, .45);
+    z-index: 1;
+  }
+  .legal-kicker {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--color-sky-soft);
+  }
+  .legal-title { margin-top: 3px; font-size: 17px; font-weight: 700; line-height: 1.2; color: #fff; }
+  .legal-x {
+    margin-left: auto; flex: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 10px;
+    background: rgba(255, 255, 255, .12); color: #fff;
+    font-size: 18px; line-height: 1; cursor: pointer;
+    transition: background .2s, color .2s;
+  }
+  .legal-x:hover { background: var(--color-sky); color: var(--color-topbar); }
+  .legal-x:focus-visible { outline: 2px solid var(--color-sky); outline-offset: 2px; }
+
+  .legal-body {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: clamp(22px, 4vw, 46px) clamp(16px, 3vw, 34px) 0;
+  }
+  .legal-meta {
+    font-size: 12.5px; font-weight: 600; letter-spacing: .01em;
+    color: var(--color-body);
+  }
+  .legal-note {
+    margin-top: 16px; padding: 14px 16px; border-radius: 10px;
+    background: var(--color-mist); border: 1px solid var(--color-line);
+    font-size: 13px; line-height: 21px;
+  }
+  .legal-note strong { color: var(--color-ink); font-weight: 700; }
+  .legal-body h3 {
+    margin-top: 34px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-line);
+    font-size: 17px; font-weight: 700; line-height: 1.3; color: var(--color-ink);
+  }
+  .legal-body h3:first-of-type { margin-top: 30px; }
+  .legal-body p { margin-top: 12px; font-size: 14.5px; line-height: 25px; }
+  .legal-body ul { margin-top: 12px; padding-left: 20px; list-style: disc; }
+  .legal-body li { margin-top: 7px; font-size: 14.5px; line-height: 25px; }
+  .legal-body strong { color: var(--color-ink); font-weight: 700; }
+  .legal-body a { color: var(--color-brand); font-weight: 600; }
+  .legal-body a:hover { text-decoration: underline; }
+
+  .legal-foot {
+    margin-top: 38px; padding: 22px 0 40px;
+    border-top: 1px solid var(--color-line);
+    display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
+  }
+  .legal-close {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 46px; padding: 0 26px; border-radius: 10px;
+    background: var(--color-ink-2); color: #fff;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: background .2s;
+  }
+  .legal-close:hover { background: var(--color-brand); }
+  .legal-close:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+  .legal-foot p { margin: 0; font-size: 13px; }
+
+  /* The footer's two legal triggers sit in a dark slab, so they read as links
+     without pretending to be anchors — they are buttons that open a dialog,
+     which is also the correct thing for a screen reader to announce. */
+  .legal-link {
+    font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, .82);
+    text-decoration: underline; text-decoration-color: rgba(255, 255, 255, .28);
+    text-underline-offset: 4px; cursor: pointer; transition: color .2s;
+  }
+  .legal-link:hover { color: var(--color-sky); }
+  .legal-link:focus-visible { outline: 2px solid var(--color-sky); outline-offset: 3px; border-radius: 3px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .legal, .legal-scrim, .legal-sheet { transition: none; }
+    .legal-sheet { opacity: 1; transform: none; }
+  }
+}
+
+/* ---- Utilities ---- */
+@utility arrow-45 { transform: rotate(45deg); }
+
+/* ---- Reveal on scroll ---- */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+.reveal.visible { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  html { scroll-behavior: auto; }
+}
+
+  </style>
+</head>
+<body class="bg-white">
+
+<!-- ======================= TOP UTILITY BAR ======================= -->
+  <!-- The template's chain is
+       `.padding-rl > .home-outer-wrapper.main-box > .topbar-con.main-box >
+        .main-container > .top-bar-inner-content.br-40.bg-accent`
+       so the dark bar is capped by `.main-container` (1417px), NOT by the slab.
+       01_Home.jpg confirms it exactly: the bar's dark run at y=0 is x 252..1666
+       = 1415 wide, i.e. 1417 centred in the 1820 slab. It is 43px tall (dark at
+       x=960 for y 0..42) and starts flush at y=0 with no top inset.
+       Corners: `.top-bar-inner-content` is `br-40` PLUS an explicit
+       `border-top-left-radius: 0; border-top-right-radius: 0` (style.css:433-437).
+       Zeroing the top radii is what stops CSS's adjacent-corner rule from
+       clamping the authored radius (0 + r < the 43px height), so the bottom arc
+       renders at its full value while the top corners stay square. The shape is
+       kept in v2; only the value moves, 40px -> 12px (see `.pill-topbar`).
+
+       CONTENT — v2 brief, 2026-09-18: "make the top ribbon text/content match
+       v1". Sourced verbatim from call-indigo.com's own bundle
+       (ci_0lso0f523lp39.js, the `header` component), which renders:
+         left  : clock icon + "Residential & commercial services"
+                 pin   icon + site.serviceArea = "Hays, Travis, and Williamson counties"
+         right : "Est. {establishedYear} · {legalName}"
+                 = "Est. 2012 · Indigo Home & Facility Services"
+       This replaces the previous v2-only copy ("Open 24/7 • Emergency Service",
+       the street address, and "License: RMP: 45574"). Two deliberate
+       departures from v1's markup: the 1px divider between the two left items
+       is dropped, because v1's ribbon has no divider (its left group is just
+       `flex gap-4 md:gap-6`); and the icons stay `text-sky` rather than v1's
+       `#818cf8`, because this file's palette is the v2 blue/cyan one.
+       NOTE the address and licence number now appear only in the footer. -->
+  <div class="pad-rl">
+    <!-- The BAR is the background layer and spans the full card width, exactly
+         like every `.slab` below it. The `.shell` inside is the text layer.
+         Previously the bar sat inside the `.shell`, so the bar ITSELF was
+         capped at 1417px: measured at 1920 the bar ran x 251.5..1668.5 while the
+         hero slab ran x 50..1870 — 201.5px narrower per side, which is the
+         defect this fixes. Its text was inset a further `pl-[47px] pr-[43px]`
+         from its own edge, landing 47px right of the header brand.
+         Now: bar edge = card edge, and `.mbox` puts the text on `--inset`, the
+         same line as the brand and every section heading. -->
+    <div class="pill-topbar mbox bg-topbar text-[13px] text-slate-200 max-md:text-[12px]">
+      <div class="shell flex h-[43px] items-center justify-between gap-4 max-md:h-auto max-md:flex-wrap max-md:gap-2.5 max-md:py-2.5">
+        <div class="flex flex-wrap items-center gap-4 max-md:gap-2.5">
+          <span class="inline-flex items-center gap-2 font-semibold text-white">
+            <svg class="size-4 text-sky" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            Residential &amp; commercial services
+          </span>
+          <span class="inline-flex items-center gap-2 font-semibold text-white">
+            <svg class="size-4 text-sky" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+            Hays, Travis, and Williamson counties
+          </span>
+        </div>
+        <div class="flex items-center gap-2.5 max-md:hidden">
+          <span>Est. 2012 · Indigo Home &amp; Facility Services</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= HEADER ======================= -->
+  <!-- `.header-con { padding: 25px 0; background:#fff }` (style.css:510) with an
+       18px override at ≤1440. It is a `main-box br-20` card nested inside a
+       `.main-container`, which is why the reference's header content lands at
+       1355.3 @ x42.3 at 1440 and 1417 at 1920.
+       NOTE the header is kept as a BODY-LEVEL sticky element rather than being
+       nested inside the outer card as the template does: `position: sticky` only
+       survives for as long as its parent's box, and the template's outer card
+       ends at the hero. The `pad-rl / mbox / shell / header-card mbox` chain
+       below reproduces the same width cascade without that limitation. -->
+  <header id="top" class="pad-rl sticky top-0 z-40 bg-white/95 py-[25px] shadow-none backdrop-blur transition-shadow max-md:py-[14px] [&.is-scrolled]:shadow-[0_10px_30px_rgba(13,21,49,.08)]">
+    <!-- The header card is the background layer (full card width) and the
+         `.shell` inside is the text layer, so the brand lands on the same line
+         as the ribbon text and every section heading.
+         The extra `.mbox` wrapper this replaces double-charged the inset: the
+         chain was `.pad-rl > .mbox > .shell > .header-card.mbox`, i.e. the card
+         edge at 42.6 while the hero slab's edge was at 28.8 (1440), and at 1920
+         the brand sat at x 265.7 against the section text's 251.5. -->
+    <div class="header-card mbox">
+      <div class="shell flex h-[56px] items-center max-md:h-[56px]">
+      <!-- Brand. Reference cap height measured off 01_Home.jpg = 17px (VALVORO
+           wordmark, src y 88..104), i.e. ~23.4px of Inter at cap-ratio 0.727,
+           vs 16px for the 22px size that shipped. Bumped only at `xl` (>=1280):
+           the header row has ~238px of slack there, but only ~24px at 1024, so
+           anything below xl would push the CTA out of the row. -->
+      <a href="#top" class="flex shrink-0 items-center gap-2">
+        <img src="assets/images/call-indigo-mark.svg" alt="Call Indigo logo" class="h-[26px] w-auto max-md:h-[24px] xl:h-[28px]">
+        <span class="font-sans text-[22px] font-extrabold leading-none tracking-[-.045em] text-[#081f3f] max-md:text-[19px] xl:text-[24px]">Call Indigo</span>
+      </a>
+
+      <!-- Desktop horizontal nav (reference shows a full menu, not a burger).
+           Breakpoint is md (768), NOT lg (1024): the reference shows the full
+           menu at every desktop width, so an lg gate would collapse it to a
+           burger on a 960px laptop.
+           ITEMS — v2 brief, 2026-09-18: exactly four, Home / Residential /
+           Commercial / Contact. The v1 build (call-indigo.com,
+           ci_0lso0f523lp39.js `homePage.navigation`) carries seven: Home,
+           Residential, Commercial, About, Services, Contact and a
+           "Call for a Consultation" tel: entry. About / Services / Pricing are
+           dropped from the v2 top level. The template's dropdown carets go with
+           them — none of the four has children.
+           ANCHORS: Residential and Commercial are REAL PAGES in this build —
+           residential.html and commercial.html, each reproducing the
+           corresponding call-indigo.com route's copy verbatim in the v2 design
+           system. They are the only two sub-pages; Contact still resolves to the
+           home page's #contact band, because v1's /forms/contact is a form route
+           with no equivalent here.
+           The `aria-current="page"` attribute marks the active item; each page
+           moves it to its own entry (see the nav block in residential.html /
+           commercial.html).
+           Type and pill are quoted from style.css: `.header-con .nav-link` is
+           `font-size:15px; color:var(--black--color); font-weight:500`, and the
+           `.active` pill is `background:var(--primary--color); padding:0 15px;
+           border-radius:15.5px`. 01_Home.jpg agrees — the Home pill measures 42px
+           tall and the nav's ink rows sit at y 89..104. The 12.5px → 14px bump
+           from the previous pass is kept and raised to the template's 15px, gated
+           at `xl` because the row only has room for it there.
+           RADIUS: the pill is no longer the template's 15.5px stadium. v2 drops
+           the fully-round corner language globally (see the --radius-* tokens),
+           so a 42px-tall item gets an 8px radius. -->
+      <!-- `.navbar-nav { gap: 52px }` upstream. The four-item row measures ~330px
+           of content rather than the template's ~1004px, so the gap ladder no
+           longer governs whether the row fits; it is left in place to keep the
+           template's rhythm, and the phone block below is `ml-auto`. -->
+      <nav class="ml-[38px] hidden items-center gap-[22px] whitespace-nowrap md:flex md:gap-[16px] lg:ml-[84px] lg:gap-[22px] xl:gap-[34px] 2xl:gap-[52px] max-md:ml-0" aria-label="Main">
+        <a href="index.html" class="text-[12.5px] font-semibold text-ink hover:text-brand xl:text-[15px]">Home</a>
+        <a href="residential.html" class="inline-flex h-[42px] items-center rounded-[8px] bg-sky px-[15px] text-[12.5px] font-semibold leading-none text-white xl:text-[15px]" aria-current="page">Residential</a>
+        <a href="commercial.html" class="text-[12.5px] font-semibold text-ink hover:text-brand xl:text-[15px]">Commercial</a>
+        <a href="index.html#contact" class="text-[12.5px] font-semibold text-ink hover:text-brand xl:text-[15px]">Contact</a>
+      </nav>
+
+      <!-- Phone: the number text is dropped in the md–lg band so the nav + CTA
+           both fit at the reference's 960 canvas; the icon stays tappable. -->
+      <a href="tel:+15126084999" class="ml-auto inline-flex shrink-0 items-center gap-[7px] whitespace-nowrap text-[16.5px] font-bold tracking-[-.01em] text-[#081f3f] max-md:[&>span]:hidden md:[&>span]:hidden lg:[&>span]:inline">
+        <img src="assets/images/call-icon.png" alt="" class="size-[22px] object-contain">
+        <span>(512) 608-4999</span>
+      </a>
+      <!-- CTA: only shown when the full nav + phone also fit (lg and up). At md–lg
+           the nav is present but the pill is dropped, so the row cannot overflow.
+           Sized from the reference: the cyan pill measures 216 x 54 at x1452,
+           against the 27px-tall one this file shipped. -->
+      <a href="index.html#contact" class="ml-[18px] hidden shrink-0 items-center gap-[7px] whitespace-nowrap rounded-[10px] bg-sky py-[4px] pl-[15px] pr-[4px] text-[12.5px] font-semibold leading-none text-white transition hover:bg-sky-soft lg:inline-flex max-lg:hidden xl:h-[54px] xl:min-w-[216px] xl:justify-center xl:gap-[7px] xl:pl-[26px] xl:pr-[6px] xl:text-[16px] xl:font-bold">
+        <span>Schedule Online</span>
+        <span class="grid size-[19px] shrink-0 place-items-center rounded-full bg-white text-ink xl:size-[42px]">
+          <svg viewBox="0 0 24 24" class="size-[11px] xl:size-[14px]" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+        </span>
+      </a>
+      <button id="burger" aria-label="Open menu" aria-expanded="false"
+        class="group ml-auto hidden flex-col items-end gap-1.5 p-2 max-md:flex">
+        <span class="block h-[3px] w-8 rounded bg-ink transition group-aria-expanded:translate-y-[9px] group-aria-expanded:rotate-45"></span>
+        <span class="block h-[3px] w-8 rounded bg-ink transition group-aria-expanded:opacity-0"></span>
+        <span class="block h-[3px] w-8 rounded bg-ink transition group-aria-expanded:-translate-y-[9px] group-aria-expanded:-rotate-45"></span>
+      </button>
+      </div>
+    </div>
+  </header>
+<!-- ======================= MENU DRAWER ======================= -->
+  <nav id="menu-panel" aria-hidden="true"
+    class="fixed inset-y-0 right-0 z-50 flex w-[min(380px,88vw)] translate-x-[105%] flex-col overflow-y-auto bg-ink px-8 pb-10 pt-7 text-white transition-transform duration-[400ms] ease-[cubic-bezier(.7,0,.2,1)] [&.open]:translate-x-0">
+    <div class="mb-6 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <img src="assets/images/call-indigo-mark-dark.svg" alt="Call Indigo logo" class="size-11 w-auto">
+        <span class="font-sans text-[22px] font-bold leading-none tracking-[-.02em] text-white">Call Indigo</span>
+      </div>
+      <button id="menu-close" aria-label="Close menu" class="text-2xl leading-none text-white">✕</button>
+    </div>
+<a href="index.html" class="border-b border-white/10 py-3 text-[22px] font-semibold hover:pl-2 hover:text-sky">Home</a>
+    <a href="residential.html" class="border-b border-white/10 py-3 text-[22px] font-semibold hover:pl-2 hover:text-sky text-sky" aria-current="page">Residential</a>
+    <a href="commercial.html" class="border-b border-white/10 py-3 text-[22px] font-semibold hover:pl-2 hover:text-sky">Commercial</a>
+    <a href="index.html#contact" class="border-b border-white/10 py-3 text-[22px] font-semibold hover:pl-2 hover:text-sky">Contact</a>
+    <a href="tel:+15126084999" class="mt-6 inline-flex items-center gap-3 font-bold text-sky">
+      <img src="assets/images/call-icon.png" alt="" class="size-5 object-contain"> (512) 608-4999
+    </a>
+  </nav>
+  <div id="menu-backdrop" class="pointer-events-none fixed inset-0 z-40 bg-[rgba(9,14,33,.6)] opacity-0 transition-opacity duration-300 [&.show]:pointer-events-auto [&.show]:opacity-100"></div>
+
+  <!-- ======================= HERO CARD
+  <!-- ======================= HERO ======================= -->
+  <!-- v1 /residential hero, copy verbatim (bundle `residentialHero`). The four
+       proof chips are its `proof[]` array; the white badge reproduces the one
+       overlapping v1's hero photo. -->
+  <div class="pad-rl">
+    <section class="mbox slab slab-photo scrim-hero relative bg-brand pad-140">
+      <img src="assets/images/banner-bg-img.jpg" alt="" aria-hidden="true"
+        class="pointer-events-none absolute inset-0 z-0 size-full object-cover">
+      <div class="slab-body shell">
+        <div class="grid items-center gap-12 lg:grid-cols-[1.02fr_.98fr] lg:gap-[70px]">
+          <div class="text-white">
+            <div class="mb-6 flex flex-wrap gap-2.5">
+              <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">Headquartered: Austin, TX</span> <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">Established: 2012</span> <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">Family owned, Locally operated</span> <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">Local Service Area: Hays, Travis, and Williamson counties (Austin, Buda, Kyle, San Marcos)</span>
+            </div>
+            <h1 class="text-[clamp(38px,4.6vw,64px)] font-extrabold leading-[1.04] tracking-[-.02em]">Love Your Home Forever.</h1>
+            <p class="mt-6 max-w-[580px] text-[17px] leading-[28px] text-white/85">Hire our locally licensed and insured home services crews. And join our membership to achieve peace of mind with all things related to your home.</p>
+            <div class="mt-8 flex flex-wrap items-center gap-4">
+              <a href="index.html#contact" class="pill pill-lg">
+                <span>Book an Appointment</span>
+                <span class="pill-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
+              </a>
+              <a href="commercial.html" class="pill pill-lg pill-navy">
+                <span>Commercial</span>
+                <span class="pill-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
+              </a>
+            </div>
+            <a href="tel:+15126084999" class="mt-7 inline-block text-[12.5px] font-bold uppercase tracking-[0.16em] text-white/80">Call for a Consultation: (512) 608-4999</a>
+          </div>
+          <div class="relative">
+            <img src="assets/images/repair-img1.jpg" alt="Call Indigo home services crew on a residential job"
+              class="h-[320px] w-full rounded-[18px] border-[3px] border-white/25 object-cover md:h-[400px] lg:h-[470px]">
+            <div class="absolute bottom-5 left-5 max-w-[300px] rounded-[14px] bg-white p-5 shadow-drop">
+              <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-body">Serving Hays, Travis, and Williamson counties</p>
+              <a href="tel:+15126084999" class="mt-1.5 block text-[22px] font-extrabold tracking-[-.02em] text-ink">(512) 608-4999</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="spacer"></div>
+
+  <!-- ======================= VALUE PROP ======================= -->
+  <section class="band pad-140">
+    <div class="shell">
+      <div class="reveal mx-auto mb-12 max-w-[780px] text-center">
+        <span class="eyebrow eyebrow-brand">Residential Services</span>
+        <h2 class="h-section">Love your residence forever with our Indigo Home Management membership.</h2>
+        <p class="mt-4">Our local crews provide all home services so your family can achieve peace of mind with everything related to your home.</p>
+      </div>
+      <div class="grid gap-7 lg:grid-cols-2">
+        <article class="reveal rounded-panel bg-topbar p-8 text-white md:p-10">
+          <span class="eyebrow">Membership</span>
+          <h3 class="text-[26px] font-bold leading-tight">Indigo Home Management</h3>
+          <p class="mt-4 text-[15px] leading-[26px] text-white/75">All new customers are given a free inspection of their entire address to identify all options to maximize property value over time. Our mission is to give our customers peace of mind throughout the continuum of owning, leasing, renting, buying, or selling the address. Our homes membership also involves our turn-key STR and LTR services to increase rental income for property owners. Please inquire to learn more.</p>
+          <a href="index.html#contact" class="pill mt-7">
+            <span>Book an Inspection</span>
+            <span class="pill-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
+          </a>
+        </article>
+        <article class="reveal rounded-panel bg-mist p-8 md:p-10">
+          <span class="eyebrow eyebrow-brand">Licensed &amp; Insured</span>
+          <h3 class="text-[26px] font-bold leading-tight text-ink">Indigo Home Services</h3>
+          <p class="mt-4 text-[15px] leading-[26px]">Locally licensed and insured home services including plumbing, electrical, HVAC, carpentry, make-readies, painting, flooring, landscaping, remodeling, construction, handyman services, repairs, and more. We offer discounted rates for all of our services to senior citizens, military, and members.</p>
+          <a href="commercial.html" class="mt-7 inline-block text-sm font-bold text-brand">Explore commercial services &rarr;</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="spacer"></div>
+
+  <!-- ======================= SERVICES GRID ======================= -->
+  <!-- Identical markup to index.html#services — v1 ships the same
+       `residentialServicesGrid` object on both routes. -->
+<section id="services" class="band pad-140">
+    <div class="shell">
+      <div class="reveal mb-12 max-w-[660px]">
+        <span class="eyebrow eyebrow-brand">Our Services</span>
+        <h2 class="h-section">Full-service home &amp; property support</h2>
+        <p class="mt-4">Licensed and insured services for Hays, Travis, and Williamson counties. One call covers plumbing, electrical, HVAC, carpentry, painting, and more.</p>
+      </div>
+      <div class="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
+        <article class="card card-hover reveal relative overflow-visible">
+          <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="assets/images/services-img1.jpg" alt="Plumbing services" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
+          <img src="assets/images/services-icon1.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Plumbing</h3>
+          <p class="px-6 text-[14.5px]">Emergency plumbing, water heaters, leak detection, sinks, faucets, toilets, gas lines, and more.</p>
+          <span class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand">Learn more →</span>
+        </article>
+        <article class="card card-hover reveal relative overflow-visible">
+          <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="assets/images/services-img2.jpg" alt="Electrical services" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
+          <img src="assets/images/services-icon2.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Electrical</h3>
+          <p class="px-6 text-[14.5px]">Residential and commercial electrical, wiring, lighting, ceiling fans, exhaust fans, and panel work.</p>
+          <span class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand">Learn more →</span>
+        </article>
+        <article class="card card-hover reveal relative overflow-visible">
+          <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="assets/images/services-img3.jpg" alt="HVAC services" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
+          <img src="assets/images/services-icon3.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">HVAC</h3>
+          <p class="px-6 text-[14.5px]">Heating, ventilation, and air conditioning installation, repair, and maintenance for homes and properties.</p>
+          <span class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand">Learn more →</span>
+        </article>
+        <article class="card card-hover reveal relative overflow-visible">
+          <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="assets/images/services-img4.jpg" alt="Carpentry and remodeling" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
+          <img src="assets/images/services-icon4.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Carpentry &amp; Remodeling</h3>
+          <p class="px-6 text-[14.5px]">Doors, decks, fences, drywall, siding, flooring, full remodeling, and construction projects.</p>
+          <span class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand">Learn more →</span>
+        </article>
+        <article class="card card-hover reveal relative overflow-visible">
+          <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="assets/images/services-img5.jpg" alt="Painting and make-readies" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
+          <img src="assets/images/services-icon5.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Painting &amp; Make-Readies</h3>
+          <p class="px-6 text-[14.5px]">Interior and exterior painting, make-ready services for rentals, and property turnover coordination.</p>
+          <span class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand">Learn more →</span>
+        </article>
+        <article class="card card-hover reveal relative overflow-visible">
+          <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="assets/images/services-img6.jpg" alt="Handyman and repairs" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
+          <img src="assets/images/services-icon6.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Handyman &amp; Repairs</h3>
+          <p class="px-6 text-[14.5px]">General repairs, handyman services, landscaping, and ongoing property maintenance.</p>
+          <span class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand">Learn more →</span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="spacer"></div>
+
+  <!-- ======================= BENEFITS ======================= -->
+  <div class="pad-rl">
+    <section class="mbox slab bg-mist pad-140">
+    <div class="shell grid grid-cols-[1.05fr_.95fr] items-center gap-[70px] max-lg:grid-cols-1 max-lg:gap-11">
+      <div class="reveal">
+        <span class="eyebrow eyebrow-brand">Why Call Indigo</span>
+        <h2 class="h-section">All new customers receive a free inspection</h2>
+        <p class="mt-4">A complete inspection of your entire address to identify all options to maximize property value over time.</p>
+        <div class="mt-7 grid gap-6">
+          <div class="reveal flex gap-4.5">
+            <img src="assets/images/choose-icon1.png" alt="" class="size-[54px] shrink-0 object-contain">
+            <div><strong class="text-lg font-bold text-ink">Free property inspection</strong><p class="mt-1 text-sm">Every new customer receives a free inspection of their entire address to identify all options to maximize property value over time.</p></div>
+          </div>
+          <div class="reveal flex gap-4.5">
+            <img src="assets/images/choose-icon2.png" alt="" class="size-[54px] shrink-0 object-contain">
+            <div><strong class="text-lg font-bold text-ink">Discounted rates</strong><p class="mt-1 text-sm">We offer discounted rates for all of our services to senior citizens, military, and members.</p></div>
+          </div>
+          <div class="reveal flex gap-4.5">
+            <img src="assets/images/choose-icon3.png" alt="" class="size-[54px] shrink-0 object-contain">
+            <div><strong class="text-lg font-bold text-ink">One call, any service</strong><p class="mt-1 text-sm">From plumbing to remodeling — one phone call covers every service your home or property needs.</p></div>
+          </div>
+          <div class="reveal flex gap-4.5">
+            <img src="assets/images/choose-icon4.png" alt="" class="size-[54px] shrink-0 object-contain">
+            <div><strong class="text-lg font-bold text-ink">Local &amp; trusted</strong><p class="mt-1 text-sm">Headquartered in Austin, TX. Family owned and locally operated since 2012. Licensed, bonded, and insured.</p></div>
+          </div>
+        </div>
+        <a href="index.html#contact" class="pill mt-8">
+          <span>Schedule Inspection</span>
+          <span class="pill-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
+        </a>
+      </div>
+      <div class="reveal">
+        <img src="assets/images/choose-img1.jpg" alt="Call Indigo technician inspecting a property" class="rounded-panel shadow-lift">
+      </div>
+    </div>
+    </section>
+  </div>
+
+  <div class="spacer"></div>
+
+  <!-- ======================= FINAL CTA ======================= -->
+  <div class="pad-rl">
+    <section class="mbox slab slab-photo scrim-blue bg-img-cta pad-30 relative bg-brand">
+    <div class="slab-body shell">
+      <div class="grid items-center gap-10 lg:grid-cols-[.92fr_1.08fr] lg:gap-[100px]">
+        <div class="relative">
+          <img src="assets/images/cta-img.jpg" alt="Call Indigo technician on an emergency call" class="w-full rounded-[18px] object-cover">
+          <img src="assets/images/logo-vector.png" alt="" aria-hidden="true" class="absolute -right-7 top-1/2 hidden w-[110px] -translate-y-1/2 lg:block">
+        </div>
+        <div>
+          <span class="eyebrow">Contact</span>
+          <h2 class="h-section text-white">Call Indigo for the address that needs attention</h2>
+          <p class="mt-4 max-w-[520px] text-[#dfe7fb]">Tell us what kind of property you have and what needs to be repaired, scoped, or coordinated.</p>
+          <div class="mt-7 flex flex-wrap items-center gap-5">
+            <a href="tel:+15126084999" class="pill pill-lg">
+              <span>Call (512) 608-4999</span>
+              <span class="pill-circle"><img src="assets/images/call-icon.png" alt=""></span>
+            </a>
+            <a href="index.html#contact" class="pill pill-lg pill-navy">
+                <span>Book an Appointment</span>
+                <span class="pill-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
+              </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    </section>
+  </div>
+  <div class="spacer"></div>
+
+<!-- ======================= FOOTER ======================= -->
+  <!-- Restructured 2026-09-18 to follow v1's own footer shape
+       (`call-indigo-com/index.html:353-395` + `call-indigo-com/css/styles.css`):
+
+         .footer        bg = the dark accent, `border-top: 1px solid rgba(255,255,255,.05)`
+         .footer-grid   1 column, then `2fr 1fr 1fr 1.5fr` from the lg query
+         .footer-brand  logo + one short paragraph, `max-width: 320px`
+         .footer-links  "Services" then "Company" — two separate <ul>s
+         .footer-contact address + service area + the phone as the accent link
+         .footer-bottom `border-top` INSIDE `.container`, flex row space-between
+
+       v2 keeps the slab it already had (v1's `.footer-con.main-box.bg-accent` ->
+       `.mbox.slab.bg-ink-2`, style.css:1474/828) and keeps the two things v1 has no
+       room for: the licence line and the trust badges.
+
+       Three real changes, not cosmetics:
+         · The old "Navigation" column is gone. It listed Services / About Us / How
+           It Works / FAQ / Membership and — unlike the header nav — never linked
+           Residential or Commercial at all. It is split into the two columns v1
+           actually ships, and the full site map now appears in "Company".
+         · "Contact Info" and "Service Area" were two columns for one job. Merged
+           into "Contact", which is how v1 groups the same facts.
+         · The bottom bar's divider moved INSIDE `.shell`. It used to span the whole
+           slab, so the rule ran 100px past the text it was separating; v1 puts
+           `.footer-bottom` inside `.container` for exactly this reason. -->
+  <div class="pad-rl">
+    <footer class="mbox slab bg-ink-2 text-[14.5px] text-[#aebdd2]">
+    <div class="shell grid gap-8 pb-[46px] pt-[52px] md:grid-cols-2 md:gap-10 md:pb-[74px] md:pt-[80px] lg:grid-cols-[2fr_1fr_1fr_1.5fr] lg:gap-[54px]">
+      <div>
+        <div class="mb-4 flex items-center gap-2.5">
+          <img src="assets/images/call-indigo-mark-dark.svg" alt="Call Indigo logo" class="size-12 w-auto">
+          <span class="font-sans text-[23px] font-bold leading-none tracking-[-.02em] text-white">Call Indigo</span>
+        </div>
+        <p>Licensed, bonded and insured home and facility services. One call covers plumbing, electrical, HVAC, carpentry, painting, and more — done right the first time.</p>
+        <p class="mt-3 text-[13px] text-white/60">Indigo Home &amp; Facility Services<br>License: RMP: 45574</p>
+        <div class="mt-4 flex gap-3">
+          <img src="assets/images/trust-icon1.png" alt="" class="size-11 object-contain">
+          <img src="assets/images/trust-icon2.png" alt="" class="size-11 object-contain">
+        </div>
+      </div>
+      <div>
+        <h2 class="mb-4 text-lg font-bold text-white">Services</h2>
+        <a href="index.html#services" class="block py-1 hover:text-sky">Plumbing</a>
+        <a href="index.html#services" class="block py-1 hover:text-sky">Electrical</a>
+        <a href="index.html#services" class="block py-1 hover:text-sky">HVAC</a>
+        <a href="index.html#services" class="block py-1 hover:text-sky">Carpentry &amp; Remodeling</a>
+        <a href="index.html#services" class="block py-1 hover:text-sky">Painting &amp; Make-Readies</a>
+        <a href="index.html#services" class="block py-1 hover:text-sky">Handyman &amp; Repairs</a>
+      </div>
+      <div>
+        <h2 class="mb-4 text-lg font-bold text-white">Company</h2>
+        <a href="index.html#top" class="block py-1 hover:text-sky">Home</a>
+        <a href="index.html#about" class="block py-1 hover:text-sky">About Us</a>
+        <a href="residential.html" class="block py-1 hover:text-sky">Residential</a>
+        <a href="commercial.html" class="block py-1 hover:text-sky">Commercial</a>
+        <a href="index.html#process" class="block py-1 hover:text-sky">How It Works</a>
+        <a href="index.html#faq" class="block py-1 hover:text-sky">FAQ</a>
+        <a href="index.html#estimate" class="block py-1 hover:text-sky">Membership</a>
+      </div>
+      <div>
+        <h2 class="mb-4 text-lg font-bold text-white">Contact</h2>
+        <a href="tel:+15126084999" class="block py-1 font-bold text-sky-soft hover:text-sky">(512) 608-4999</a>
+        <a href="mailto:support@call-indigo.com" class="block py-1 hover:text-sky">support@call-indigo.com</a>
+        <span class="block py-1">1005 Meredith Drive<br>Austin, TX 78748</span>
+        <span class="block py-1">Serving Hays, Travis &amp; Williamson counties</span>
+        <span class="block py-1 text-white/60">Service area: Austin · Buda · Kyle · San Marcos</span>
+      </div>
+    </div>
+    <div class="shell">
+      <div class="flex flex-col items-center gap-3 border-t border-white/10 py-5 text-center text-[13px] lg:flex-row lg:justify-between lg:text-left">
+        <p>© <span id="year"></span> Call Indigo LLC — prototype reconstruction for demo purposes.</p>
+        <div class="flex flex-col items-center gap-2.5 md:flex-row md:flex-wrap md:justify-center md:gap-x-5 md:gap-y-2">
+          <span class="text-white/60">Licensed, bonded, and insured.</span>
+          <button type="button" class="legal-link" data-legal="terms">Terms of Service</button>
+          <button type="button" class="legal-link" data-legal="privacy">Privacy Policy</button>
+        </div>
+      </div>
+    </div>
+    </footer>
+  </div>
+
+  <!-- ======================= LEGAL MODALS ======================= -->
+  <!-- Full-page dialogs, opened by the two `.legal-link` buttons in the footer
+       bar above. Deliberately BUTTONS and not `<a href="index.html#terms">`: a control that
+       opens a dialog is a button, and an anchor here would also have to be
+       rewritten to `index.html#terms` by gen_pages.py — which would send a
+       residential.html reader to the home page instead of opening the dialog on
+       the page they are already on. `js/main.js` still honours a `#terms` /
+       `#privacy` hash on load, so the deep links remain shareable.
+       Everything outside `.legal-body` closes: the scrim, the ✕ in the pinned
+       bar, the button at the foot of the document, and Escape. -->
+  <div id="legal-terms" class="legal" data-legal-modal role="dialog" aria-modal="true"
+    aria-labelledby="legal-terms-title" aria-hidden="true">
+    <div class="legal-scrim" data-legal-close></div>
+    <div class="legal-sheet">
+      <header class="legal-bar">
+        <div class="min-w-0">
+          <p class="legal-kicker">Call Indigo LLC · Austin, TX</p>
+          <h2 id="legal-terms-title" class="legal-title">Terms of Service</h2>
+        </div>
+        <button type="button" class="legal-x" data-legal-x data-legal-close aria-label="Close Terms of Service">✕</button>
+      </header>
+      <div class="legal-body">
+        <p class="legal-meta">Effective September 18, 2026 · Last updated September 18, 2026</p>
+        <p class="legal-note"><strong>Sample language.</strong> This text is placeholder copy written to
+          show the layout of a standard service-company agreement. It is not legal advice and has not been
+          reviewed by counsel. Replace it before this site is published.</p>
+
+        <h3>1. Agreement to These Terms</h3>
+        <p>These Terms of Service govern your access to this website and your use of the home and facility
+          services offered by Call Indigo LLC ("Call Indigo," "we," "us," or "our"). By requesting an
+          estimate, scheduling work, or using this site, you agree to these terms. If you do not agree,
+          please do not use the site or our services.</p>
+
+        <h3>2. Services We Provide</h3>
+        <p>Call Indigo provides residential and commercial property services, including plumbing,
+          electrical, HVAC, carpentry, remodeling, painting, make-readies, flooring, landscaping, handyman
+          work, and general repairs. Services are performed in Hays, Travis, and Williamson counties, and
+          through our facility partners on a national basis.</p>
+        <p>Availability, crew assignment, and scheduling depend on the scope of work, material lead times,
+          permit requirements, and weather. Nothing on this site is an offer to perform work at a fixed
+          price.</p>
+
+        <h3>3. Estimates, Pricing, and Payment</h3>
+        <ul>
+          <li>Estimates are based on the conditions visible at the time of inspection. Concealed damage,
+            code corrections, or changed scope may require a written revision before work continues.</li>
+          <li>Unless stated otherwise in writing, estimates are valid for 30 days.</li>
+          <li>Payment terms are stated on your invoice. Deposits may be required for materials and
+            scheduling.</li>
+          <li>Invoices are due on receipt unless other terms are agreed in writing. Past-due balances may
+            be subject to a late charge where permitted by law.</li>
+        </ul>
+
+        <h3>4. Scheduling, Access, and Cancellations</h3>
+        <p>You agree to provide safe and reasonable access to the work area, including utilities, parking,
+          and any keys, gate codes, or animal containment needed. Please give us at least 24 hours' notice
+          to reschedule a confirmed appointment. Missed appointments or inaccessible work areas may result
+          in a trip charge.</p>
+
+        <h3>5. Membership Plans</h3>
+        <p>Membership plans, including Indigo Home Management and our facility membership, are billed on the
+          cycle stated at enrollment. Members receive the benefits described at sign-up, which may include a
+          free initial inspection and discounted rates on services. Benefits are personal to the enrolled
+          property, do not guarantee same-day service, and may be updated with reasonable notice. You may
+          cancel a membership at the end of the current billing period.</p>
+
+        <h3>6. Workmanship, Warranty, and Callbacks</h3>
+        <p>We stand behind our work. If a repair we performed fails because of our workmanship within the
+          warranty period stated on your invoice, contact us and we will assess and correct it. This
+          warranty does not cover damage caused by third parties, misuse, neglect, normal wear, acts of
+          nature, or work you or another contractor modified. Manufacturer warranties on equipment and
+          materials pass through to you.</p>
+
+        <h3>7. Your Responsibilities</h3>
+        <ul>
+          <li>Disclose known hazards, prior work, leaks, asbestos, mold, or other conditions that may
+            affect the job.</li>
+          <li>Remove valuables and fragile items from the work area before the crew arrives.</li>
+          <li>Ensure anyone who needs to authorize changes to the scope is reachable.</li>
+          <li>Do not direct our crews to perform work outside the agreed scope.</li>
+        </ul>
+
+        <h3>8. Independent Contractors</h3>
+        <p>Some work is performed by licensed, insured trade partners and independent contractors. They are
+          not our employees, and we remain your point of contact for scheduling, quality, and warranty
+          service.</p>
+
+        <h3>9. Limitation of Liability</h3>
+        <p>To the fullest extent permitted by law, Call Indigo is not liable for indirect, incidental,
+          special, or consequential damages, including lost rent, lost business, or lost profits. Our total
+          liability for any claim arising out of the services is limited to the amount you paid us for the
+          specific service that gave rise to the claim. Nothing here limits liability that cannot be
+          limited by law, and nothing here waives any right you have under applicable Texas law.</p>
+
+        <h3>10. Dispute Resolution and Governing Law</h3>
+        <p>These terms are governed by the laws of the State of Texas, without regard to conflict-of-law
+          rules. Before filing a claim, please contact us so we can try to resolve the issue directly. Any
+          dispute that cannot be resolved informally will be brought in the state or federal courts located
+          in Travis County, Texas, and both parties consent to venue there.</p>
+
+        <h3>11. Changes to These Terms</h3>
+        <p>We may update these terms from time to time. The revision date at the top of this page will
+          change when we do, and the updated terms apply to services requested after that date. Continued
+          use of the site or our services means you accept the current version.</p>
+
+        <h3>12. Contact Us</h3>
+        <p>Call Indigo LLC, 1005 Meredith Drive, Austin, TX 78748.<br>
+          Phone: <a href="tel:+15126084999">(512) 608-4999</a><br>
+          Email: <a href="mailto:support@call-indigo.com">support@call-indigo.com</a></p>
+
+        <div class="legal-foot">
+          <button type="button" class="legal-close" data-legal-close>Close</button>
+          <p class="text-body">You can also close this window with the ✕ above or the Escape key.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="legal-privacy" class="legal" data-legal-modal role="dialog" aria-modal="true"
+    aria-labelledby="legal-privacy-title" aria-hidden="true">
+    <div class="legal-scrim" data-legal-close></div>
+    <div class="legal-sheet">
+      <header class="legal-bar">
+        <div class="min-w-0">
+          <p class="legal-kicker">Call Indigo LLC · Austin, TX</p>
+          <h2 id="legal-privacy-title" class="legal-title">Privacy Policy</h2>
+        </div>
+        <button type="button" class="legal-x" data-legal-x data-legal-close aria-label="Close Privacy Policy">✕</button>
+      </header>
+      <div class="legal-body">
+        <p class="legal-meta">Effective September 18, 2026 · Last updated September 18, 2026</p>
+        <p class="legal-note"><strong>Sample language.</strong> This text is placeholder copy written to
+          show the layout of a standard service-company privacy policy. It is not legal advice and has not
+          been reviewed by counsel. Replace it before this site is published.</p>
+
+        <h3>1. Overview</h3>
+        <p>Call Indigo LLC respects your privacy. This policy explains what we collect when you call us,
+          submit a form, or browse this site; how we use it; and the choices you have. It applies to
+          call-indigo.com and to the services we provide across Hays, Travis, and Williamson counties.</p>
+
+        <h3>2. Information We Collect</h3>
+        <ul>
+          <li><strong>You give us:</strong> name, phone number, email address, service address, property
+            type, and the description of the work you need.</li>
+          <li><strong>We create:</strong> inspection notes, photos of the work area, estimates, invoices,
+            and service history for your property.</li>
+          <li><strong>We collect automatically:</strong> IP address, browser and device type, the pages
+            you view, and how you arrived at the site.</li>
+        </ul>
+
+        <h3>3. How We Use Information</h3>
+        <ul>
+          <li>Respond to your request, schedule visits, and perform the work.</li>
+          <li>Prepare estimates, invoices, and warranty records.</li>
+          <li>Confirm, remind, and follow up on appointments.</li>
+          <li>Improve our site, services, and crew routing.</li>
+          <li>Meet licensing, insurance, tax, and legal obligations.</li>
+        </ul>
+
+        <h3>4. How We Share Information</h3>
+        <p>We do not sell your personal information. We share it only as needed to run the business: with
+          the crews and trade partners assigned to your job, with software providers who host our
+          scheduling, payment, and email tools, and with insurers, auditors, or authorities when the law
+          requires it. Vendors are expected to protect your information and to use it only for the service
+          they provide to us.</p>
+
+        <h3>5. Cookies and Analytics</h3>
+        <p>This site uses cookies and similar technologies to remember your preferences and to understand
+          which pages are useful. You can block or delete cookies in your browser settings; some parts of
+          the site may work less smoothly if you do.</p>
+
+        <h3>6. Calls, Texts, and Email</h3>
+        <p>When you give us your phone number or email address, you agree that we may contact you about
+          your request, your appointment, and your account, including by text message. Message and data
+          rates may apply. You can opt out of marketing messages at any time by replying STOP to a text,
+          using the unsubscribe link in an email, or calling us. You may still receive messages about an
+          active job or an unpaid invoice.</p>
+
+        <h3>7. Data Retention</h3>
+        <p>We keep job records, estimates, invoices, and warranty documentation for as long as needed to
+          serve you and to satisfy our legal, tax, insurance, and licensing obligations, then delete or
+          anonymize them.</p>
+
+        <h3>8. Security</h3>
+        <p>We use reasonable administrative, technical, and physical safeguards to protect your
+          information. No method of transmission or storage is completely secure, so we cannot promise
+          absolute security.</p>
+
+        <h3>9. Your Choices and Rights</h3>
+        <p>You may ask us to confirm what personal information we hold about you, to correct it, or to
+          delete it, and you may ask us to stop sending marketing messages. Contact us using the details
+          below and we will respond within the time required by applicable law. We will not discriminate
+          against you for exercising these choices.</p>
+
+        <h3>10. Children's Privacy</h3>
+        <p>Our site and services are meant for adults. We do not knowingly collect personal information
+          from children under 13. If you believe a child has provided information to us, contact us and we
+          will delete it.</p>
+
+        <h3>11. Changes to This Policy</h3>
+        <p>We may update this policy from time to time. The revision date at the top of this page will
+          change when we do. Material changes will be described on this page.</p>
+
+        <h3>12. Contact Us</h3>
+        <p>Call Indigo LLC, 1005 Meredith Drive, Austin, TX 78748.<br>
+          Phone: <a href="tel:+15126084999">(512) 608-4999</a><br>
+          Email: <a href="mailto:support@call-indigo.com">support@call-indigo.com</a></p>
+
+        <div class="legal-foot">
+          <button type="button" class="legal-close" data-legal-close>Close</button>
+          <p class="text-body">You can also close this window with the ✕ above or the Escape key.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

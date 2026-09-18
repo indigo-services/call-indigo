@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Call Indigo">
+  <defs>
+    <linearGradient id="ciBadge" x1="18" y1="6" x2="78" y2="92" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2a2564"/>
+      <stop offset=".55" stop-color="#1f1c4a"/>
+      <stop offset="1" stop-color="#161335"/>
+    </linearGradient>
+    <linearGradient id="ciSheen" x1="24" y1="10" x2="60" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- Badge -->
+  <circle cx="48" cy="48" r="46" fill="url(#ciBadge)"/>
+  <circle cx="48" cy="48" r="46" fill="none" stroke="#ffffff" stroke-opacity=".14" stroke-width="1.5"/>
+  <path d="M14 26a46 46 0 0 1 68 0 40 40 0 0 0-68 0z" fill="url(#ciSheen)"/>
+  <!-- Phone handset, outlined, tilted 40deg like the reference -->
+  <g transform="rotate(40 48 48)">
+    <path d="M39.5 30.5c2.1-2.1 5.5-2 7.4.3l3.4 4.1c1.6 1.9 1.5 4.8-.3 6.6l-2.5 2.5c.5 1.6 1.6 3.4 3.2 5s3.4 2.7 5 3.2l2.5-2.5c1.8-1.8 4.7-1.9 6.6-.3l4.1 3.4c2.3 1.9 2.4 5.3.3 7.4l-2.3 2.3c-2.1 2.1-5.2 2.9-8 1.9-6.4-2.2-12.4-6.2-17.4-11.2S33 42.6 30.8 36.2c-1-2.8-.2-5.9 1.9-8l2.3-2.3z"
+      fill="none" stroke="#ffffff" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

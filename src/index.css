@@ -1,0 +1,184 @@
+/*
+ * Call Indigo design system — single source of truth.
+ *
+ * Ported verbatim from valvoro-prototype/index.html:22-209 (PRD §6.2).
+ * Every hex value, radius, shadow, animation, and gutter-ladder step is
+ * measured [M] against the static prototype. Do not "modernise" hex to
+ * OKLCH — mixing encodings is how a palette silently drifts (PRD §6.2).
+ *
+ * shadcn semantic tokens are mapped in :root and exposed via @theme inline
+ * so the dashboard inherits the brand without a second palette (PRD §6.3).
+ */
+
+@import "tailwindcss";
+
+/* ── shadcn semantic tokens → brand token mapping (PRD §6.3) ─────────────── */
+:root {
+  --primary: #2a5aa2;           /* → --color-brand        */
+  --primary-foreground: #ffffff;
+  --background: #ffffff;        /* → --color-secondary     */
+  --foreground: #121b3c;        /* → --color-ink           */
+  --muted: #f4f8fe;             /* → --color-mist          */
+  --muted-foreground: #696969;  /* → --color-body          */
+  --border: #e3e8f2;            /* → --color-line          */
+  --ring: #a8cdf0;              /* → --color-ring          */
+  --accent: #30c3eb;            /* → --color-sky           */
+  --accent-foreground: #091f41; /* → --color-ink-2         */
+  --sidebar: #091f41;           /* → --color-ink-2         */
+  --sidebar-foreground: #ffffff;
+  --sidebar-accent: #154d9f;    /* → --color-brand-deep    */
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #a8cdf0;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --popover: #ffffff;
+  --popover-foreground: #121b3c;
+  --card: #ffffff;
+  --card-foreground: #121b3c;
+  --input: #e3e8f2;
+  --radius: 0.75rem;
+  --chart-1: #2a5aa2;
+  --chart-2: #30c3eb;
+  --chart-3: #e9bd4b;
+  --chart-4: #154d9f;
+  --chart-5: #aed8f1;
+}
+
+/* ── Brand tokens (PRD §3.2 — verbatim from prototype @theme block) ─────── */
+@theme inline {
+  /* Brand colours */
+  --color-brand: #2a5aa2;
+  --color-brand-deep: #154d9f;
+  --color-sky: #30c3eb;
+  --color-sky-soft: #aed8f1;
+  --color-ink: #121b3c;
+  --color-ink-2: #091f41;
+  --color-topbar: #091f41;
+  --color-ring: #a8cdf0;
+  --color-star: #e9bd4b;
+  --color-mist: #f4f8fe;
+  --color-body: #696969;
+  --color-line: #e3e8f2;
+  --color-scrim-hero: rgb(25 80 160 / 88%);
+  --color-scrim-blue: rgb(42 90 162 / 90%);
+  --color-secondary: #ffffff;
+
+  /* Segment accents (PRD §11.5 — assigned from existing palette, no new hues) */
+  --color-accent-residential: #30c3eb;   /* = --color-sky */
+  --color-accent-commercial: #154d9f;    /* = --color-brand-deep */
+
+  /* Typography */
+  --font-sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
+
+  /* Radii (PRD §3.2 — tightened from the template's 52/26) */
+  --radius-card: 18px;
+  --radius-panel: 14px;
+
+  /* Shadows */
+  --shadow-lift: 0 18px 44px rgba(13, 21, 49, .12);
+  --shadow-drop: 0 30px 70px rgba(9, 14, 33, .35);
+
+  /* Animations */
+  --animate-fade-up: fade-up .7s ease both;
+  --animate-drawer-in: drawer-in .4s cubic-bezier(.7, 0, .2, 1) forwards;
+  --animate-drawer-out: drawer-out .3s ease forwards;
+
+  /* shadcn semantic → brand mapping */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-input: var(--input);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Keyframes */
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes drawer-in {
+    from { transform: translateX(105%); }
+    to { transform: translateX(0); }
+  }
+  @keyframes drawer-out {
+    from { transform: translateX(0); }
+    to { transform: translateX(105%); }
+  }
+}
+
+/* ── Frame model: gutter ladder (PRD §3.3 — verbatim from prototype) ────── */
+@layer base {
+  /*
+   * Three nested layers, each with exactly one job:
+   *
+   *   viewport
+   *    └── .pad-rl   → --gut     viewport edge  → card edge
+   *         └── .mbox → --inset  card edge      → section text
+   *              └── .shell → --col  max text column (≥1200 only)
+   *
+   * Breakpoint ladder (measured [M] against the static prototype):
+   *
+   *   breakpoint     --gut   --inset
+   *   ≥ 1871          50      50
+   *   ≤ 1870          40      40
+   *   ≤ 1439          32      32
+   *   ≤ 1199          24      28
+   *   ≤  991          16      24
+   *   ≤  767           0      16
+   *
+   * --gut: 0 at ≤767 is deliberate: cards go full-bleed on mobile so no
+   * viewport width is spent on margin, and the text keeps a 16px inset.
+   */
+  :root {
+    --gut: 50px;
+    --inset: 50px;
+    --col: 1417px;
+  }
+  @media (max-width: 1870px) { :root { --gut: 40px; --inset: 40px; } }
+  @media (max-width: 1439px) { :root { --gut: 32px; --inset: 32px; } }
+  @media (max-width: 1199px) { :root { --gut: 24px; --inset: 28px; } }
+  @media (max-width: 991px)  { :root { --gut: 16px; --inset: 24px; } }
+  @media (max-width: 767px)  { :root { --gut: 0px;  --inset: 16px; } }
+
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-white font-sans text-body antialiased;
+    overflow-x: hidden;
+  }
+  img { max-width: 100%; }
+}
+
+/* ── Frame model: layout classes (PRD §3.3 — verbatim from prototype) ───── */
+@layer components {
+  .pad-rl { padding-left: var(--gut);   padding-right: var(--gut); }
+  .mbox   { padding-left: var(--inset); padding-right: var(--inset); }
+  .slab   { border-radius: 16px; }
+  .outer-card  { border-radius: 14px; }
+  .header-card { border-radius: 10px; }
+  .pill-topbar { border-radius: 0 0 12px 12px; }
+  .shell { margin-inline: auto; }
+  @media (min-width: 1200px) { .shell { max-width: var(--col); } }
+}

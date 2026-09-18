@@ -1,0 +1,182 @@
+========================================================================================================
+[FINAL] VIEWPORT 1920
+  ribbonBar   edge=[   50.0, 1870.0] w= 1820.0 | text=[  100.0, 1820.0] | pl=50.0  pr=50.0  maxW=none
+  ribbonTxt   edge=[  251.5, 1668.5] w= 1417.0 | text=[  251.5, 1668.5] | pl=0.0   pr=0.0   maxW=1417px
+  headerCard  edge=[   50.0, 1870.0] w= 1820.0 | text=[  100.0, 1820.0] | pl=50.0  pr=50.0  maxW=none
+  brand       edge=[  251.5,  402.3] w=  150.8 | text=[  251.5,  402.3] | pl=0.0   pr=0.0   maxW=none
+  heroSlab    edge=[   50.0, 1870.0] w= 1820.0 | text=[  100.0, 1820.0] | pl=50.0  pr=50.0  maxW=none
+  heroCol     edge=[  104.5, 1815.5] w= 1711.0 | text=[  104.5, 1815.5] | pl=0.0   pr=0.0   maxW=1711px
+  h1          edge=[  179.5,  945.0] w=  765.5 | text=[  179.5,  945.0] | pl=0.0   pr=0.0   maxW=none
+  services    edge=[    0.0, 1920.0] w= 1920.0 | text=[  100.0, 1820.0] | pl=100.0 pr=100.0 maxW=none
+  svcCol      edge=[  251.5, 1668.5] w= 1417.0 | text=[  251.5, 1668.5] | pl=0.0   pr=0.0   maxW=1417px
+  about       edge=[   50.0, 1870.0] w= 1820.0 | text=[  100.0, 1820.0] | pl=50.0  pr=50.0  maxW=none
+  aboutCol    edge=[  100.0, 1820.0] w= 1720.0 | text=[  100.0, 1820.0] | pl=0.0   pr=0.0   maxW=none
+  aboutPhoto  edge=[  100.0,  874.0] w=  774.0 | text=[  100.0,  874.0] | pl=0.0   pr=0.0   maxW=none
+  aboutFig1   edge=[  100.0,  472.0] w=  372.0 | text=[  100.0,  472.0] | pl=0.0   pr=0.0   maxW=372px
+  aboutFig2   edge=[  502.0,  849.0] w=  347.0 | text=[  502.0,  849.0] | pl=0.0   pr=0.0   maxW=347px
+  aboutCol2   edge=[  994.0, 1820.0] w=  826.0 | text=[  994.0, 1820.0] | pl=0.0   pr=0.0   maxW=none
+  faq         edge=[   50.0, 1870.0] w= 1820.0 | text=[  100.0, 1820.0] | pl=50.0  pr=50.0  maxW=none
+  faqCol      edge=[  540.0, 1380.0] w=  840.0 | text=[  540.0, 1380.0] | pl=0.0   pr=0.0   maxW=840px
+  area        edge=[   50.0, 1870.0] w= 1820.0 | text=[  100.0, 1820.0] | pl=50.0  pr=50.0  maxW=none
+  areaCol     edge=[  171.0, 1749.0] w= 1578.0 | text=[  171.0, 1749.0] | pl=0.0   pr=0.0   maxW=1578px
+  contact     edge=[   50.0, 1870.0] w= 1820.0 | text=[  100.0, 1820.0] | pl=50.0  pr=50.0  maxW=none
+  ctcCol      edge=[  100.0, 1820.0] w= 1720.0 | text=[  100.0, 1820.0] | pl=0.0   pr=0.0   maxW=none
+  footer      edge=[   50.0, 1870.0] w= 1820.0 | text=[  100.0, 1820.0] | pl=50.0  pr=50.0  maxW=none
+  footCol     edge=[  251.5, 1668.5] w= 1417.0 | text=[  251.5, 1668.5] | pl=0.0   pr=0.0   maxW=1417px
+  -- no content spilling past a section content box --
+========================================================================================================
+[FINAL] VIEWPORT 1600
+  ribbonBar   edge=[   40.0, 1560.0] w= 1520.0 | text=[   80.0, 1520.0] | pl=40.0  pr=40.0  maxW=none
+  ribbonTxt   edge=[   91.5, 1508.5] w= 1417.0 | text=[   91.5, 1508.5] | pl=0.0   pr=0.0   maxW=1417px
+  headerCard  edge=[   40.0, 1560.0] w= 1520.0 | text=[   80.0, 1520.0] | pl=40.0  pr=40.0  maxW=none
+  brand       edge=[   91.5,  242.3] w=  150.8 | text=[   91.5,  242.3] | pl=0.0   pr=0.0   maxW=none
+  heroSlab    edge=[   40.0, 1560.0] w= 1520.0 | text=[   80.0, 1520.0] | pl=40.0  pr=40.0  maxW=none
+  heroCol     edge=[   80.0, 1520.0] w= 1440.0 | text=[   80.0, 1520.0] | pl=0.0   pr=0.0   maxW=1711px
+  h1          edge=[  155.0,  785.0] w=  630.0 | text=[  155.0,  785.0] | pl=0.0   pr=0.0   maxW=none
+  services    edge=[    0.0, 1600.0] w= 1600.0 | text=[   80.0, 1520.0] | pl=80.0  pr=80.0  maxW=none
+  svcCol      edge=[   91.5, 1508.5] w= 1417.0 | text=[   91.5, 1508.5] | pl=0.0   pr=0.0   maxW=1417px
+  about       edge=[   40.0, 1560.0] w= 1520.0 | text=[   80.0, 1520.0] | pl=40.0  pr=40.0  maxW=none
+  aboutCol    edge=[   80.0, 1520.0] w= 1440.0 | text=[   80.0, 1520.0] | pl=0.0   pr=0.0   maxW=none
+  aboutPhoto  edge=[   80.0,  728.0] w=  648.0 | text=[   80.0,  728.0] | pl=0.0   pr=0.0   maxW=none
+  aboutFig1   edge=[   80.0,  399.8] w=  319.8 | text=[   80.0,  399.8] | pl=0.0   pr=0.0   maxW=372px
+  aboutFig2   edge=[  429.8,  728.0] w=  298.3 | text=[  429.8,  728.0] | pl=0.0   pr=0.0   maxW=347px
+  aboutCol2   edge=[  848.0, 1520.0] w=  672.0 | text=[  848.0, 1520.0] | pl=0.0   pr=0.0   maxW=none
+  faq         edge=[   40.0, 1560.0] w= 1520.0 | text=[   80.0, 1520.0] | pl=40.0  pr=40.0  maxW=none
+  faqCol      edge=[  380.0, 1220.0] w=  840.0 | text=[  380.0, 1220.0] | pl=0.0   pr=0.0   maxW=840px
+  area        edge=[   40.0, 1560.0] w= 1520.0 | text=[   80.0, 1520.0] | pl=40.0  pr=40.0  maxW=none
+  areaCol     edge=[   80.0, 1520.0] w= 1440.0 | text=[   80.0, 1520.0] | pl=0.0   pr=0.0   maxW=1578px
+  contact     edge=[   40.0, 1560.0] w= 1520.0 | text=[   80.0, 1520.0] | pl=40.0  pr=40.0  maxW=none
+  ctcCol      edge=[   80.0, 1520.0] w= 1440.0 | text=[   80.0, 1520.0] | pl=0.0   pr=0.0   maxW=none
+  footer      edge=[   40.0, 1560.0] w= 1520.0 | text=[   80.0, 1520.0] | pl=40.0  pr=40.0  maxW=none
+  footCol     edge=[   91.5, 1508.5] w= 1417.0 | text=[   91.5, 1508.5] | pl=0.0   pr=0.0   maxW=1417px
+  -- no content spilling past a section content box --
+========================================================================================================
+[FINAL] VIEWPORT 1440
+  ribbonBar   edge=[   40.0, 1400.0] w= 1360.0 | text=[   80.0, 1360.0] | pl=40.0  pr=40.0  maxW=none
+  ribbonTxt   edge=[   80.0, 1360.0] w= 1280.0 | text=[   80.0, 1360.0] | pl=0.0   pr=0.0   maxW=1417px
+  headerCard  edge=[   40.0, 1400.0] w= 1360.0 | text=[   80.0, 1360.0] | pl=40.0  pr=40.0  maxW=none
+  brand       edge=[   80.0,  230.8] w=  150.8 | text=[   80.0,  230.8] | pl=0.0   pr=0.0   maxW=none
+  heroSlab    edge=[   40.0, 1400.0] w= 1360.0 | text=[   80.0, 1360.0] | pl=40.0  pr=40.0  maxW=none
+  heroCol     edge=[   80.0, 1360.0] w= 1280.0 | text=[   80.0, 1360.0] | pl=0.0   pr=0.0   maxW=1711px
+  h1          edge=[   95.0,  705.0] w=  610.0 | text=[   95.0,  705.0] | pl=0.0   pr=0.0   maxW=none
+  services    edge=[    0.0, 1440.0] w= 1440.0 | text=[   80.0, 1360.0] | pl=80.0  pr=80.0  maxW=none
+  svcCol      edge=[   80.0, 1360.0] w= 1280.0 | text=[   80.0, 1360.0] | pl=0.0   pr=0.0   maxW=1417px
+  about       edge=[   40.0, 1400.0] w= 1360.0 | text=[   80.0, 1360.0] | pl=40.0  pr=40.0  maxW=none
+  aboutCol    edge=[   80.0, 1360.0] w= 1280.0 | text=[   80.0, 1360.0] | pl=0.0   pr=0.0   maxW=none
+  aboutPhoto  edge=[   80.0,  656.0] w=  576.0 | text=[   80.0,  656.0] | pl=0.0   pr=0.0   maxW=none
+  aboutFig1   edge=[   80.0,  362.5] w=  282.5 | text=[   80.0,  362.5] | pl=0.0   pr=0.0   maxW=372px
+  aboutFig2   edge=[  392.5,  656.0] w=  263.5 | text=[  392.5,  656.0] | pl=0.0   pr=0.0   maxW=347px
+  aboutCol2   edge=[  776.0, 1360.0] w=  584.0 | text=[  776.0, 1360.0] | pl=0.0   pr=0.0   maxW=none
+  faq         edge=[   40.0, 1400.0] w= 1360.0 | text=[   80.0, 1360.0] | pl=40.0  pr=40.0  maxW=none
+  faqCol      edge=[  300.0, 1140.0] w=  840.0 | text=[  300.0, 1140.0] | pl=0.0   pr=0.0   maxW=840px
+  area        edge=[   40.0, 1400.0] w= 1360.0 | text=[   80.0, 1360.0] | pl=40.0  pr=40.0  maxW=none
+  areaCol     edge=[   80.0, 1360.0] w= 1280.0 | text=[   80.0, 1360.0] | pl=0.0   pr=0.0   maxW=1578px
+  contact     edge=[   40.0, 1400.0] w= 1360.0 | text=[   80.0, 1360.0] | pl=40.0  pr=40.0  maxW=none
+  ctcCol      edge=[   80.0, 1360.0] w= 1280.0 | text=[   80.0, 1360.0] | pl=0.0   pr=0.0   maxW=none
+  footer      edge=[   40.0, 1400.0] w= 1360.0 | text=[   80.0, 1360.0] | pl=40.0  pr=40.0  maxW=none
+  footCol     edge=[   80.0, 1360.0] w= 1280.0 | text=[   80.0, 1360.0] | pl=0.0   pr=0.0   maxW=1417px
+  -- no content spilling past a section content box --
+========================================================================================================
+[FINAL] VIEWPORT 1280
+  ribbonBar   edge=[   32.0, 1248.0] w= 1216.0 | text=[   64.0, 1216.0] | pl=32.0  pr=32.0  maxW=none
+  ribbonTxt   edge=[   64.0, 1216.0] w= 1152.0 | text=[   64.0, 1216.0] | pl=0.0   pr=0.0   maxW=1417px
+  headerCard  edge=[   32.0, 1248.0] w= 1216.0 | text=[   64.0, 1216.0] | pl=32.0  pr=32.0  maxW=none
+  brand       edge=[   64.0,  214.8] w=  150.8 | text=[   64.0,  214.8] | pl=0.0   pr=0.0   maxW=none
+  heroSlab    edge=[   32.0, 1248.0] w= 1216.0 | text=[   64.0, 1216.0] | pl=32.0  pr=32.0  maxW=none
+  heroCol     edge=[   64.0, 1216.0] w= 1152.0 | text=[   64.0, 1216.0] | pl=0.0   pr=0.0   maxW=1711px
+  h1          edge=[   79.0,  625.0] w=  546.0 | text=[   79.0,  625.0] | pl=0.0   pr=0.0   maxW=none
+  services    edge=[    0.0, 1280.0] w= 1280.0 | text=[   64.0, 1216.0] | pl=64.0  pr=64.0  maxW=none
+  svcCol      edge=[   64.0, 1216.0] w= 1152.0 | text=[   64.0, 1216.0] | pl=0.0   pr=0.0   maxW=1417px
+  about       edge=[   32.0, 1248.0] w= 1216.0 | text=[   64.0, 1216.0] | pl=32.0  pr=32.0  maxW=none
+  aboutCol    edge=[   64.0, 1216.0] w= 1152.0 | text=[   64.0, 1216.0] | pl=0.0   pr=0.0   maxW=none
+  aboutPhoto  edge=[   64.0,  582.4] w=  518.4 | text=[   64.0,  582.4] | pl=0.0   pr=0.0   maxW=none
+  aboutFig1   edge=[   64.0,  316.7] w=  252.7 | text=[   64.0,  316.7] | pl=0.0   pr=0.0   maxW=372px
+  aboutFig2   edge=[  346.7,  582.4] w=  235.7 | text=[  346.7,  582.4] | pl=0.0   pr=0.0   maxW=347px
+  aboutCol2   edge=[  702.4, 1216.0] w=  513.6 | text=[  702.4, 1216.0] | pl=0.0   pr=0.0   maxW=none
+  faq         edge=[   32.0, 1248.0] w= 1216.0 | text=[   64.0, 1216.0] | pl=32.0  pr=32.0  maxW=none
+  faqCol      edge=[  220.0, 1060.0] w=  840.0 | text=[  220.0, 1060.0] | pl=0.0   pr=0.0   maxW=840px
+  area        edge=[   32.0, 1248.0] w= 1216.0 | text=[   64.0, 1216.0] | pl=32.0  pr=32.0  maxW=none
+  areaCol     edge=[   64.0, 1216.0] w= 1152.0 | text=[   64.0, 1216.0] | pl=0.0   pr=0.0   maxW=1578px
+  contact     edge=[   32.0, 1248.0] w= 1216.0 | text=[   64.0, 1216.0] | pl=32.0  pr=32.0  maxW=none
+  ctcCol      edge=[   64.0, 1216.0] w= 1152.0 | text=[   64.0, 1216.0] | pl=0.0   pr=0.0   maxW=none
+  footer      edge=[   32.0, 1248.0] w= 1216.0 | text=[   64.0, 1216.0] | pl=32.0  pr=32.0  maxW=none
+  footCol     edge=[   64.0, 1216.0] w= 1152.0 | text=[   64.0, 1216.0] | pl=0.0   pr=0.0   maxW=1417px
+  -- no content spilling past a section content box --
+========================================================================================================
+[FINAL] VIEWPORT 1024
+  ribbonBar   edge=[   24.0, 1000.0] w=  976.0 | text=[   52.0,  972.0] | pl=28.0  pr=28.0  maxW=none
+  ribbonTxt   edge=[   52.0,  972.0] w=  920.0 | text=[   52.0,  972.0] | pl=0.0   pr=0.0   maxW=none
+  headerCard  edge=[   24.0, 1000.0] w=  976.0 | text=[   52.0,  972.0] | pl=28.0  pr=28.0  maxW=none
+  brand       edge=[   52.0,  191.3] w=  139.3 | text=[   52.0,  191.3] | pl=0.0   pr=0.0   maxW=none
+  heroSlab    edge=[   24.0, 1000.0] w=  976.0 | text=[   52.0,  972.0] | pl=28.0  pr=28.0  maxW=none
+  heroCol     edge=[   52.0,  972.0] w=  920.0 | text=[   52.0,  972.0] | pl=0.0   pr=0.0   maxW=1711px
+  h1          edge=[   67.0,  497.0] w=  430.0 | text=[   67.0,  497.0] | pl=0.0   pr=0.0   maxW=none
+  services    edge=[    0.0, 1024.0] w= 1024.0 | text=[   52.0,  972.0] | pl=52.0  pr=52.0  maxW=none
+  svcCol      edge=[   52.0,  972.0] w=  920.0 | text=[   52.0,  972.0] | pl=0.0   pr=0.0   maxW=none
+  about       edge=[   24.0, 1000.0] w=  976.0 | text=[   52.0,  972.0] | pl=28.0  pr=28.0  maxW=none
+  aboutCol    edge=[   52.0,  972.0] w=  920.0 | text=[   52.0,  972.0] | pl=0.0   pr=0.0   maxW=none
+  aboutPhoto  edge=[   52.0,  466.0] w=  414.0 | text=[   52.0,  466.0] | pl=0.0   pr=0.0   maxW=none
+  aboutFig1   edge=[   52.0,  250.7] w=  198.7 | text=[   52.0,  250.7] | pl=0.0   pr=0.0   maxW=372px
+  aboutFig2   edge=[  280.7,  466.0] w=  185.3 | text=[  280.7,  466.0] | pl=0.0   pr=0.0   maxW=347px
+  aboutCol2   edge=[  586.0,  972.0] w=  386.0 | text=[  586.0,  972.0] | pl=0.0   pr=0.0   maxW=none
+  faq         edge=[   24.0, 1000.0] w=  976.0 | text=[   52.0,  972.0] | pl=28.0  pr=28.0  maxW=none
+  faqCol      edge=[   92.0,  932.0] w=  840.0 | text=[   92.0,  932.0] | pl=0.0   pr=0.0   maxW=840px
+  area        edge=[   24.0, 1000.0] w=  976.0 | text=[   52.0,  972.0] | pl=28.0  pr=28.0  maxW=none
+  areaCol     edge=[   52.0,  972.0] w=  920.0 | text=[   52.0,  972.0] | pl=0.0   pr=0.0   maxW=1578px
+  contact     edge=[   24.0, 1000.0] w=  976.0 | text=[   52.0,  972.0] | pl=28.0  pr=28.0  maxW=none
+  ctcCol      edge=[   52.0,  972.0] w=  920.0 | text=[   52.0,  972.0] | pl=0.0   pr=0.0   maxW=none
+  footer      edge=[   24.0, 1000.0] w=  976.0 | text=[   52.0,  972.0] | pl=28.0  pr=28.0  maxW=none
+  footCol     edge=[   52.0,  972.0] w=  920.0 | text=[   52.0,  972.0] | pl=0.0   pr=0.0   maxW=none
+  -- no content spilling past a section content box --
+========================================================================================================
+[FINAL] VIEWPORT 768
+  ribbonBar   edge=[   16.0,  752.0] w=  736.0 | text=[   40.0,  728.0] | pl=24.0  pr=24.0  maxW=none
+  ribbonTxt   edge=[   40.0,  728.0] w=  688.0 | text=[   40.0,  728.0] | pl=0.0   pr=0.0   maxW=none
+  headerCard  edge=[   16.0,  752.0] w=  736.0 | text=[   40.0,  728.0] | pl=24.0  pr=24.0  maxW=none
+  brand       edge=[   40.0,  179.3] w=  139.3 | text=[   40.0,  179.3] | pl=0.0   pr=0.0   maxW=none
+  heroSlab    edge=[   16.0,  752.0] w=  736.0 | text=[   40.0,  728.0] | pl=24.0  pr=24.0  maxW=none
+  heroCol     edge=[   40.0,  728.0] w=  688.0 | text=[   40.0,  728.0] | pl=0.0   pr=0.0   maxW=1711px
+  h1          edge=[   55.0,  369.0] w=  314.0 | text=[   55.0,  369.0] | pl=0.0   pr=0.0   maxW=none
+  services    edge=[    0.0,  768.0] w=  768.0 | text=[   40.0,  728.0] | pl=40.0  pr=40.0  maxW=none
+  svcCol      edge=[   40.0,  728.0] w=  688.0 | text=[   40.0,  728.0] | pl=0.0   pr=0.0   maxW=none
+  about       edge=[   16.0,  752.0] w=  736.0 | text=[   40.0,  728.0] | pl=24.0  pr=24.0  maxW=none
+  aboutCol    edge=[   40.0,  728.0] w=  688.0 | text=[   40.0,  728.0] | pl=0.0   pr=0.0   maxW=none
+  aboutPhoto  edge=[   40.0,  728.0] w=  688.0 | text=[   40.0,  728.0] | pl=0.0   pr=0.0   maxW=none
+  aboutFig1   edge=[   99.0,  379.0] w=  280.0 | text=[   99.0,  379.0] | pl=0.0   pr=0.0   maxW=none
+  aboutFig2   edge=[  409.0,  669.0] w=  260.0 | text=[  409.0,  669.0] | pl=0.0   pr=0.0   maxW=none
+  aboutCol2   edge=[   40.0,  728.0] w=  688.0 | text=[   40.0,  728.0] | pl=0.0   pr=0.0   maxW=none
+  faq         edge=[   16.0,  752.0] w=  736.0 | text=[   40.0,  728.0] | pl=24.0  pr=24.0  maxW=none
+  faqCol      edge=[   40.0,  728.0] w=  688.0 | text=[   40.0,  728.0] | pl=0.0   pr=0.0   maxW=840px
+  area        edge=[   16.0,  752.0] w=  736.0 | text=[   40.0,  728.0] | pl=24.0  pr=24.0  maxW=none
+  areaCol     edge=[   40.0,  728.0] w=  688.0 | text=[   40.0,  728.0] | pl=0.0   pr=0.0   maxW=1578px
+  contact     edge=[   16.0,  752.0] w=  736.0 | text=[   40.0,  728.0] | pl=24.0  pr=24.0  maxW=none
+  ctcCol      edge=[   40.0,  728.0] w=  688.0 | text=[   40.0,  728.0] | pl=0.0   pr=0.0   maxW=none
+  footer      edge=[   16.0,  752.0] w=  736.0 | text=[   40.0,  728.0] | pl=24.0  pr=24.0  maxW=none
+  footCol     edge=[   40.0,  728.0] w=  688.0 | text=[   40.0,  728.0] | pl=0.0   pr=0.0   maxW=none
+  -- no content spilling past a section content box --
+========================================================================================================
+[FINAL] VIEWPORT 390
+  ribbonBar   edge=[    0.0,  390.0] w=  390.0 | text=[   16.0,  374.0] | pl=16.0  pr=16.0  maxW=none
+  ribbonTxt   edge=[   16.0,  374.0] w=  358.0 | text=[   16.0,  374.0] | pl=0.0   pr=0.0   maxW=none
+  headerCard  edge=[    0.0,  390.0] w=  390.0 | text=[   16.0,  374.0] | pl=16.0  pr=16.0  maxW=none
+  brand       edge=[   16.0,  138.9] w=  122.9 | text=[   16.0,  138.9] | pl=0.0   pr=0.0   maxW=none
+  heroSlab    edge=[    0.0,  390.0] w=  390.0 | text=[   16.0,  374.0] | pl=16.0  pr=16.0  maxW=none
+  heroCol     edge=[   16.0,  374.0] w=  358.0 | text=[   16.0,  374.0] | pl=0.0   pr=0.0   maxW=1711px
+  h1          edge=[   31.0,  359.0] w=  328.0 | text=[   31.0,  359.0] | pl=0.0   pr=0.0   maxW=none
+  services    edge=[    0.0,  390.0] w=  390.0 | text=[   16.0,  374.0] | pl=16.0  pr=16.0  maxW=none
+  svcCol      edge=[   16.0,  374.0] w=  358.0 | text=[   16.0,  374.0] | pl=0.0   pr=0.0   maxW=none
+  about       edge=[    0.0,  390.0] w=  390.0 | text=[   16.0,  374.0] | pl=16.0  pr=16.0  maxW=none
+  aboutCol    edge=[   16.0,  374.0] w=  358.0 | text=[   16.0,  374.0] | pl=0.0   pr=0.0   maxW=none
+  aboutPhoto  edge=[   16.0,  374.0] w=  358.0 | text=[   16.0,  374.0] | pl=0.0   pr=0.0   maxW=none
+  aboutFig1   edge=[   16.0,  195.0] w=  179.0 | text=[   16.0,  187.0] | pl=0.0   pr=8.0   maxW=none
+  aboutFig2   edge=[  195.0,  374.0] w=  179.0 | text=[  203.0,  374.0] | pl=8.0   pr=0.0   maxW=none
+  aboutCol2   edge=[   16.0,  374.0] w=  358.0 | text=[   16.0,  374.0] | pl=0.0   pr=0.0   maxW=none
+  faq         edge=[    0.0,  390.0] w=  390.0 | text=[   16.0,  374.0] | pl=16.0  pr=16.0  maxW=none
+  faqCol      edge=[   16.0,  374.0] w=  358.0 | text=[   16.0,  374.0] | pl=0.0   pr=0.0   maxW=840px
+  area        edge=[    0.0,  390.0] w=  390.0 | text=[   16.0,  374.0] | pl=16.0  pr=16.0  maxW=none
+  areaCol     edge=[   16.0,  374.0] w=  358.0 | text=[   16.0,  374.0] | pl=0.0   pr=0.0   maxW=1578px
+  contact     edge=[    0.0,  390.0] w=  390.0 | text=[   16.0,  374.0] | pl=16.0  pr=16.0  maxW=none
+  ctcCol      edge=[   16.0,  374.0] w=  358.0 | text=[   16.0,  374.0] | pl=0.0   pr=0.0   maxW=none
+  footer      edge=[    0.0,  390.0] w=  390.0 | text=[   16.0,  374.0] | pl=16.0  pr=16.0  maxW=none
+  footCol     edge=[   16.0,  374.0] w=  358.0 | text=[   16.0,  374.0] | pl=0.0   pr=0.0   maxW=none
+  -- no content spilling past a section content box --

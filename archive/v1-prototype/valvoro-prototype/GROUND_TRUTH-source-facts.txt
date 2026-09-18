@@ -1,0 +1,113 @@
+=========================================================================
+GROUND TRUTH — extracted from the REAL call-indigo.com source
+(`ci_0lso0f523lp39.js` — the Next.js production bundle in this repo)
+=========================================================================
+
+SITE DATA OBJECT  (verbatim, authoritative)
+{
+  brandName:        "Call Indigo",
+  legalName:        "Indigo Home & Facility Services",
+  primaryPhone:     "(512) 608-4999",
+  publicEmail:      "support@call-indigo.com",
+  publicEmailDisplay: "support [at] call-indigo.com",
+  address:          "1005 Meredith Drive, Austin, TX 78748",
+  headquartersCity: "Austin, TX",
+  establishedYear:  "2012",
+  serviceAreaCities:["Austin","Buda","Kyle","San Marcos"],
+  serviceArea:      "Hays, Travis, and Williamson counties",
+  licenseNumber:    "RMP: 45574",
+  copyrightName:    "Call Indigo LLC"
+}
+
+!! Two facts I previously reported as UNAVAILABLE are in fact published:
+   - address  : 1005 Meredith Drive, Austin, TX 78748
+   - license  : RMP: 45574   (Texas Residential Mortgage... no — RMP = Registered
+                Master Plumber, a Texas TDLR licence class)
+   These were NOT on the rendered pages I fetched (they render in the footer via
+   the `site` object, which my earlier WebFetch summarised away).
+   ==> I must correct the top bar to show the real address + licence.
+
+REAL DESIGN TOKENS  (from the site's own CSS custom properties)
+  --primary       #1e1b4b   (deep indigo — the brand)
+  --primary-dark  #0f172a
+  --accent        #6366f1
+  --charcoal      #08090a
+  --lightblack    #1c1c1c
+  --secondary     #e6e6e6
+  --black #000  --white #fff
+  theme-color     #06b6d4  (cyan)
+
+REAL HERO COMPONENT  (`x` in the bundle)
+  section#hero
+    className: "relative overflow-hidden
+                bg-[linear-gradient(135deg,#1e1b4b_0%,#0f172a_100%)]"
+    decorative: an absolutely-positioned div, `opacity-10`, containing
+                "absolute right-0 top-0 h-full w-1/2
+                 bg-[radial-gradient(circle_at_center,white,transparent_70%)]"
+    layout:     "grid gap-12 py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center"
+
+  left column (text-white), animated opacity 0->1 / x -24->0:
+    proof[] -> "mb-6 flex flex-wrap gap-3" of
+               "rounded-full bg-white/10 px-4 py-2 text-xs font-bold
+                uppercase tracking-[0.16em] text-white/80"
+    subheading -> "mb-2 text-sm font-bold ..."
+    (colour/scale continues in the bundle)
+
+  BUTTON component `c`:
+    "inline-flex items-center justify-center rounded-full px-8 py-4
+     text-sm font-extrabold transition hover:-translate-y-0.5"
+    light variant : "bg-white text-[#1e1b4b] hover:bg-slate-100"
+    dark  variant : "bg-[#1e1b4b] text-white hover:bg-[#0f172a]"
+
+  EYEBROW component `o`:
+    "mb-4 text-xs font-bold uppercase tracking-[0.3em]"
+    light: text-white/70   dark: text-[#1e1b4b]
+
+  HEADER:
+    sticky bar "flex items-center justify-between gap-6 py-4"
+    logo: "rounded-full bg-[#1e1b4b] p-2" + Phone icon (white, size 20)
+          wordmark "text-2xl font-bold tracking-[-0.06em] text-[#1e1b4b]"
+    nav : "hidden items-center gap-8 text-sm font-medium text-[#1e1b4b] lg:flex"
+    phone block: "hidden items-center gap-3 md:flex"
+          icon wrapper "rounded-full bg-indigo-50 p-2"
+          icon "text-[#1e1b4b]" size 18
+          label "text-[10px] font-bold uppercase text-slate-400"
+          number "text-sm font-bold text-[#1e1b4b]"
+
+  FOOTER: "bg-[#1e1b4b] py-12 text-white"
+    brandName "text-2xl font-black tracking-[-0.06em]"
+    legalName "mt-1 text-sm text-white/70"
+    "License: {licenseNumber}" -> "mt-1 text-xs text-white/50"
+
+HOME DATA RIBBON (the real stats equivalent)
+  52,550+  Jobs completed
+  35K+     Satisfied clients
+  2012     Established
+  100%     Free inspections
+
+HOME HERO copy (real)
+  subheading "Call Indigo"
+  title      "Family Owned, Locally Operated"
+  body       "Call Indigo is your single phone call for any address. Licensed,
+              insured, and headquartered in Austin, Texas since 2012 — serving
+              homes and facilities across the USA."
+  cta        Book an Appointment
+  proof      ["Proudly Serving Hays, Travis, and Williamson counties",
+              "Call today: (512) 608-4999"]
+
+=========================================================================
+IMPLICATION FOR THE WORK
+=========================================================================
+The reference IMAGE is the Valvoro template (rounded indigo card, big
+"EXPERT PLUMBING.", arch-framed plumber). The REAL SITE is a different
+design (#1e1b4b gradient hero, no card, no arch).
+
+Jaden asked to (a) keep matching the image's design and (b) match the real
+company details. The two now reconcile cleanly:
+  - VISUAL  : follow the reference image (Valvoro card layout) — as built.
+  - DATA    : use the site object above. Correct the two facts I got wrong
+              (address + licence are published after all).
+  - COLOUR  : the image's indigo #4a5ea3 is the Valvoro blue; the real brand
+              is #1e1b4b. Keep the image's blue for visual fidelity, but I
+              should flag this discrepancy to Jaden rather than silently pick.
+=========================================================================

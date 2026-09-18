@@ -1,0 +1,74 @@
+# ── Dependencies ──────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ── Build output ───────────────────────────────────────────────
+dist/
+dist-ssr/
+*.tsbuildinfo
+build/
+
+# ── Environment & secrets ─────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ── Editor / OS ────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Vite ───────────────────────────────────────────────────────
+*.local
+
+# ── Testing & coverage ────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ── WorkBuddy internal ─────────────────────────────────────────
+# These are session/agent state, not project artifacts
+.workbuddy-ai/
+.freebuff/
+
+# ── Archive: screenshots & binary references ───────────────────
+# The archive directory holds large reference screenshots and
+# captured site assets. Exclude heavy binaries from git to keep
+# the repo lightweight. Source code and text docs in archive/ are
+# tracked; images and PNGs are not.
+archive/**/*.png
+archive/**/*.jpg
+archive/**/*.jpeg
+archive/**/*.gif
+archive/**/*.ico
+archive/**/*.bmp
+archive/**/*.mp4
+archive/**/*.webm
+# Keep the node_modules from the twtest sandbox out
+archive/audit/v1-audit/v2check/twtest/node_modules/
+
+# ── Project assets (tracked, not ignored) ──────────────────────
+# The public/ directory's brand images ARE part of the project and
+# must be tracked by git. The archive exclusions above only apply
+# to archive/** — public/** is explicitly NOT excluded.
+!public/**
+
+# ── Misc ───────────────────────────────────────────────────────
+.cache/
+.temp/
+tmp/

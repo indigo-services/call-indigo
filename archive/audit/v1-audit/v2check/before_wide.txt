@@ -1,0 +1,46 @@
+========================================================================================================
+[BEFORE] VIEWPORT 1920
+  ribbonBar   edge=[  251.5, 1668.5] w= 1417.0 | text=[  298.5, 1625.5] | pl=47.0  pr=43.0  maxW=none
+  ribbonTxt   MISSING  .pill-topbar .shell
+  headerCard  edge=[  251.5, 1668.5] w= 1417.0 | text=[  251.5, 1668.5] | pl=0.0   pr=0.0   maxW=none
+  brand       edge=[  251.5,  402.3] w=  150.8 | text=[  251.5,  402.3] | pl=0.0   pr=0.0   maxW=none
+  heroSlab    edge=[   50.0, 1870.0] w= 1820.0 | text=[   50.0, 1870.0] | pl=0.0   pr=0.0   maxW=none
+  heroCol     edge=[  104.5, 1815.5] w= 1711.0 | text=[  104.5, 1815.5] | pl=0.0   pr=0.0   maxW=1711px
+  h1          edge=[  179.5,  945.0] w=  765.5 | text=[  179.5,  945.0] | pl=0.0   pr=0.0   maxW=none
+  services    edge=[    0.0, 1920.0] w= 1920.0 | text=[    0.0, 1920.0] | pl=0.0   pr=0.0   maxW=none
+  svcCol      edge=[  251.5, 1668.5] w= 1417.0 | text=[  251.5, 1668.5] | pl=0.0   pr=0.0   maxW=1417px
+  about       edge=[   50.0, 1870.0] w= 1820.0 | text=[   50.0, 1870.0] | pl=0.0   pr=0.0   maxW=none
+  aboutCol    edge=[   50.0, 1870.0] w= 1820.0 | text=[   50.0, 1870.0] | pl=0.0   pr=0.0   maxW=none
+  aboutPhoto  edge=[   50.0,  869.0] w=  819.0 | text=[   50.0,  869.0] | pl=0.0   pr=0.0   maxW=none
+  faq         edge=[   50.0, 1870.0] w= 1820.0 | text=[   50.0, 1870.0] | pl=0.0   pr=0.0   maxW=none
+  faqCol      edge=[  540.0, 1380.0] w=  840.0 | text=[  540.0, 1380.0] | pl=0.0   pr=0.0   maxW=840px
+  area        edge=[   50.0, 1870.0] w= 1820.0 | text=[   50.0, 1870.0] | pl=0.0   pr=0.0   maxW=none
+  areaCol     edge=[  171.0, 1749.0] w= 1578.0 | text=[  171.0, 1749.0] | pl=0.0   pr=0.0   maxW=1578px
+  contact     edge=[   50.0, 1870.0] w= 1820.0 | text=[   50.0, 1870.0] | pl=0.0   pr=0.0   maxW=none
+  ctcCol      edge=[   50.0, 1870.0] w= 1820.0 | text=[   50.0, 1870.0] | pl=0.0   pr=0.0   maxW=none
+  footer      edge=[   50.0, 1870.0] w= 1820.0 | text=[   50.0, 1870.0] | pl=0.0   pr=0.0   maxW=none
+  footCol     edge=[  251.5, 1668.5] w= 1417.0 | text=[  251.5, 1668.5] | pl=0.0   pr=0.0   maxW=1417px
+  -- no latent overflow --
+========================================================================================================
+[BEFORE] VIEWPORT 1440
+  ribbonBar   edge=[   42.6, 1397.4] w= 1354.8 | text=[   89.6, 1354.4] | pl=47.0  pr=43.0  maxW=none
+  ribbonTxt   MISSING  .pill-topbar .shell
+  headerCard  edge=[   42.6, 1397.4] w= 1354.8 | text=[   56.2, 1383.8] | pl=13.5  pr=13.5  maxW=none
+  brand       edge=[   56.2,  207.0] w=  150.8 | text=[   56.2,  207.0] | pl=0.0   pr=0.0   maxW=none
+  heroSlab    edge=[   28.8, 1411.2] w= 1382.4 | text=[   42.6, 1397.4] | pl=13.8  pr=13.8  maxW=none
+  heroCol     edge=[   42.6, 1397.4] w= 1354.8 | text=[   42.6, 1397.4] | pl=0.0   pr=0.0   maxW=1711px
+  h1          edge=[   57.6,  705.0] w=  647.4 | text=[   57.6,  705.0] | pl=0.0   pr=0.0   maxW=none
+  services    edge=[    0.0, 1440.0] w= 1440.0 | text=[   14.4, 1425.6] | pl=14.4  pr=14.4  maxW=none
+  svcCol      edge=[   14.4, 1425.6] w= 1411.2 | text=[   14.4, 1425.6] | pl=0.0   pr=0.0   maxW=1417px
+  about       edge=[   28.8, 1411.2] w= 1382.4 | text=[   42.6, 1397.4] | pl=13.8  pr=13.8  maxW=none
+  aboutCol    edge=[   42.6, 1397.4] w= 1354.8 | text=[   42.6, 1397.4] | pl=0.0   pr=0.0   maxW=none
+  aboutPhoto  edge=[   42.6,  652.3] w=  609.6 | text=[   42.6,  652.3] | pl=0.0   pr=0.0   maxW=none
+  faq         edge=[   28.8, 1411.2] w= 1382.4 | text=[   42.6, 1397.4] | pl=13.8  pr=13.8  maxW=none
+  faqCol      edge=[  300.0, 1140.0] w=  840.0 | text=[  300.0, 1140.0] | pl=0.0   pr=0.0   maxW=840px
+  area        edge=[   28.8, 1411.2] w= 1382.4 | text=[   42.6, 1397.4] | pl=13.8  pr=13.8  maxW=none
+  areaCol     edge=[   42.6, 1397.4] w= 1354.8 | text=[   42.6, 1397.4] | pl=0.0   pr=0.0   maxW=1578px
+  contact     edge=[   28.8, 1411.2] w= 1382.4 | text=[   42.6, 1397.4] | pl=13.8  pr=13.8  maxW=none
+  ctcCol      edge=[   42.6, 1397.4] w= 1354.8 | text=[   42.6, 1397.4] | pl=0.0   pr=0.0   maxW=none
+  footer      edge=[   28.8, 1411.2] w= 1382.4 | text=[   42.6, 1397.4] | pl=13.8  pr=13.8  maxW=none
+  footCol     edge=[   42.6, 1397.4] w= 1354.8 | text=[   42.6, 1397.4] | pl=0.0   pr=0.0   maxW=1417px
+  -- no latent overflow --
