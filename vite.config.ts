@@ -11,12 +11,4 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  server: {
-    // SPA fallback so /residential, /commercial, /admin/* all serve index.html
-    // PRD §5.3
-    historyApiFallback: true,
-  },
-  preview: {
-    historyApiFallback: true,
-  },
 })
