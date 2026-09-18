@@ -95,22 +95,29 @@ chore: configure @tailwindcss/vite in vite.config.ts
 ### Before opening a PR
 
 1. **Rebase on `main`** — no merge commits into features. Keep history linear.
-2. **Run the type checker** — `npx tsc --noEmit` must pass with zero errors.
-3. **Run the build** — `npm run build` must succeed.
-4. **Check the acceptance criteria** — if your PR implements a PRD section,
+2. **Run the type checker** — `npm run typecheck` must pass with zero errors.
+3. **Run the linter** — `npm run lint` must report zero errors. Warnings in
+   generated registry files are expected; anything else is not.
+4. **Run the build** — `npm run build` must succeed.
+5. **Exercise the change by hand** — see §5. There is no automated suite yet, so
+   "it type-checks" is not evidence that it works.
+6. **Check the acceptance criteria** — if your PR implements a PRD section,
    verify every checkbox in §14 that your work covers.
-5. **Write a PR description** that links to the PRD section and lists what changed,
+7. **Write a PR description** that links to the PRD section and lists what changed,
    what was verified, and what remains.
 
-### Three gates (adapted from Jaden's release conventions)
+### Gates
 
-| Gate | What it checks | Command |
-|---|---|---|
-| G1 — Type check | TypeScript compiles | `npx tsc --noEmit` |
-| G2 — Build | Vite production build succeeds | `npm run build` |
-| G3 — Parity (marketing routes only) | React renders match static prototype | `npm run test:parity` *(when implemented)* |
+| Gate | What it checks | Command | Status |
+|---|---|---|---|
+| G1 — Type check | TypeScript compiles | `npm run typecheck` | Active |
+| G2 — Lint | ESLint, zero errors | `npm run lint` | Active |
+| G3 — Build | Vite production build succeeds | `npm run build` | Active |
+| G4 — Parity (marketing routes only) | React renders match static prototype | `npm run test:parity` | **Not implemented** — see §5 |
 
-A PR is not mergeable until all applicable gates pass.
+A PR is not mergeable until all applicable gates pass. G4 is not yet a gate
+because the harness has not been adapted; until it is, parity is verified by hand
+and the method recorded in the PR description.
 
 ### After merge
 
@@ -125,14 +132,15 @@ A PR is not mergeable until all applicable gates pass.
 ### Parity testing (PRD §13)
 
 The React build must reproduce the three marketing pages as exact duplicates of
-the static prototype. The parity harness is adapted from `archive/audit/v1-audit/v2check/`:
+the static prototype. The parity harness is adapted from `archive/audit/v1-audit/v2check/`.
+`tests/README.md` is the authoritative plan for it:
 
 | Script | Purpose | Adapted from |
 |---|---|---|
 | `parity.py` | Pixel-diff React renders vs. static screenshots at 1920 / 1440 / 390 | New — wraps `shots.py` |
-| `verify.py` | Link, anchor, image, active-nav assertions | `v1-audit/v2check/verify.py` |
-| `diag.py` | Landmark box measurement (`.pad-rl`, `.mbox`, `.slab`, `.shell`) | `v1-audit/v2check/diag.py` |
-| `mincontent.py` | Min-content spill detection | `v1-audit/v2check/mincontent.py` |
+| `verify.ts` | Link, anchor, image, active-nav assertions | `v1-audit/v2check/verify.py` |
+| `diag.ts` | Landmark box measurement (`.pad-rl`, `.mbox`, `.slab`, `.shell`) | `v1-audit/v2check/diag.py` |
+| `mincontent.ts` | Min-content spill detection | `v1-audit/v2check/mincontent.py` |
 
 ### Parity thresholds (PRD §13.2)
 
@@ -143,9 +151,39 @@ the static prototype. The parity harness is adapted from `archive/audit/v1-audit
 
 ### Unit tests
 
-When component logic is non-trivial (e.g., the gutter-ladder frame model, the
-scroll-reveal controller), write a unit test. For presentational components that
-are verified by the parity harness, unit tests are optional.
+When component logic is non-trivial, write a unit test. For presentational
+components that are verified by the parity harness, unit tests are optional.
+
+**There is currently no test runner and no runnable tests.** `tests/` contains a
+single `README.md` describing the plan above; none of those scripts exist yet, and
+`npm run test:parity` is not a script in `package.json`. Adding one is the highest-
+value thing anyone can do to this repo.
+
+### What is actually verified today
+
+Until the harness lands, verification is manual and is expected to be described in
+prose with measurements, per §1. The methods that have proved useful here:
+
+| Area | Method |
+|---|---|
+| Marketing parity | Diff generated markup against `valvoro-prototype/*.html`, then compare **computed styles** at the same viewport rather than screenshots |
+| Design-system completeness | Assert every component class used in the markup exists in the compiled CSS |
+| Dashboard CRUD | Drive the real UI end to end, then read the storage key back and reload to confirm it survived |
+| Routes | Visit every route and check the console for errors and warnings |
+
+### A caveat about headless previews
+
+**A headless preview is not a browser.** In this workspace's preview context,
+`IntersectionObserver` never fires (even for a fixed, in-viewport probe element)
+and CSS transitions never advance, because the page is not being painted. Content
+gated behind a scroll reveal therefore reads as `opacity: 0` and looks broken when
+it is not.
+
+Before reporting such a thing as a bug, check the cascade directly: suppress the
+transition (`el.style.transition = 'none'`), add the state class, force a reflow,
+and read the computed value. If it reaches the expected value, the cascade is
+correct and the animation clock — not the code — is the problem. Confirm the
+animation itself in a real browser tab.
 
 ---
 
@@ -167,8 +205,11 @@ Components are not hand-written, not copied from a blog, not re-implemented.
 |---|---|---|
 | **Provenance** | Re-add with `npx shadcn@latest add --all --overwrite` in a scratch worktree; diff must be empty | Pre-merge gate |
 | **Import discipline** | No `src/admin/**` file may import from `src/marketing/**` | Pre-merge grep |
-| **Route count** | `/admin` has exactly 3 routes (§5.2) | Pre-merge assertion |
+| **Route count** | `/admin` routes match `src/admin/routes.ts` exactly, and `/admin/*` has no catch-all page — unknown paths redirect (§5.2, `docs/dashboard-scope.md`) | Pre-merge assertion |
+| **Nav model** | Every `/admin` page is listed in `src/admin/routes.ts` — a page cannot exist without a sidebar entry and a breadcrumb | Pre-merge review |
 | **Auth negative** | Grep build for login/session/token/auth route or provider code; expect zero | Pre-merge grep |
+| **Storage containment** | Only `src/lib/data/backend.ts` may reference `localStorage`; every other file goes through `src/lib/data/api.ts` | Pre-merge grep |
+| **Design-system coverage** | Every component class used in the marketing markup is defined in `src/index.css` — the count of missing classes must be zero | Pre-merge script |
 
 ### Custom-component exceptions
 
@@ -242,9 +283,11 @@ likely cause of a parity failure (PRD §13.3). Measure landmark boxes, not scree
 | Sidebar block files | `src/components/` (root — they are block, not ui) |
 | Bespoke marketing components | `src/marketing/` |
 | Admin pages | `src/admin/` |
-| Mock fixtures | `src/admin/mock/` |
+| Mock fixtures (design-token display only) | `src/admin/mock/` |
+| Dashboard data layer | `src/lib/data/` — see `docs/dashboard-scope.md` |
 | Shared utilities | `src/lib/` |
-| Verification scripts | `tests/` (adapted from `archive/audit/v1-audit/v2check/`) |
+| Shared React hooks | `src/hooks/` |
+| Verification scripts | `tests/` (planned — adapted from `archive/audit/v1-audit/v2check/`) |
 | Documentation | `docs/` |
 | Past work / reference | `archive/` |
 
@@ -253,6 +296,8 @@ likely cause of a parity failure (PRD §13.3). Measure landmark boxes, not scree
 - `@/*` resolves to `src/*`. Always use it.
 - `src/admin/**` may not import from `src/marketing/**` (PRD §7.4.2).
 - `src/marketing/**` may not import from `src/admin/**`.
+- Pages may not import `@/lib/data/backend` directly — they go through
+  `@/lib/data/api`, so the storage engine stays replaceable (§16.2 F2).
 
 ---
 
@@ -276,12 +321,25 @@ The `archive/` directory holds all past work. It is reference material, not acti
 code.
 
 - **Do not edit files in `archive/`** during normal development.
-- **The v1 prototype** (`archive/v1-prototype/valvoro-prototype/`) is the parity
-  baseline — screenshots from here are the diff target.
 - **The audit harness** (`archive/audit/v1-audit/v2check/`) contains scripts that
-  will be adapted into `tests/` during rc1 implementation.
+  will be adapted into `tests/` — see `tests/README.md`.
 - If you need a script from the archive, copy it into `tests/` and adapt it — do
   not run it in place.
+
+### The baseline prototype exists twice
+
+`valvoro-prototype/` at the repo root and
+`archive/v1-prototype/valvoro-prototype/` are the **same files** — the HTML, CSS,
+JS and ground-truth docs are byte-identical.
+
+**Use the root copy.** `.gitignore` excludes images under `archive/**`, so the
+archived copy ships without its 79 brand images and is not self-contained. The root
+copy is fully tracked. Before changing either, confirm which one your tooling
+resolved; a diff against the wrong copy is a five-minute detour at best.
+
+Note also that `css/tw.css` — described in `archive/README.md` as a "stale Tailwind
+mirror" — is in fact the source of the marketing design system that was ported into
+`src/index.css`. It is stale as a *build input*, not as a design reference.
 
 ---
 
@@ -297,3 +355,5 @@ Recorded from experience in this workspace and Jaden's broader conventions.
 | Batching parallel `Edit` calls on the same file | They race — the last writer wins, silently. Edit one file sequentially. |
 | Using `grep -c` in a `&&` chain | `grep -c` exits 1 when count is 0, breaking the chain. Use `\|\| true` or `;`. |
 | Hardcoding Unix timestamps | Use `date +%s` / `[DateTimeOffset]::Now.ToUnixTimeSeconds()`. |
+| Trusting a headless preview for animation or scroll behaviour | `IntersectionObserver` and CSS transitions do not run there. Verify the cascade directly, then confirm in a real tab — see §5. |
+| Adding an `@/admin/**` import of `@/lib/data/backend` | Pages import `@/lib/data/api`. `backend.ts` is the swappable storage engine (PRD §16.2 F2). |
