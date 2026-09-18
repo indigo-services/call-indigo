@@ -1,56 +1,56 @@
 /**
- * AdminLayout — the two-menu shadcn sidebar shell (PRD §9.2).
+ * AdminLayout — the shadcn sidebar shell that wraps every `/admin` page.
  *
- * Implemented as one inset sidebar containing two menu groups, matching
- * registry block sidebar-08 ("An inset sidebar with secondary navigation").
- *
- * Composition (PRD §9.2):
- *
- *   SidebarProvider
- *   └── Sidebar (variant="inset")        ← app-sidebar.tsx
- *       ├── SidebarHeader                ← Call Indigo mark + wordmark
- *       ├── SidebarContent
- *       │   ├── SidebarGroup             ← MENU 1: "Settings"   (nav-main.tsx)
- *       │   └── SidebarGroup             ← MENU 2: "Design"     (nav-secondary.tsx)
- *       ├── SidebarFooter                ← nav-user.tsx, mock identity
- *       └── SidebarRail
- *   └── SidebarInset
- *       └── SiteHeader (SidebarTrigger + Breadcrumb) + <Outlet />
- *
- * After running `npx shadcn@latest add sidebar-08`, the block files
- * (app-sidebar.tsx, nav-main.tsx, nav-secondary.tsx, nav-user.tsx) land
- * in src/components/ and are imported here.
- *
- * STUB — flesh out after running the shadcn CLI.
+ * One inset sidebar containing three menu groups (Inbox, Settings, Design),
+ * following registry block sidebar-08 (PRD §9.2). The breadcrumb's leaf comes
+ * from the shared nav model in `routes.ts`, so a page cannot be added to the
+ * sidebar without also getting a correct breadcrumb.
  */
-import { Outlet } from "react-router-dom"
+import { Link, Outlet, useLocation } from "react-router-dom"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
+import { findAdminRoute } from "@/admin/routes"
 
 export default function AdminLayout() {
-  return (
-    <div className="min-h-screen bg-muted">
-      {/* TODO: replace with the sidebar-08 block after `npx shadcn@latest add sidebar-08` */}
-      <div className="flex">
-        {/* Sidebar placeholder */}
-        <aside className="hidden w-64 bg-sidebar text-sidebar-foreground lg:block">
-          <div className="p-4">
-            <p className="text-sm font-bold">Call Indigo</p>
-            <p className="text-xs text-sidebar-foreground/60">Admin Dashboard</p>
-          </div>
-          <nav className="px-2 py-4 space-y-1">
-            <a href="/admin/settings" className="block px-3 py-2 rounded text-sm hover:bg-sidebar-accent">
-              Settings
-            </a>
-            <a href="/admin/design" className="block px-3 py-2 rounded text-sm hover:bg-sidebar-accent">
-              Design System
-            </a>
-          </nav>
-        </aside>
+  const location = useLocation()
+  const route = findAdminRoute(location.pathname)
 
-        {/* Main content */}
-        <main className="flex-1 p-6">
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink asChild>
+                    <Link to="/admin/inquiries">Admin</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{route?.title ?? "Not found"}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <Outlet />
-        </main>
-      </div>
-    </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

@@ -2,17 +2,42 @@
  * Design System page — /admin/design (PRD §11).
  *
  * Mockup. Display-only. This page shows the brand; it does not author it.
- *
- * Required content: logo, icon, colours, standard accents, plus one accent
- * shade for Residential and one for Commercial.
- *
- * The page carries a visible "mockup — read-only" note (PRD §15, R5).
- *
- * STUB — flesh out after running the shadcn CLI. The colour swatch grid is
- * a custom component — see docs/component-exceptions.md for the exception
- * record (PRD §7.5 worked example).
  */
+import { useState } from "react"
+import { Copy, Check } from "lucide-react"
 import { designTokens, accentTokens, segmentAccents } from "@/admin/mock/tokens"
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+
+function Swatch({ hex, label, sublabel }: { hex: string; label: string; sublabel?: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(hex)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
+  return (
+    <div className="flex items-center gap-3 rounded-md border border-border p-3">
+      <button
+        onClick={handleCopy}
+        className="group relative h-10 w-10 shrink-0 rounded border border-border focus:outline-none focus:ring-2 focus:ring-ring"
+        style={{ backgroundColor: hex }}
+        title={`Copy ${hex}`}
+        aria-label={`Copy colour ${hex}`}
+      >
+        <span className="absolute inset-0 flex items-center justify-center rounded bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
+          {copied ? <Check className="size-4 text-white" /> : <Copy className="size-4 text-white" />}
+        </span>
+      </button>
+      <div className="min-w-0">
+        <p className="text-sm font-mono font-medium text-foreground truncate">{label}</p>
+        {sublabel && <p className="text-xs text-muted-foreground truncate">{sublabel}</p>}
+      </div>
+    </div>
+  )
+}
 
 export default function DesignSystemPage() {
   return (
@@ -25,88 +50,112 @@ export default function DesignSystemPage() {
       </div>
 
       {/* Logo (PRD §11.1) */}
-      <section className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-card-foreground mb-4">Logo</h2>
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-lg bg-ink-2 flex items-center justify-center">
-            <span className="text-white font-bold text-lg">CI</span>
+      <Card>
+        <CardHeader>
+          <CardTitle>Logo</CardTitle>
+          <CardDescription>Brand lockup: mark + wordmark.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-lg bg-ink-2 flex items-center justify-center">
+              <span className="text-white font-bold text-lg">CI</span>
+            </div>
+            <div>
+              <p className="font-bold text-foreground text-[23px] tracking-[-.02em]">Call Indigo</p>
+              <p className="text-xs text-muted-foreground">font-sans, tracking-[-.02em], weight 700, 23px</p>
+            </div>
           </div>
-          <div>
-            <p className="font-bold text-foreground">Call Indigo</p>
-            <p className="text-xs text-muted-foreground">font-sans, tracking-[-.02em], weight 700, 23px</p>
-          </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* Icon (PRD §11.2) */}
-      <section className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-card-foreground mb-2">Icon</h2>
-        <p className="text-sm text-muted-foreground">
-          The brand icon is the mark itself. UI icons are lucide-react, matching
-          the <code className="text-xs">iconLibrary</code> in components.json.
-        </p>
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Icon</CardTitle>
+          <CardDescription>Brand and UI icon strategy.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            The brand icon is the mark itself. UI icons are <code className="text-xs bg-muted px-1 rounded">lucide-react</code>, matching
+            the <code className="text-xs bg-muted px-1 rounded">iconLibrary</code> in components.json.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Colours (PRD §11.3) */}
-      <section className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-card-foreground mb-4">Colours</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {designTokens.map((t) => (
-            <div key={t.token} className="flex items-center gap-3 rounded-md border border-border p-3">
-              <div
-                className="h-10 w-10 rounded border border-border"
-                style={{ backgroundColor: t.hex }}
-              />
-              <div>
-                <p className="text-sm font-mono font-medium text-foreground">{t.token}</p>
-                <p className="text-xs text-muted-foreground">{t.hex} — {t.role}</p>
+      <Card>
+        <CardHeader>
+          <CardTitle>Colours</CardTitle>
+          <CardDescription>Full brand token palette. Click a swatch to copy the hex value.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {["Brand", "Accents", "Neutrals", "Semantic", "Scrim"].map((group) => {
+            const tokens = designTokens.filter((t) => t.group === group)
+            if (tokens.length === 0) return null
+            return (
+              <div key={group} className="mb-4 last:mb-0">
+                <h3 className="text-sm font-semibold text-foreground mb-2">{group}</h3>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {tokens.map((t) => (
+                    <Swatch
+                      key={t.token}
+                      hex={t.hex}
+                      label={t.token}
+                      sublabel={`${t.hex} — ${t.role}`}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            )
+          })}
+        </CardContent>
+      </Card>
 
       {/* Standard accents (PRD §11.4) */}
-      <section className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-card-foreground mb-4">Standard Accents</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {accentTokens.map((t) => (
-            <div key={t.token} className="flex items-center gap-3 rounded-md border border-border p-3">
-              <div
-                className="h-10 w-10 rounded border border-border"
-                style={{ backgroundColor: t.hex }}
+      <Card>
+        <CardHeader>
+          <CardTitle>Standard Accents</CardTitle>
+          <CardDescription>The five primary accent colours used across the site.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {accentTokens.map((t) => (
+              <Swatch
+                key={t.token}
+                hex={t.hex}
+                label={t.token}
+                sublabel={`${t.hex} — ${t.role}`}
               />
-              <div>
-                <p className="text-sm font-mono font-medium text-foreground">{t.token}</p>
-                <p className="text-xs text-muted-foreground">{t.hex} — {t.role}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Segment accents (PRD §11.5) */}
-      <section className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-card-foreground mb-4">Segment Accents</h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Assigned from the existing palette — no new hues invented (PRD §11.5).
-        </p>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {segmentAccents.map((t) => (
-            <div key={t.segment} className="flex items-center gap-3 rounded-md border border-border p-3">
-              <div
-                className="h-10 w-10 rounded border border-border"
-                style={{ backgroundColor: t.hex }}
-              />
-              <div>
-                <p className="text-sm font-semibold text-foreground">{t.segment}</p>
-                <p className="text-xs font-mono text-muted-foreground">{t.token}</p>
-                <p className="text-xs text-muted-foreground">{t.hex}</p>
+      <Card>
+        <CardHeader>
+          <CardTitle>Segment Accents</CardTitle>
+          <CardDescription>Assigned from the existing palette — no new hues invented.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {segmentAccents.map((t) => (
+              <div key={t.segment} className="flex items-center gap-3 rounded-md border border-border p-3">
+                <div
+                  className="h-10 w-10 shrink-0 rounded border border-border"
+                  style={{ backgroundColor: t.hex }}
+                />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{t.segment}</p>
+                  <p className="text-xs font-mono text-muted-foreground">{t.token}</p>
+                  <p className="text-xs text-muted-foreground">{t.hex}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t.surface}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

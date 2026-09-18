@@ -1,92 +1,125 @@
 /**
- * Settings page — /admin/settings (PRD §10).
+ * Settings page — /admin/settings (PRD §10, now persistent).
  *
- * Mockup. All state is useState; a reload resets it. Registry components only.
+ * The PRD's rc1 version was a mockup whose save button apologised for not saving
+ * ("Saved (mockup — nothing was persisted)"). This one actually writes, through
+ * `api.saveSettings()`, and the toast says so. The distinction matters: a toast
+ * that claims a save it did not make teaches everyone who reads the code that
+ * the copy is decoration.
  *
- * Three tabs:
- *   - General:     business name, legal name, phone, email, service area
- *   - Appearance:  theme (Light/Dark/System), accent preview, reduce-motion switch
- *   - Notifications: email on new lead, weekly summary, emergency-page alerts
- *
- * Save action shows a toast: "Saved (mockup — nothing was persisted)".
- * The toast must not claim success it did not achieve (PRD §10).
- *
- * Field values are seeded from GROUND_TRUTH-source-facts.txt (PRD §10).
- *
- * STUB — flesh out after running `npx shadcn@latest add tabs card field label
- * input select switch radio-group separator badge button sonner tooltip`.
+ * Values are seeded from the site's published facts, so the form reads as the
+ * real product rather than as placeholder text.
  */
-import { useState } from "react"
 import { toast } from "sonner"
-import { siteFacts } from "@/admin/mock/tokens"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
+import { PageHeader } from "@/admin/PageHeader"
+import { api } from "@/lib/data/api"
+import { useApiData } from "@/lib/data/hooks"
+import { useDraft } from "@/lib/data/use-draft"
+import type { SiteSettings } from "@/lib/data/types"
+
+/** Fields that are editable, in render order. */
+const FIELDS: ReadonlyArray<{
+  key: keyof SiteSettings
+  label: string
+  hint?: string
+  type?: string
+}> = [
+  { key: "brandName", label: "Business name", hint: "Appears in the header, footer and page titles." },
+  { key: "legalName", label: "Legal name", hint: "Used on documents and the utility bar." },
+  { key: "primaryPhone", label: "Primary phone", hint: "The number every call-to-action dials." },
+  { key: "publicEmail", label: "Public email", type: "email" },
+  { key: "notificationEmail", label: "Notification email", type: "email", hint: "Where new-inquiry alerts are sent." },
+  { key: "address", label: "Address" },
+  { key: "establishedYear", label: "Established year" },
+  { key: "serviceArea", label: "Service area" },
+  { key: "licenseNumber", label: "Licence number" },
+]
 
 export default function SettingsPage() {
-  const [businessName, setBusinessName] = useState(siteFacts.brandName)
-  const [legalName, setLegalName] = useState(siteFacts.legalName)
-  const [phone, setPhone] = useState(siteFacts.primaryPhone)
-  const [email, setEmail] = useState(siteFacts.publicEmail)
+  const { data, loading, error } = useApiData("admin-settings", () => api.getSettings())
+  const { draft, setDraft, dirty, reset } = useDraft<SiteSettings>(data)
 
-  const handleSave = () => {
-    toast.success("Saved (mockup — nothing was persisted)")
+  async function onSave() {
+    if (!draft) return
+    await api.saveSettings(draft)
+    toast.success("Settings saved")
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Mockup — all changes are in-memory only. Reloading discards state.
-        </p>
-      </div>
-
-      {/* TODO: implement Tabs with three tab panels (General, Appearance, Notifications) */}
-      <div className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-card-foreground mb-4">General</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-foreground">Business name</label>
-            <input
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-foreground">Legal name</label>
-            <input
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-              value={legalName}
-              onChange={(e) => setLegalName(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-foreground">Phone</label>
-            <input
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-foreground">Email</label>
-            <input
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-foreground">Service area</label>
-            <p className="mt-1 text-sm text-muted-foreground">{siteFacts.serviceArea}</p>
-          </div>
-        </div>
-        <button
-          className="mt-6 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-          onClick={handleSave}
-        >
+      <PageHeader
+        title="General"
+        description="Business details, used across the site and its documents."
+      >
+        <Button variant="outline" onClick={reset} disabled={!dirty}>
+          Discard
+        </Button>
+        <Button onClick={onSave} disabled={!dirty}>
           Save changes
-        </button>
-      </div>
+        </Button>
+      </PageHeader>
+
+      {error ? (
+        <Card>
+          <CardContent className="pt-6 text-sm text-destructive">
+            Could not load settings: {error.message}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Business information</CardTitle>
+          <CardDescription>
+            {dirty ? "You have unsaved changes." : "Saved to this browser's local store."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading && !draft ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {FIELDS.map((f) => (
+                <div key={f.key} className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-9 w-full" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {FIELDS.map((f) => (
+                <div key={f.key} className="space-y-2">
+                  <Label htmlFor={`field-${f.key}`}>{f.label}</Label>
+                  <Input
+                    id={`field-${f.key}`}
+                    type={f.type ?? "text"}
+                    value={draft?.[f.key] ?? ""}
+                    onChange={(e) =>
+                      setDraft((prev) => ({ ...prev, [f.key]: e.target.value }))
+                    }
+                  />
+                  {f.hint ? <p className="text-xs text-muted-foreground">{f.hint}</p> : null}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Where these values appear</CardTitle>
+          <CardDescription>
+            The marketing pages still carry these strings inline from the prototype, so
+            editing here does not yet rewrite them. That is PRD §16.2 F4 (content
+            management) and depends on a real backend.
+          </CardDescription>
+        </CardHeader>
+      </Card>
     </div>
   )
 }
