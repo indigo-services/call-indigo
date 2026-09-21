@@ -128,7 +128,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
            template's rhythm, and the phone block below is \`ml-auto\`. -->
       <nav class="ml-[38px] hidden items-center gap-[22px] whitespace-nowrap md:flex md:gap-[16px] lg:ml-[84px] lg:gap-[22px] xl:gap-[34px] 2xl:gap-[52px] max-md:ml-0" aria-label="Main">
         <a href="/" class="text-[12.5px] font-semibold text-ink hover:text-brand xl:text-[15px]">Home</a>
-        <a href="/residential" class="inline-flex h-[42px] items-center rounded-[8px] bg-sky px-[15px] text-[12.5px] font-semibold leading-none text-white xl:text-[15px]" aria-current="page">Residential</a>
+        <a href="/residential" class="inline-flex h-[42px] items-center rounded-[8px] bg-residential px-[15px] text-[12.5px] font-semibold leading-none text-white xl:text-[15px]" aria-current="page">Residential</a>
         <a href="/commercial" class="text-[12.5px] font-semibold text-ink hover:text-brand xl:text-[15px]">Commercial</a>
         <a href="/contact" class="text-[12.5px] font-semibold text-ink hover:text-brand xl:text-[15px]">Contact</a>
       </nav>
@@ -180,19 +180,23 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
 
   <!-- ======================= HERO CARD
   <!-- ======================= HERO ======================= -->
-  <!-- v1 /residential hero, copy verbatim (bundle \`residentialHero\`). The four
-       proof chips are its \`proof[]\` array; the white badge reproduces the one
-       overlapping v1's hero photo. -->
+  <!-- v1 /residential hero, copy verbatim (bundle \`residentialHero\`). The white
+       badge reproduces the one overlapping v1's hero photo.
+
+       The four \`proof[]\` chips (Headquartered / Established / Family owned /
+       Local service area) that used to sit above the h1 are gone — client
+       direction, 2026-09-21 — replaced by a single \`.hero-eyebrow\` kicker so both
+       service heroes open the same way. Nothing factual is lost: the footer and
+       the home page's About band both already state the Austin headquarters, the
+       2012 founding, and the four-city service area. -->
   <div class="pad-rl">
-    <section class="mbox slab slab-photo scrim-hero relative bg-brand pad-140">
+    <section class="mbox slab slab-photo scrim-hero relative bg-residential pad-140">
       <img src="/assets/images/banner-bg-img.jpg" alt="" aria-hidden="true"
         class="pointer-events-none absolute inset-0 z-0 size-full object-cover">
       <div class="slab-body shell">
         <div class="grid items-center gap-12 lg:grid-cols-[1.02fr_.98fr] lg:gap-[70px]">
           <div class="text-white">
-            <div class="mb-6 flex flex-wrap gap-2.5">
-              <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">Headquartered: Austin, TX</span> <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">Established: 2012</span> <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">Family owned, Locally operated</span> <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">Local Service Area: Austin, Buda, Kyle, San Marcos</span>
-            </div>
+            <span class="hero-eyebrow">Residential &amp; home services</span>
             <h1 class="text-[clamp(38px,4.6vw,64px)] font-extrabold leading-[1.04] tracking-[-.02em]">Love Your Home Forever.</h1>
             <p class="mt-6 max-w-[580px] text-[17px] leading-[28px] text-white/85">Hire our locally licensed and insured home services crews. And join our membership to achieve peace of mind with all things related to your home.</p>
             <div class="mt-8 flex flex-wrap items-center gap-4">
@@ -265,42 +269,42 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
       <div class="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img1.jpg" alt="Plumbing services" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
-          <img src="/assets/images/services-icon1.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <img src="/assets/images/services-icon1.png" alt="" class="relative -mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Plumbing</h3>
           <p class="px-6 text-[14.5px]">Emergency plumbing, water heaters, leak detection, sinks, faucets, toilets, gas lines, and more.</p>
           <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img2.jpg" alt="Electrical services" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
-          <img src="/assets/images/services-icon2.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <img src="/assets/images/services-icon2.png" alt="" class="relative -mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Electrical</h3>
           <p class="px-6 text-[14.5px]">Residential and commercial electrical, wiring, lighting, ceiling fans, exhaust fans, and panel work.</p>
           <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img3.jpg" alt="HVAC services" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
-          <img src="/assets/images/services-icon3.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <img src="/assets/images/services-icon3.png" alt="" class="relative -mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">HVAC</h3>
           <p class="px-6 text-[14.5px]">Heating, ventilation, and air conditioning installation, repair, and maintenance for homes and properties.</p>
           <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img4.jpg" alt="Carpentry and remodeling" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
-          <img src="/assets/images/services-icon4.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <img src="/assets/images/services-icon4.png" alt="" class="relative -mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Carpentry &amp; Remodeling</h3>
           <p class="px-6 text-[14.5px]">Doors, decks, fences, drywall, siding, flooring, full remodeling, and construction projects.</p>
           <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img5.jpg" alt="Painting and make-readies" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
-          <img src="/assets/images/services-icon5.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <img src="/assets/images/services-icon5.png" alt="" class="relative -mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Painting &amp; Make-Readies</h3>
           <p class="px-6 text-[14.5px]">Interior and exterior painting, make-ready services for rentals, and property turnover coordination.</p>
           <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img6.jpg" alt="Handyman and repairs" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
-          <img src="/assets/images/services-icon6.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <img src="/assets/images/services-icon6.png" alt="" class="relative -mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Handyman &amp; Repairs</h3>
           <p class="px-6 text-[14.5px]">General repairs, handyman services, landscaping, and ongoing property maintenance.</p>
           <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
@@ -353,7 +357,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
 
   <!-- ======================= FINAL CTA ======================= -->
   <div class="pad-rl">
-    <section class="mbox slab slab-photo scrim-blue bg-img-cta pad-30 relative bg-brand">
+    <section class="mbox slab slab-photo scrim-blue bg-img-cta pad-30 relative bg-residential">
     <div class="slab-body shell">
       <div class="grid items-center gap-10 lg:grid-cols-[.92fr_1.08fr] lg:gap-[100px]">
         <div class="relative">
@@ -696,7 +700,7 @@ export default function ResidentialPage() {
 
   return (
     <div
-      className="min-h-screen bg-white"
+      className="min-h-screen bg-white page-residential"
       dangerouslySetInnerHTML={{ __html: BODY_HTML }}
     />
   )

@@ -129,7 +129,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
       <nav class="ml-[38px] hidden items-center gap-[22px] whitespace-nowrap md:flex md:gap-[16px] lg:ml-[84px] lg:gap-[22px] xl:gap-[34px] 2xl:gap-[52px] max-md:ml-0" aria-label="Main">
         <a href="/" class="text-[12.5px] font-semibold text-ink hover:text-brand xl:text-[15px]">Home</a>
         <a href="/residential" class="text-[12.5px] font-semibold text-ink hover:text-brand xl:text-[15px]">Residential</a>
-        <a href="/commercial" class="inline-flex h-[42px] items-center rounded-[8px] bg-sky px-[15px] text-[12.5px] font-semibold leading-none text-white xl:text-[15px]" aria-current="page">Commercial</a>
+        <a href="/commercial" class="inline-flex h-[42px] items-center rounded-[8px] bg-commercial px-[15px] text-[12.5px] font-semibold leading-none text-white xl:text-[15px]" aria-current="page">Commercial</a>
         <a href="/contact" class="text-[12.5px] font-semibold text-ink hover:text-brand xl:text-[15px]">Contact</a>
       </nav>
 
@@ -180,18 +180,22 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
 
   <!-- ======================= HERO CARD
   <!-- ======================= HERO ======================= -->
-  <!-- v1 /commercial hero, copy verbatim (bundle \`commercialHero\`). -->
+  <!-- v1 /commercial hero, copy verbatim (bundle \`commercialHero\`).
+
+       The two proof pills (National facility management / Licensed & insured in
+       all 50 states) that used to sit above the h1 are gone — client direction,
+       2026-09-21. The kicker now carries the page's identity on its own and is
+       promoted to \`.hero-eyebrow\` so it reads as a subtitle rather than a label;
+       the "licensed & insured" claim is already made in the body copy directly
+       below and in the footer. -->
   <div class="pad-rl">
-    <section class="mbox slab slab-photo scrim-hero relative bg-brand pad-140">
+    <section class="mbox slab slab-photo scrim-hero relative bg-commercial pad-140">
       <img src="/assets/images/banner-bg-img.jpg" alt="" aria-hidden="true"
         class="pointer-events-none absolute inset-0 z-0 size-full object-cover">
       <div class="slab-body shell">
         <div class="grid items-center gap-12 lg:grid-cols-[1.02fr_.98fr] lg:gap-[70px]">
           <div class="text-white">
-            <span class="eyebrow">Commercial &amp; facility services</span>
-            <div class="mb-6 flex flex-wrap gap-2.5">
-              <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">National facility management</span> <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">Licensed &amp; insured in all 50 states</span>
-            </div>
+            <span class="hero-eyebrow">Commercial &amp; facility services</span>
             <h1 class="text-[clamp(38px,4.6vw,64px)] font-extrabold leading-[1.04] tracking-[-.02em]">Love Your Facility Forever.</h1>
             <p class="mt-6 max-w-[580px] text-[17px] leading-[28px] text-white/85">Hire our national and insured facility services partners. And join our membership to achieve peace of mind with all things related to your facility.</p>
             <div class="mt-8 flex flex-wrap items-center gap-4">
@@ -323,7 +327,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
        property". The duplication is v1's bug, not a deliberate turn of phrase;
        the rest of the sentence is unchanged. -->
   <div class="pad-rl">
-    <section class="mbox slab slab-photo scrim-blue bg-img-cta pad-30 relative bg-brand">
+    <section class="mbox slab slab-photo scrim-blue bg-img-cta pad-30 relative bg-commercial">
     <div class="slab-body shell">
       <div class="grid items-center gap-10 lg:grid-cols-[.92fr_1.08fr] lg:gap-[100px]">
         <div class="relative">
@@ -666,7 +670,7 @@ export default function CommercialPage() {
 
   return (
     <div
-      className="min-h-screen bg-white"
+      className="min-h-screen bg-white page-commercial"
       dangerouslySetInnerHTML={{ __html: BODY_HTML }}
     />
   )

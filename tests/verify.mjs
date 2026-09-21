@@ -872,4 +872,154 @@ export async function run() {
     }
     return out
   })
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Three defects, one shared property: every assertion that came before was
+  // blind to them. One lived in CSS paint order (this suite renders markup, it
+  // has no layout engine), and two lived in the header markup that each page
+  // duplicates inline rather than genuinely sharing.
+  //
+  // So these checks assert on the class strings that DECIDE the rendering, and
+  // on exact counts. A count is deliberate: "no page has the wrong chip" passes
+  // when a page has no chips at all, which is precisely how the chip bug got
+  // through the first time.
+  // ───────────────────────────────────────────────────────────────────────────
+  suite("Service heroes and page primaries", "tests/verify.mjs")
+
+  const servicePages = pages.filter((p) => p.name === "residential" || p.name === "commercial")
+
+  check("every service-card icon chip is positioned above its photo", () => {
+    const out = []
+    let positioned = 0
+    for (const p of pages) {
+      const chips = [...p.clean.matchAll(/<img[^>]*services-icon\d\.png[^>]*>/g)].map((m) => m[0])
+      for (const tag of chips) {
+        const cls = attr(tag, "class")[0] ?? ""
+        // `relative` is what makes the chip paint after the photo. Without it the
+        // photo wrapper's overflow:hidden covers the chip's top 32px — measured
+        // at 27px of cyan visible instead of 56px.
+        if (/(^|\s)relative(\s|$)/.test(cls)) positioned++
+        else out.push(`${p.route} — icon chip is not positioned: "${cls.slice(0, 48)}…"`)
+      }
+    }
+    if (positioned !== 12) {
+      out.push(`found ${positioned} positioned chips, expected 12 (6 on /, 6 on /residential)`)
+    }
+    return out
+  })
+
+  check("the hero proof-pill rows are gone from both service pages", () => {
+    const out = []
+    for (const p of servicePages) {
+      // `bg-white/10` + uppercase + that tracking value existed only in the hero
+      // pill rows. A leftover anywhere on the page is a failure.
+      const n = (p.clean.match(/bg-white\/10[^"]*uppercase[^"]*tracking-\[0\.16em\]/g) ?? []).length
+      if (n) out.push(`${p.route} — still renders ${n} hero proof pill(s)`)
+    }
+    return out
+  })
+
+  check("both service heroes open with the same hero-eyebrow kicker", () => {
+    const out = []
+    const want = {
+      residential: "Residential &amp; home services",
+      commercial: "Commercial &amp; facility services",
+    }
+    for (const p of servicePages) {
+      const found = [...p.clean.matchAll(/<span class="hero-eyebrow">([^<]*)<\/span>/g)].map((m) => m[1])
+      if (found.length !== 1) {
+        out.push(`${p.route} — ${found.length} hero eyebrows, expected exactly 1`)
+      } else if (found[0].trim() !== want[p.name]) {
+        out.push(`${p.route} — eyebrow reads "${found[0]}", expected "${want[p.name]}"`)
+      }
+    }
+    return out
+  })
+
+  check("the three marketing pages each paint their hero a different primary", () => {
+    const out = []
+    const expected = { home: "bg-brand", residential: "bg-residential", commercial: "bg-commercial" }
+    const seen = {}
+    for (const p of pages) {
+      const want = expected[p.name]
+      if (!want) continue
+      const m = p.clean.match(/<section[^>]*scrim-hero[^>]*>/)
+      if (!m) {
+        out.push(`${p.route} — no hero slab found`)
+        continue
+      }
+      const cls = attr(m[0], "class")[0] ?? ""
+      if (!new RegExp(`\\b${want}\\b`).test(cls)) {
+        out.push(`${p.route} — hero slab lacks ${want}: "${cls.slice(0, 52)}…"`)
+      }
+      seen[p.name] = want
+    }
+    // Three pages, three distinct values. Also fails if a page went missing.
+    if (Object.keys(seen).length !== 3) out.push(`only ${Object.keys(seen).length} heroes checked, expected 3`)
+    if (new Set(Object.values(seen)).size !== 3) {
+      out.push(`primaries collide: ${JSON.stringify(seen)}`)
+    }
+    return out
+  })
+
+  check("the header's active pill agrees with its page's primary", () => {
+    const out = []
+    const expected = {
+      home: "bg-sky",
+      residential: "bg-residential",
+      commercial: "bg-commercial",
+      contact: "bg-sky",
+    }
+    for (const p of pages) {
+      const want = expected[p.name]
+      if (!want) continue
+      // Two nav presentations carry aria-current: the header pill (h-[42px]) and
+      // the mobile drawer row (py-3). Only the header pill is under test.
+      const pills = [...p.clean.matchAll(/<a[^>]*>/g)]
+        .map((m) => m[0])
+        .filter((t) => /aria-current="page"/.test(t) && /h-\[42px\]/.test(t))
+      if (pills.length !== 1) {
+        out.push(`${p.route} — ${pills.length} header active pills, expected 1`)
+        continue
+      }
+      const cls = attr(pills[0], "class")[0] ?? ""
+      if (!new RegExp(`\\b${want}\\b`).test(cls)) {
+        out.push(`${p.route} — active pill is "${cls.slice(0, 40)}…", expected ${want}`)
+      }
+    }
+    return out
+  })
+
+  check("each service page scopes its scrim to its own primary", () => {
+    const out = []
+    for (const p of servicePages) {
+      const want = `page-${p.name}`
+      // Without this the slab changes colour but the ::before scrim keeps the
+      // template's blue at 88% opacity and the blue wins.
+      if (!new RegExp(`class="[^"]*\\b${want}\\b`).test(p.clean)) {
+        out.push(`${p.route} — root does not carry ${want}; the scrim would stay template-blue`)
+      }
+    }
+    return out
+  })
+
+  check("the stylesheet defines a scrim tint and a utility per service primary", () => {
+    const css = distCss()
+    if (!css) return ["dist CSS not found — the suite expects the build to have run first"]
+    const out = []
+    const hex = { residential: "#0a6153", commercial: "#3f3d9e" }
+    for (const [name, value] of Object.entries(hex)) {
+      if (!new RegExp(`--color-${name}\\s*:\\s*${value}`, "i").test(css)) {
+        out.push(`--color-${name} is not ${value} in the built stylesheet`)
+      }
+      if (!new RegExp(`\\.bg-${name}\\s*\\{`).test(css)) {
+        out.push(`.bg-${name} was not emitted by Tailwind`)
+      }
+      if (!new RegExp(`\\.page-${name}\\s*\\{[^}]*--color-scrim-hero`).test(css)) {
+        out.push(`.page-${name} does not override --color-scrim-hero`)
+      }
+    }
+    if (!/\.hero-eyebrow\s*\{/.test(css)) out.push(".hero-eyebrow was not emitted")
+    return out
+  })
 }

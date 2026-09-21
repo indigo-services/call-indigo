@@ -444,7 +444,18 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
   <!-- ======================= SERVICES ======================= -->
   <!-- \`.services-con.padding-top.padding-bottom.main-box\` — NOT wrapped in a
        \`.padding-rl\`, so it is a plain white band whose content is capped by
-       \`.main-container\` (1417) alone. -->
+       \`.main-container\` (1417) alone.
+
+       THE ICON CHIP IS \`relative\` ON PURPOSE — do not remove it. The chip is a
+       bare <img> carrying \`bg-sky\` as its own background, pulled up over the
+       photo with \`-mt-8\`. Tailwind preflight sets \`img{display:block}\`, so the
+       chip is a block-level box and the photo's wrapper <div> - which is
+       \`overflow:hidden\` - painted over the chip's top 32px. Measured in
+       Chromium: only 27px of the 62px chip's cyan was visible, and the white
+       glyph floated over the photo with no chip behind it. Adding \`relative\`
+       makes the chip a positioned box, which paints after in-flow content, and
+       the full 56px (62 - 2x3 white border) renders. Verified by measuring the
+       rendered pixels, not by reasoning about the spec. -->
   <section id="services" class="band pad-140">
     <div class="shell">
       <div class="reveal mb-12 max-w-[660px]">
@@ -455,42 +466,42 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
       <div class="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img1.jpg" alt="Plumbing services" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
-          <img src="/assets/images/services-icon1.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <img src="/assets/images/services-icon1.png" alt="" class="relative -mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Plumbing</h3>
           <p class="px-6 text-[14.5px]">Emergency plumbing, water heaters, leak detection, sinks, faucets, toilets, gas lines, and more.</p>
           <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img2.jpg" alt="Electrical services" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
-          <img src="/assets/images/services-icon2.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <img src="/assets/images/services-icon2.png" alt="" class="relative -mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Electrical</h3>
           <p class="px-6 text-[14.5px]">Residential and commercial electrical, wiring, lighting, ceiling fans, exhaust fans, and panel work.</p>
           <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img3.jpg" alt="HVAC services" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
-          <img src="/assets/images/services-icon3.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <img src="/assets/images/services-icon3.png" alt="" class="relative -mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">HVAC</h3>
           <p class="px-6 text-[14.5px]">Heating, ventilation, and air conditioning installation, repair, and maintenance for homes and properties.</p>
           <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img4.jpg" alt="Carpentry and remodeling" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
-          <img src="/assets/images/services-icon4.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <img src="/assets/images/services-icon4.png" alt="" class="relative -mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Carpentry &amp; Remodeling</h3>
           <p class="px-6 text-[14.5px]">Doors, decks, fences, drywall, siding, flooring, full remodeling, and construction projects.</p>
           <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img5.jpg" alt="Painting and make-readies" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
-          <img src="/assets/images/services-icon5.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <img src="/assets/images/services-icon5.png" alt="" class="relative -mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Painting &amp; Make-Readies</h3>
           <p class="px-6 text-[14.5px]">Interior and exterior painting, make-ready services for rentals, and property turnover coordination.</p>
           <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img6.jpg" alt="Handyman and repairs" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
-          <img src="/assets/images/services-icon6.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
+          <img src="/assets/images/services-icon6.png" alt="" class="relative -mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Handyman &amp; Repairs</h3>
           <p class="px-6 text-[14.5px]">General repairs, handyman services, landscaping, and ongoing property maintenance.</p>
           <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>

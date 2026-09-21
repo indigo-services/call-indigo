@@ -84,6 +84,24 @@
   /* --secondary--color in the template; resolves to white inside the hero. */
   --color-secondary: #ffffff;
 
+  /* ---- Per-page primaries ------------------------------------------------
+     The three marketing surfaces each carry their own primary so a visitor can
+     tell which part of the business they are reading, and so the header's active
+     pill agrees with the hero it belongs to rather than contradicting it.
+
+     Home keeps the brand blue and is deliberately NOT re-tokenised — it is the
+     baseline the other two move away from, in different directions:
+       home        #2a5aa2  hue 217  white 6.81:1  cyan-eyebrow 3.29:1
+       residential #0a6153  hue 170  white 7.37:1  cyan-eyebrow 3.56:1
+       commercial  #3f3d9e  hue 250  white 8.85:1  cyan-eyebrow 4.27:1
+     Both service values were chosen so white body copy clears AA (4.5:1) with
+     room to spare AND the cyan `.hero-eyebrow` clears the 3:1 large-text bar.
+     The teal was darkened from #0b6d5e specifically to buy that eyebrow headroom
+     — cyan on teal is a narrow hue gap, so contrast has to come from luminance.
+     Hues sit 47° and 80° apart, so they read as different colours, not shades. */
+  --color-residential: #0a6153;
+  --color-commercial: #3f3d9e;
+
   /* ---- Typography ---- */
   --font-sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
 
@@ -350,6 +368,26 @@
   .scrim-hero::before { background-color: var(--color-scrim-hero); }
   .scrim-blue::before { background-color: var(--color-scrim-blue); }
   .slab-body { position: relative; z-index: 2; }
+
+  /* Page-scoped scrim tints. These are applied to the SECTION itself, not to an
+     ancestor, because `.slab-photo::before` is a pseudo-element of the section —
+     setting the variable there is enough for it to resolve, and it means the
+     theme needs no wrapper element around the page. That matters: the three
+     marketing pages return a fragment of sibling `.pad-rl` blocks, and the test
+     suite renders each page module directly, so a wrapper in `App.tsx` would be
+     invisible to both the layout and the suite.
+
+     Without this the slab would be re-coloured while its scrim stayed the
+     template's blue at 88% opacity, and the blue would win — the slab would
+     barely change. */
+  .page-residential {
+    --color-scrim-hero: rgb(10 97 83 / 88%);
+    --color-scrim-blue: rgb(10 97 83 / 90%);
+  }
+  .page-commercial {
+    --color-scrim-hero: rgb(63 61 158 / 88%);
+    --color-scrim-blue: rgb(63 61 158 / 90%);
+  }
 
   /* At <=767 the outer gutter is 0, so every card is full-bleed. A radius on a
      full-bleed card can only show as white notches at the screen corners, so
@@ -808,6 +846,28 @@
     color: var(--color-sky);
   }
   @media (max-width: 767px) { .eyebrow { font-size: 15px; line-height: 23px; } }
+
+  /* The service-page hero kicker. It shares `.eyebrow`'s cyan, title-case
+     language — the reference has no text-transform and no leading dash, and that
+     verified decision is NOT being reopened — but steps the size and weight up so
+     it reads as the hero's subtitle rather than as a section label.
+
+     `.eyebrow` itself is deliberately untouched: it is the kicker for ~20 section
+     headings across all four pages, and a global size bump there would re-space
+     every band on the site. Only the two service heroes use this class. */
+  .hero-eyebrow {
+    display: inline-block;
+    margin-bottom: 18px;
+    font-size: 22px;
+    line-height: 30px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    color: var(--color-sky);
+  }
+  @media (max-width: 991px) { .hero-eyebrow { font-size: 20px; line-height: 28px; } }
+  @media (max-width: 767px) {
+    .hero-eyebrow { margin-bottom: 12px; font-size: 17px; line-height: 25px; }
+  }
 
   /* .text-size-56 (style.css:108) — 56px / 64px, weight 800, colour
      var(--black--color) = #000. The cascade below is quoted from responsive.css
