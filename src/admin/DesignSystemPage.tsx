@@ -53,16 +53,30 @@ export default function DesignSystemPage() {
       <Card>
         <CardHeader>
           <CardTitle>Logo</CardTitle>
-          <CardDescription>Brand lockup: mark + wordmark.</CardDescription>
+          <CardDescription>Brand lockup: icon + wordmark.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-lg bg-ink-2 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">CI</span>
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-ink-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-6 text-white"
+                aria-hidden="true"
+              >
+                <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" />
+              </svg>
             </div>
             <div>
-              <p className="font-bold text-foreground text-[23px] tracking-[-.02em]">Call Indigo</p>
-              <p className="text-xs text-muted-foreground">font-sans, tracking-[-.02em], weight 700, 23px</p>
+              <p className="font-bold text-foreground text-[23px] tracking-[-0.06em]">Call Indigo</p>
+              <p className="text-xs text-muted-foreground">
+                font-sans, tracking-[-0.06em], weight 700, 23px
+              </p>
             </div>
           </div>
         </CardContent>

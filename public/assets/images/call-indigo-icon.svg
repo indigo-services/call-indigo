@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Call Indigo">
+  <!--
+    The brand icon, at the client's lockup ratio.
+
+    Source of truth: the client's snippet renders a 20x20 lucide `phone` inside a
+    `p-2` disc, i.e. a 36px badge whose glyph occupies 20/36 = 0.5556 of the
+    diameter. Here the disc is 96 across, so the glyph box is 96 x 0.5556 = 53.33
+    and the scale from the 24-unit lucide grid is 53.33/24 = 2.2222. Scaling the
+    whole group scales the stroke with it, so the 2-unit stroke stays at the
+    lucide ratio (2/24) rather than being re-chosen.
+
+    Colour is the disc from the client's snippet (#1e1b4b). Note that this hex is
+    NOT in the PRD §3.2 token table — the superseded lockup used #081f3f — so the
+    logo now carries a brand navy the token set does not name.
+  -->
+  <circle cx="48" cy="48" r="48" fill="#1e1b4b"/>
+  <g transform="translate(21.3333 21.3333) scale(2.22222)"
+     fill="none" stroke="#ffffff" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/>
+  </g>
+</svg>

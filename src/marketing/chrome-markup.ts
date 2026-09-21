@@ -74,8 +74,8 @@ export const HEADER_TEMPLATE = `  <header id="top" class="pad-rl sticky top-0 z-
            the header row has ~238px of slack there, but only ~24px at 1024, so
            anything below xl would push the CTA out of the row. -->
       <a href="#top" class="flex shrink-0 items-center gap-2">
-        <img src="/assets/images/call-indigo-mark.svg" alt="Call Indigo logo" class="h-[26px] w-auto max-md:h-[24px] xl:h-[28px]">
-        <span class="font-sans text-[22px] font-extrabold leading-none tracking-[-.045em] text-[#081f3f] max-md:text-[19px] xl:text-[24px]">Call Indigo</span>
+        <div class="shrink-0 rounded-full bg-[#1e1b4b] p-2 max-md:p-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white max-md:size-[18px]" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
+        <span class="font-sans text-[22px] font-bold leading-none tracking-[-0.06em] text-[#1e1b4b] max-md:text-[19px] xl:text-[24px]">Call Indigo</span>
       </a>
 
       <!-- Desktop horizontal nav (reference shows a full menu, not a burger).
@@ -145,8 +145,8 @@ export const DRAWER_TEMPLATE = `  <nav id="menu-panel" aria-hidden="true"
     class="fixed inset-y-0 right-0 z-50 flex w-[min(380px,88vw)] translate-x-[105%] flex-col overflow-y-auto bg-ink px-8 pb-10 pt-7 text-white transition-transform duration-[400ms] ease-[cubic-bezier(.7,0,.2,1)] [&.open]:translate-x-0">
     <div class="mb-6 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
-        <img src="/assets/images/call-indigo-mark-dark.svg" alt="Call Indigo logo" class="size-11 w-auto">
-        <span class="font-sans text-[22px] font-bold leading-none tracking-[-.02em] text-white">Call Indigo</span>
+        <div class="shrink-0 rounded-full bg-white p-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#1e1b4b]" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
+        <span class="font-sans text-[22px] font-bold leading-none tracking-[-0.06em] text-white">Call Indigo</span>
       </div>
       <button id="menu-close" aria-label="Close menu" class="text-2xl leading-none text-white">✕</button>
     </div>
@@ -163,8 +163,8 @@ export const FOOTER_HTML = `  <div class="pad-rl">
     <div class="shell grid gap-8 pb-[46px] pt-[52px] md:grid-cols-2 md:gap-10 md:pb-[74px] md:pt-[80px] lg:grid-cols-[2fr_1fr_1fr_1.5fr] lg:gap-[54px]">
       <div>
         <div class="mb-4 flex items-center gap-2.5">
-          <img src="/assets/images/call-indigo-mark-dark.svg" alt="Call Indigo logo" class="size-12 w-auto">
-          <span class="font-sans text-[23px] font-bold leading-none tracking-[-.02em] text-white">Call Indigo</span>
+          <div class="shrink-0 rounded-full bg-white p-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#1e1b4b]" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
+          <span class="font-sans text-[23px] font-bold leading-none tracking-[-0.06em] text-white">Call Indigo</span>
         </div>
         <p>Licensed, bonded and insured home and facility services. One call covers plumbing, electrical, HVAC, carpentry, painting, and more — done right the first time.</p>
         <p class="mt-3 text-[13px] text-white/60">Indigo Home &amp; Facility Services<br>License: RMP: 45574</p>
@@ -347,12 +347,14 @@ export const LEGAL_MODALS_HTML = `  <div id="legal-terms" class="legal" data-leg
 
         <h3>2. Information We Collect</h3>
         <ul>
-          <li><strong>You give us:</strong> name, phone number, email address, service address, property
-            type, and the description of the work you need.</li>
+          <li><strong>You give us:</strong> your name, phone number, and email address, whether the
+            property is residential or commercial, the service you need, how soon you need it, and your
+            description of the work.</li>
           <li><strong>We create:</strong> inspection notes, photos of the work area, estimates, invoices,
             and service history for your property.</li>
-          <li><strong>We collect automatically:</strong> IP address, browser and device type, the pages
-            you view, and how you arrived at the site.</li>
+          <li><strong>Our hosting provider logs:</strong> the IP address, browser type, and pages
+            requested in standard server logs, which are kept for security and to keep the site running.
+            This site runs no analytics, advertising, or third-party tracking scripts.</li>
         </ul>
 
         <h3>3. How We Use Information</h3>
@@ -360,28 +362,29 @@ export const LEGAL_MODALS_HTML = `  <div id="legal-terms" class="legal" data-leg
           <li>Respond to your request, schedule visits, and perform the work.</li>
           <li>Prepare estimates, invoices, and warranty records.</li>
           <li>Confirm, remind, and follow up on appointments.</li>
-          <li>Improve our site, services, and crew routing.</li>
+          <li>Improve our services and how we route crews.</li>
           <li>Meet licensing, insurance, tax, and legal obligations.</li>
         </ul>
 
         <h3>4. How We Share Information</h3>
         <p>We do not sell your personal information. We share it only as needed to run the business: with
-          the crews and trade partners assigned to your job, with software providers who host our
-          scheduling, payment, and email tools, and with insurers, auditors, or authorities when the law
-          requires it. Vendors are expected to protect your information and to use it only for the service
-          they provide to us.</p>
+          the crews and trade partners assigned to your job, with the software providers who host our
+          website, email, and record-keeping tools, and with insurers, auditors, or authorities when the
+          law requires it. Vendors are expected to protect your information and to use it only for the
+          service they provide to us.</p>
 
         <h3>5. Cookies and Analytics</h3>
-        <p>This site uses cookies and similar technologies to remember your preferences and to understand
-          which pages are useful. You can block or delete cookies in your browser settings; some parts of
-          the site may work less smoothly if you do.</p>
+        <p>This public site sets no cookies and runs no analytics, advertising, or third-party tracking
+          scripts. Our private admin dashboard sets a single cookie recording whether its sidebar is open;
+          it carries no personal information and is not used to track you. You can block or delete cookies
+          in your browser settings at any time.</p>
 
         <h3>6. Calls, Texts, and Email</h3>
-        <p>When you give us your phone number or email address, you agree that we may contact you about
-          your request, your appointment, and your account, including by text message. Message and data
-          rates may apply. You can opt out of marketing messages at any time by replying STOP to a text,
-          using the unsubscribe link in an email, or calling us. You may still receive messages about an
-          active job or an unpaid invoice.</p>
+        <p>We use the contact details you give us to answer your request and to arrange the work — that is
+          what the form promises, and it is all we do with them. We do not add you to a marketing list,
+          and we do not send marketing texts or emails on the basis of that form. If we ever want to send
+          you a marketing message, we will ask for your consent separately first. You can ask us to stop
+          contacting you at any time using the details below.</p>
 
         <h3>7. Data Retention</h3>
         <p>We keep job records, estimates, invoices, and warranty documentation for as long as needed to

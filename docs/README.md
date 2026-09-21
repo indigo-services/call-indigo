@@ -129,18 +129,34 @@ and the method recorded in the PR description.
 
 ## 5. Testing & verification
 
-### Parity testing (PRD §13)
+### What runs
 
-The React build must reproduce the three marketing pages as exact duplicates of
-the static prototype. The parity harness is adapted from `archive/audit/v1-audit/v2check/`.
-`tests/README.md` is the authoritative plan for it:
+```bash
+npm test          # build, then run every suite
+npm run test:only # run the suites against the last build
+```
 
-| Script | Purpose | Adapted from |
+Both exit non-zero on failure, so either works as a gate. `tests/README.md` is the
+authoritative description; this is the summary.
+
+| Module | Suite | Checks |
 |---|---|---|
-| `parity.py` | Pixel-diff React renders vs. static screenshots at 1920 / 1440 / 390 | New — wraps `shots.py` |
-| `verify.ts` | Link, anchor, image, active-nav assertions | `v1-audit/v2check/verify.py` |
-| `diag.ts` | Landmark box measurement (`.pad-rl`, `.mbox`, `.slab`, `.shell`) | `v1-audit/v2check/diag.py` |
-| `mincontent.ts` | Min-content spill detection | `v1-audit/v2check/mincontent.py` |
+| `tests/policy.mjs` | Component policy (PRD §7) | 6 |
+| | Routing (PRD §5) | 3 |
+| | Stack (PRD §4, §14) | 5 |
+| `tests/service-area.mjs` | Service area (ZIP check) | 7 |
+| `tests/verify.mjs` | Rendered markup | 16 |
+| | Stylesheet coverage | 2 |
+| | Copy hygiene | 7 |
+| | Punch list (v1.0.1) | 8 |
+
+**67 checks.** `tests/harness.mjs` holds the assertions, the report and the
+loader; `tests/run.mjs` orders the suites.
+
+Each public route is rendered with `react-dom/server` and asserted against the
+real output, not against the source text. The loader uses the `esbuild` that
+already ships inside `vite`, so there is no new dependency and nothing to install
+before `npm test` works.
 
 ### Parity thresholds (PRD §13.2)
 
@@ -149,27 +165,41 @@ the static prototype. The parity harness is adapted from `archive/audit/v1-audit
 - **Pixels:** no more than 0.5% of pixels differing by more than 8/255 per channel.
 - **Hard zeros:** console errors, broken images, dead anchors, horizontal overflow.
 
-### Unit tests
+The hard zeros are covered by the suite — broken images, dead anchors and
+duplicate ids are all checked headlessly. The **pixel and landmark thresholds are
+not automated**: they need a real browser at 1920 / 1440 / 390, and a browser
+harness is the highest-value thing still missing from this repo.
 
-When component logic is non-trivial, write a unit test. For presentational
-components that are verified by the parity harness, unit tests are optional.
+This matters more than it did before the Unreleased pass. The marketing copy was
+de-duplicated, so the three pages are no longer textual duplicates of the
+prototype and §13.2 has to be re-measured rather than inherited. Two things can
+move: the absolutely-positioned hero `.navy-box`, `.years-experience-con` badge
+and `.plumber-img` overlay, which sit against flow height the shortened sentences
+changed; and `/contact`, which shares the footer whose copy was edited. See the
+Unreleased changelog entry and PRD §15 Q5.
 
-**There is currently no test runner and no runnable tests.** `tests/` contains a
-single `README.md` describing the plan above; none of those scripts exist yet, and
-`npm run test:parity` is not a script in `package.json`. Adding one is the highest-
-value thing anyone can do to this repo.
+### When to write a unit test
 
-### What is actually verified today
+Non-trivial logic gets a unit test. Presentational components verified by the
+rendered-markup suite do not need one. `src/marketing/service-area.ts` is the
+model to follow: the ZIP decision was pulled out of the hook into a pure function
+precisely so it could be asserted without a DOM, and `tests/service-area.mjs`
+covers its boundaries.
 
-Until the harness lands, verification is manual and is expected to be described in
-prose with measurements, per §1. The methods that have proved useful here:
 
-| Area | Method |
-|---|---|
-| Marketing parity | Diff generated markup against `valvoro-prototype/*.html`, then compare **computed styles** at the same viewport rather than screenshots |
-| Design-system completeness | Assert every component class used in the markup exists in the compiled CSS |
-| Dashboard CRUD | Drive the real UI end to end, then read the storage key back and reload to confirm it survived |
-| Routes | Visit every route and check the console for errors and warnings |
+### What is still verified by hand
+
+Anything the suite cannot reach. Measurements go in prose, with numbers, per §1.
+
+| Area | Method | In the suite? |
+|---|---|---|
+| Layout parity | Compare computed styles at a fixed viewport rather than screenshots | No — needs a browser |
+| Scroll-reveal animation | Confirm in a real tab; `IntersectionObserver` does not fire headlessly (see the caveat below) | No |
+| Console cleanliness | Visit every route and read the console | No — the suite never boots a browser |
+| Dashboard CRUD | Drive the real UI end to end, then read the storage key back and reload to confirm it survived | No |
+| Marketing markup | Diff generated markup against `valvoro-prototype/*.html` | Yes, behaviourally |
+| Design-system completeness | Assert every component class used in the markup exists in the compiled CSS | Yes |
+| Routes, anchors, images, ids | Visit every route and check each destination resolves | Yes |
 
 ### A caveat about headless previews
 
@@ -287,7 +317,7 @@ likely cause of a parity failure (PRD §13.3). Measure landmark boxes, not scree
 | Dashboard data layer | `src/lib/data/` — see `docs/dashboard-scope.md` |
 | Shared utilities | `src/lib/` |
 | Shared React hooks | `src/hooks/` |
-| Verification scripts | `tests/` (planned — adapted from `archive/audit/v1-audit/v2check/`) |
+| Verification scripts | `tests/` — see `tests/README.md` |
 | Documentation | `docs/` |
 | Past work / reference | `archive/` |
 
@@ -321,8 +351,11 @@ The `archive/` directory holds all past work. It is reference material, not acti
 code.
 
 - **Do not edit files in `archive/`** during normal development.
-- **The audit harness** (`archive/audit/v1-audit/v2check/`) contains scripts that
-  will be adapted into `tests/` — see `tests/README.md`.
+- **The audit harness** (`archive/audit/v1-audit/v2check/`) still holds the only
+  browser-driving scripts (`verify.py`, `diag.py`, `mincontent.py`, `shots.py`).
+  `tests/` did not adapt them — it went headless with `react-dom/server` instead.
+  If the §13.2 pixel thresholds need measuring again, that harness is where the
+  code to do it lives.
 - If you need a script from the archive, copy it into `tests/` and adapt it — do
   not run it in place.
 

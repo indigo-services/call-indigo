@@ -159,6 +159,9 @@ Carried forward as facts, not re-litigated here. rc1 does not fix them; §16 ass
 4. **The `#area` city list disagrees with the footer.** `#area` names Austin / Round Rock / Cedar Park
    / Pflugerville / Georgetown; the footer names the v1 four (Austin / Buda / Kyle / San Marcos). Both
    are plausible (Williamson vs Hays County) but they contradict. **[M]**
+   *Resolved:* the four-city list won — it matches `GROUND_TRUTH-source-facts.txt` (`serviceAreaCities`)
+   and the footer, which is the surface that appears on every page. `#area` now reads "Austin, Buda,
+   Kyle, and San Marcos." See §15 Q5 and the Unreleased changelog entry.
 
 ---
 
@@ -251,6 +254,12 @@ src/
 | `/` | `index.html` | Exact |
 | `/residential` | `residential.html` | Exact |
 | `/commercial` | `commercial.html` | Exact |
+
+**Copy is no longer exact** — a later instruction removed duplicated copy from these pages, so "exact
+textual duplicate" no longer describes the build. Structure, section ids, class names, element count
+and the `BODY_HTML` rendering model are unchanged, and `tests/` asserts the behavioural properties this
+table was protecting. The §13.2 pixel thresholds still govern layout and must be re-measured. Full
+decision record: §15 Q5 and the Unreleased changelog entry.
 
 ### 5.2 Admin routes — rc1 contains exactly these
 
@@ -583,21 +592,35 @@ Residential and one for Commercial.**
 
 ### 11.1 Logo
 
+**Superseded 2026-09-20** by the client's own lockup, supplied as HTML. The v1 mark assets are
+no longer rendered anywhere; they remain on disk as the superseded set (§16.2 F12).
+
 | Asset | File | Use |
 |---|---|---|
-| Mark (light) | `assets/images/call-indigo-mark.svg` | On light surfaces |
-| Mark (dark) | `assets/images/call-indigo-mark-dark.svg` | On dark surfaces / footer |
-| Wordmark | — | "Call Indigo", `font-sans`, `tracking-[-.02em]`, weight 700, 23px |
-| Lockup | mark + wordmark, `gap-2.5` | Header and footer |
+| Icon | `assets/images/call-indigo-icon.svg` | SVG favicon, and the source for the raster icons |
+| Icon (raster) | `favicon-16.png`, `favicon-32.png`, `apple-touch-icon.png` | Browser tab, iOS home screen |
+| Lockup | `rounded-full` disc + lucide `phone` glyph + wordmark | Header, drawer, footer, and the dashboard |
+| Wordmark | — | "Call Indigo", `font-sans`, `tracking-[-0.06em]`, weight 700, 22px header/drawer, 23px footer |
 
-`assets/images/` also holds `favicon-32.png`, `favicon-16.png`, `apple-touch-icon.png`,
-`call-indigo-mark.svg`. **[M]**
+The lockup is defined by the client's snippet: a `20x20` lucide `phone` inside a `p-2`
+`rounded-full` disc, so the glyph occupies `20/36` of the diameter. `call-indigo-icon.svg`
+reproduces that ratio on a 96-unit grid. The disc is `#1e1b4b` on light surfaces, and inverts to
+a white disc with a `#1e1b4b` glyph on `bg-ink` / `bg-ink-2`, where navy-on-navy is invisible.
+
+**`#1e1b4b` is not in the §3.2 token table.** The superseded wordmark used `#081f3f`, which was
+also untokened — the lockup has always carried a hex the token set does not name. If the brand
+navy should become a token, that is a §11.3 addition, not a silent literal. **[M]**
+
+`assets/images/` also still holds the superseded `call-indigo-mark.svg`, `call-indigo-mark-dark.svg`,
+`call-indigo-logo.svg`, `call-indigo-512.png`, `indigo-mark.png` and `indigo-mark.ico`, none of
+which is referenced by any source file. **[M]**
 
 ### 11.2 Icon
 
-The brand icon is the mark itself. **UI icons are lucide**, matching the `iconLibrary` in
-`components.json` — this is what the registry sidebar uses, so no second icon set enters the build.
-**[M]**
+The brand icon is now the client's lockup itself — a lucide `phone` glyph in a `rounded-full`
+disc. **UI icons are lucide**, matching the `iconLibrary` in `components.json`, so the brand icon
+and the UI icon set are finally the same set and no second icon set enters the build. That was
+not true before 2026-09-20: the brand mark was a bespoke SVG while UI icons were lucide. **[M]**
 
 ### 11.3 Colours
 
@@ -808,6 +831,18 @@ The stale `css/tw.css` duplicate is resolved by §6.1 (it is deleted as part of 
 *Recommendation: fix `theme-color` in rc1 — it is a one-line correction with no layout risk. Leave the
 city list alone; it needs a content decision, not a code change.*
 
+*Outcome:* both are now fixed. `theme-color` carries `#2a5aa2` (§15 Q5 above, verified by the stack
+suite). The city list was resolved by taking the content decision this question deferred: the
+four-city list won, because it matches `GROUND_TRUTH-source-facts.txt` and the footer, and the footer
+is the surface on every page (§3.4.4). F11 in §16.2 is closed.
+
+*Also resolved here:* §5.1's requirement that the three public routes be exact textual duplicates of
+the prototype. A later instruction asked for the duplicated copy to be removed, which contradicts it.
+The copy was cleaned; the routes, structure, section ids, class names and the `BODY_HTML` rendering
+model are unchanged, and the behavioural properties §5.1 was protecting are now asserted automatically
+by `tests/` rather than by a visual diff. The pixel thresholds of §13.2 still govern layout and must be
+re-measured — see the Unreleased changelog entry.
+
 ---
 
 ## 16. rc1 mockup scope vs future work
@@ -837,7 +872,7 @@ city list alone; it needs a content decision, not a code change.*
 | F8 | **Static pre-rendering / SEO** for the marketing routes | R4 |
 | F9 | **Audit log and roles** | F1, F2 |
 | F10 | **Retire the static prototype** (`valvoro-prototype/`) once parity is signed off | rc1 acceptance |
-| F11 | **Fix the `#area` city-list contradiction** | A content decision |
+| F11 | ~~**Fix the `#area` city-list contradiction**~~ — **closed.** Resolved to the four-city list (§3.4.4) | — |
 | F12 | **Update the `modern-web-app` skill template to Tailwind v4** | R1 |
 
 ---

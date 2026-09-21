@@ -18,7 +18,16 @@
  *                             `[data-legal-close]` / Escape / scrim close,
  *                             Tab focus trap, and `#terms` / `#privacy` deep links
  *   5. reveal on scroll       `.reveal`          -> `.visible` via IntersectionObserver
- *   6. service-area check     `#zip-form` submit -> reveal `#zip-result`
+ *   6. service-area check     `#zip-form` submit -> validate `#zip-input`
+ *                             against the served ZIP ranges, reveal `#zip-result`
+ *                             (INERT since 2026-09-21 — the client unpublished the
+ *                             `#area` section that carried the form, so the guard
+ *                             finds no form and does nothing. Kept because the
+ *                             section is expected back; see CHANGELOG.)
+ *   7. hero headline rotation `#hero-rotate`     -> cycles the hero's second word
+ *                             through Plumbing / Electrical / HVAC / Home Services
+ *                             / Facility Services, auto-fitting the font size
+ *                             so the longest option cannot reflow the hero
  *
  * The prototype is a single long-lived page, so main.js can register listeners
  * once and forget them. Here the hook is mounted per route and unmounted on
@@ -26,6 +35,8 @@
  * released in the cleanup.
  */
 import { useEffect } from "react"
+
+import { checkServiceArea } from "@/marketing/service-area"
 
 /** `#terms` / `#privacy` deep links, and the modal ids themselves, all resolve. */
 const LEGAL_HASHES: Record<string, string> = {
@@ -209,22 +220,100 @@ export function useSiteChrome() {
       revealEls.forEach((el) => el.classList.add("visible"))
     }
 
-    /* ---------- Service-area availability check ---------- */
+    /* ---------- Service-area availability check ----------
+       The decision itself lives in `service-area.ts` so it can be tested without
+       a browser; this only binds it to the DOM. The prototype revealed the
+       result on any three characters typed, so "00000" was told we cover it. */
     const zipForm = document.getElementById("zip-form")
     if (zipForm) {
+      const input = document.getElementById("zip-input") as HTMLInputElement | null
+      const result = document.getElementById("zip-result") as HTMLElement | null
+
+      const setResult = (message: string | null) => {
+        if (!result) return
+        if (message === null) {
+          result.hidden = true
+          result.textContent = ""
+          return
+        }
+        result.textContent = message
+        result.hidden = false
+      }
+
       on(zipForm, "submit", (e) => {
         e.preventDefault()
-        const input = document.getElementById("zip-input") as HTMLInputElement | null
-        const result = document.getElementById("zip-result") as HTMLElement | null
-        if (!input || !result) return
-        if (input.value.trim().length >= 3) result.hidden = false
+        const verdict = checkServiceArea(input?.value ?? "")
+        setResult(verdict.message)
+        // Nothing was typed that could be a ZIP — put the cursor back rather than
+        // making the visitor click the field again to correct it.
+        if (!verdict.valid) input?.focus()
       })
+
+      // A stale verdict next to a freshly typed ZIP is worse than no verdict.
+      if (input) on(input, "input", () => setResult(null))
+    }
+
+    /* ---------- Hero headline rotation ----------
+       The hero h1 reads "Expert <word>." and the client asked for the word to
+       cycle. The options differ in width by more than 3x — "HVAC" against
+       "Facility Services" — so at the hero's 126px the longest would wrap or run
+       past the column, changing the hero's height on every tick. `fit` measures
+       each option against the real column and scales the word's font-size down
+       until the widest one fits, then re-runs on resize and once webfonts land.
+
+       Rotation is skipped under `prefers-reduced-motion`, which leaves the first
+       word in place — the headline still reads correctly. */
+    const ROTATION = ["Plumbing", "Electrical", "HVAC", "Home Services", "Facility Services"]
+    const rotator = document.getElementById("hero-rotate")
+    let rotateTimer = 0
+    let swapTimer = 0
+    let fitObserver: ResizeObserver | null = null
+
+    if (rotator) {
+      const fit = () => {
+        const available = rotator.parentElement?.clientWidth ?? 0
+        if (!available) return
+        rotator.style.fontSize = ""
+        const base = parseFloat(getComputedStyle(rotator).fontSize)
+        const shown = rotator.textContent
+        let widest = 0
+        for (const word of ROTATION) {
+          rotator.textContent = word
+          widest = Math.max(widest, rotator.scrollWidth)
+        }
+        rotator.textContent = shown
+        if (widest > available) {
+          rotator.style.fontSize = `${Math.floor((base * available) / widest)}px`
+        }
+      }
+
+      fit()
+      if ("ResizeObserver" in window) {
+        fitObserver = new ResizeObserver(fit)
+        if (rotator.parentElement) fitObserver.observe(rotator.parentElement)
+      }
+      // Measurements taken before the webfont loads are in the fallback face.
+      if (document.fonts?.ready) document.fonts.ready.then(fit).catch(() => {})
+
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        rotateTimer = window.setInterval(() => {
+          rotator.style.opacity = "0"
+          swapTimer = window.setTimeout(() => {
+            const at = ROTATION.indexOf(rotator.textContent ?? "")
+            rotator.textContent = ROTATION[(at + 1) % ROTATION.length]
+            rotator.style.opacity = "1"
+          }, 280)
+        }, 2600)
+      }
     }
 
     /* ---------- Cleanup ---------- */
     return () => {
       disposers.forEach((d) => d())
       io?.disconnect()
+      if (rotateTimer) window.clearInterval(rotateTimer)
+      if (swapTimer) window.clearTimeout(swapTimer)
+      fitObserver?.disconnect()
       document.body.style.overflow = ""
     }
   }, [])

@@ -40,6 +40,8 @@ pnpm-debug.log*
 # ── Testing & coverage ────────────────────────────────────────
 coverage/
 .nyc_output/
+# Transpiled copies of src/**/*.ts that tests/harness.mjs writes before importing
+tests/.tmp/
 
 # ── WorkBuddy internal ─────────────────────────────────────────
 # These are session/agent state, not project artifacts

@@ -50,14 +50,21 @@ npm run lint
 # Type-check + production build
 npm run build
 
+# Build, then run every verification suite (67 checks)
+npm test
+
+# Run the suites against the last build, without rebuilding
+npm run test:only
+
 # Preview the production build
 npm run preview
 ```
 
 Verified clean on this commit: `typecheck` 0 errors · `lint` 0 errors, 4 warnings
 (pre-existing `react-refresh` warnings in generated registry files) · `build`
-succeeds (788 kB JS / 122 kB CSS; the >500 kB chunk warning is pre-existing and
-code-splitting is the fix).
+succeeds — 1749 modules, 789.92 kB JS (235.53 kB gzip) / 122.14 kB CSS (21.62 kB
+gzip), the >500 kB chunk warning is pre-existing and code-splitting is the fix ·
+`test` 67/67 checks pass.
 
 ## Routes
 
@@ -185,7 +192,8 @@ is not a shipped backend.
 
 ## Parity
 
-The marketing pages must reproduce the three prototype pages as exact duplicates.
+The marketing pages were ported from the three prototype pages, and PRD §5.1
+required them to stay exact textual duplicates.
 
 **The baseline is `valvoro-prototype/` at the repo root** — the tracked copy, 87
 files including all 79 brand images. `archive/v1-prototype/valvoro-prototype/`
@@ -193,11 +201,17 @@ holds a byte-identical copy of the HTML, CSS, JS and ground-truth docs, but
 `.gitignore` excludes images under `archive/**`, so the archived copy is not
 self-contained. **Compare against the root copy.**
 
-The verification harness in `archive/audit/v1-audit/v2check/` (`verify.py`,
-`diag.py`, `mincontent.py`, `shots.py`) has **not yet been adapted** into a test
-suite — `tests/` contains a plan, not scripts, and `npm run test:parity` is not in
-`package.json`. See [tests/README.md](./tests/README.md) for the plan and
-[docs/README.md](./docs/README.md) §5 for how parity is currently verified.
+**The copy is no longer an exact duplicate.** A later pass removed the duplicated
+copy from all three pages, so §5.1's textual requirement no longer describes the
+build. Structure, section ids, class names, element count and the `BODY_HTML`
+rendering model are unchanged. `npm test` now asserts the behavioural properties
+§5.1 was protecting — links, ids, images, ARIA targets, stylesheet coverage —
+headlessly. The §13.2 pixel thresholds still govern layout and have **not been
+re-measured since the copy changed**; see
+[tests/README.md](./tests/README.md) and
+[docs/README.md](./docs/README.md) §5. The browser harness in
+`archive/audit/v1-audit/v2check/` (`verify.py`, `diag.py`, `mincontent.py`,
+`shots.py`) is still the only code that can measure them.
 
 ## Known limitations
 

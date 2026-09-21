@@ -491,6 +491,13 @@
   @media (max-width: 991px)  { .hero-h1 { font-size: 55px;  line-height: 60px; } }
   @media (max-width: 767px)  { .hero-h1 { font-size: 44px;  line-height: 50px; } }
 
+  /* The rotating word in the hero h1 ("Expert <word>."). `inline-block` +
+     `nowrap` let `useSiteChrome` measure each option's natural width, so it can
+     scale the font down until the longest one ("Facility Services" — over three
+     times the width of "HVAC") fits the hero column. Without that the line would
+     wrap on the long options and the hero's height would change on every tick. */
+  .hero-rotate { display: inline-block; white-space: nowrap; transition: opacity 280ms ease; }
+
   /* ==========================================================================
      HERO RESPONSIVE CASCADE — transcribed from the template's responsive.css.
      Blocks and their line ranges: 1440(250) 1199(1063) 991(1926) 767(3149)

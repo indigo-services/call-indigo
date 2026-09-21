@@ -47,16 +47,12 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
          from its own edge, landing 47px right of the header brand.
          Now: bar edge = card edge, and \`.mbox\` puts the text on \`--inset\`, the
          same line as the brand and every section heading. -->
-    <div class="pill-topbar mbox bg-topbar text-[13px] text-slate-200 max-md:text-[12px]">
+    <div class="pill-topbar mbox bg-topbar text-[13px] text-slate-200 max-md:text-[14px]">
       <div class="shell flex h-[43px] items-center justify-between gap-4 max-md:h-auto max-md:flex-wrap max-md:gap-2.5 max-md:py-2.5">
         <div class="flex flex-wrap items-center gap-4 max-md:gap-2.5">
           <span class="inline-flex items-center gap-2 font-semibold text-white">
-            <svg class="size-4 text-sky" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-            Residential &amp; commercial services
-          </span>
-          <span class="inline-flex items-center gap-2 font-semibold text-white">
             <svg class="size-4 text-sky" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
-            Hays, Travis, and Williamson counties
+            Proudly serving: Hays, Travis, and Williamson counties
           </span>
         </div>
         <div class="flex items-center gap-2.5 max-md:hidden">
@@ -92,8 +88,8 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
            the header row has ~238px of slack there, but only ~24px at 1024, so
            anything below xl would push the CTA out of the row. -->
       <a href="#top" class="flex shrink-0 items-center gap-2">
-        <img src="/assets/images/call-indigo-mark.svg" alt="Call Indigo logo" class="h-[26px] w-auto max-md:h-[24px] xl:h-[28px]">
-        <span class="font-sans text-[22px] font-extrabold leading-none tracking-[-.045em] text-[#081f3f] max-md:text-[19px] xl:text-[24px]">Call Indigo</span>
+        <div class="shrink-0 rounded-full bg-[#1e1b4b] p-2 max-md:p-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white max-md:size-[18px]" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
+        <span class="font-sans text-[22px] font-bold leading-none tracking-[-0.06em] text-[#1e1b4b] max-md:text-[19px] xl:text-[24px]">Call Indigo</span>
       </a>
 
       <!-- Desktop horizontal nav (reference shows a full menu, not a burger).
@@ -139,7 +135,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
 
       <!-- Phone: the number text is dropped in the md–lg band so the nav + CTA
            both fit at the reference's 960 canvas; the icon stays tappable. -->
-      <a href="tel:+15126084999" class="ml-auto inline-flex shrink-0 items-center gap-[7px] whitespace-nowrap text-[16.5px] font-bold tracking-[-.01em] text-[#081f3f] max-md:[&>span]:hidden md:[&>span]:hidden lg:[&>span]:inline">
+      <a href="tel:+15126084999" class="ml-auto inline-flex shrink-0 items-center gap-[7px] whitespace-nowrap text-[16.5px] font-bold tracking-[-.01em] text-[#081f3f] max-md:gap-[6px] max-md:text-[15px] md:[&>span]:hidden lg:[&>span]:inline">
         <img src="/assets/images/call-icon.png" alt="" class="size-[22px] object-contain">
         <span>(512) 608-4999</span>
       </a>
@@ -168,8 +164,8 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     class="fixed inset-y-0 right-0 z-50 flex w-[min(380px,88vw)] translate-x-[105%] flex-col overflow-y-auto bg-ink px-8 pb-10 pt-7 text-white transition-transform duration-[400ms] ease-[cubic-bezier(.7,0,.2,1)] [&.open]:translate-x-0">
     <div class="mb-6 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
-        <img src="/assets/images/call-indigo-mark-dark.svg" alt="Call Indigo logo" class="size-11 w-auto">
-        <span class="font-sans text-[22px] font-bold leading-none tracking-[-.02em] text-white">Call Indigo</span>
+        <div class="shrink-0 rounded-full bg-white p-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#1e1b4b]" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
+        <span class="font-sans text-[22px] font-bold leading-none tracking-[-0.06em] text-white">Call Indigo</span>
       </div>
       <button id="menu-close" aria-label="Close menu" class="text-2xl leading-none text-white">✕</button>
     </div>
@@ -245,7 +241,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           </div>
           <!-- H1 — \`text-size-126\`: 126/119 base, and the template's own
                responsive cascade 90/80 (≤1440), 70/65 (≤1199), 55/60 (≤991). -->
-          <h1 class="hero-h1 mb-[28px] font-sans font-extrabold uppercase text-white">Expert <br> Plumbing.</h1>
+          <h1 class="hero-h1 mb-[28px] font-sans font-extrabold uppercase text-white">Expert <br> <span id="hero-rotate" class="hero-rotate">Plumbing</span>.</h1>
           </div><!-- /banner-top -->
 
           <!-- banner-bottom: base \`gap:31px\`, but responsive.css sets 20px at ≤1440
@@ -266,13 +262,14 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
               <img src="/assets/images/repair-img2.jpg" alt="Call Indigo technician fitting a sink trap"
                 class="rounded-[188px] border-[3px] border-white object-cover p-[12px]">
             </figure>
-            <!-- \`inner-wrap\` is \`flex: 0 1 auto\` with \`min-width:auto\` in the
-                 reference — it does NOT grow. It is the CONTENT's natural width
-                 (250px CTA + the stat row) that sets the distribution, which is
-                 what squeezes the oval down to 150.7 @1300 and 138.1 @1200.
-                 A \`flex-1\` here (flex:1 1 0%) instead swallows the slack and the
-                 oval never shrinks. -->
-            <div class="inner-wrap">
+            <!-- Deliberately unclassed. The reference's \`.inner-wrap\` is
+                 \`flex: 0 1 auto\` with \`min-width:auto\`, which is already the
+                 default for a flex item — it does NOT grow. It is the CONTENT's
+                 natural width (250px CTA + the stat row) that sets the
+                 distribution, which is what squeezes the oval down to 150.7 @1300
+                 and 138.1 @1200. A \`flex-1\` here (flex:1 1 0%) instead swallows
+                 the slack and the oval never shrinks. -->
+            <div>
               <!-- \`.banner-content-con p\` is 22px/29px at base but responsive.css
                    overrides to 18px/27px at ≤1440 (with margin-bottom 25px). The
                    dash \`::before\` shrinks 36px → 20px in the same branch. Measured
@@ -299,12 +296,12 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
                    16px/29px solid white (NOT a translucent tint). -->
               <div class="statistics-wrapper flex items-center">
                 <div class="statistics-box">
-                  <b class="stat-num">15<span class="stat-k uppercase">k</span><sup>+</sup></b>
+                  <b class="stat-num">15<span class="uppercase">k</span><sup>+</sup></b>
                   <span class="span-text">Satisfied Clients</span>
                 </div>
                 <div class="statistics-box var2">
-                  <b class="stat-num">250<sup>+</sup></b>
-                  <span class="span-text">Projects Completed</span>
+                  <b class="stat-num">52,550<sup>+</sup></b>
+                  <span class="span-text">Jobs Completed</span>
                 </div>
               </div>
             </div>
@@ -315,7 +312,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
              the template (measured w=647.7 at x=735, i.e. the same box as the text
              column's content). The arch is its natural-width first child at the
              left edge; the plumber overlay and navy-box right-align to x=1382.7. -->
-        <div class="banner-col relative px-[15px]">
+        <div class="relative px-[15px]">
         <div class="banner-img-con relative">
           <!-- banner-img1 — the arch. The template sizes the IMAGE, not the
                container: \`.banner-img1 img { padding:12px; border:3px solid
@@ -325,21 +322,6 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <figure class="banner-img1 relative m-0 max-md:mx-auto">
             <img src="/assets/images/hero-arch.jpg" alt="Call Indigo technician on a residential service call"
               class="block h-auto max-w-full rounded-[258px] border-[3px] border-sky object-cover p-[12px]">
-          </figure>
-
-          <!-- plumber-img — a FIGURE wrapping the img, exactly as the template has
-               it: \`<figure class="position-absolute plumber-img"><img ...></figure>\`.
-               That matters at ≤767, where the template gives the FIGURE the full
-               column width with \`text-align:center\` and sizes only the inner IMG
-               (300px). Sizing the figure directly (as this build used to) made the
-               probe read 300 where the reference reads 692, and left the overlay
-               mis-anchored on mobile. At desktop the figure is \`top:0; right:0\`
-               with NO width above 1440 (natural 671px), then 440px at ≤1440 and
-               390px at ≤1199 — the overlay deliberately runs past the arch's
-               bottom edge. -->
-          <figure class="plumber-img pointer-events-none absolute right-0 top-0 m-0">
-            <img src="/assets/images/banner-plumber-img.png" alt="" aria-hidden="true"
-              class="max-w-none object-contain">
           </figure>
 
           <!-- dot-img — \`.banner-con .dot-img { bottom: 0 }\` base, 15px at ≤1440;
@@ -352,10 +334,14 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <!-- navy-box.bg-accent.br-20 — \`.banner-con .navy-box { position:absolute;
                right:50px; top:126px; padding:19px 25px }\` base (style.css:1261),
                then right:0/top:39px/13px 20px at ≤1440, right:0/top:28px/10px 15px
-               at ≤1199. The template renders it 159x179. Hidden below 768 as the
-               template's column stacks there. -->
+               at ≤1199. The template renders it 159x179 and hides it below 768,
+               because its absolute anchoring assumes the two-column hero.
+               CLIENT: the Emergency button must exist on mobile too. Rather than
+               re-anchor an absolute box over a column that has stacked, it drops
+               into normal flow below the arch on mobile (\`max-md:static\`) and is
+               centred at a fixed width. -->
           <a href="tel:+15126084999"
-             class="navy-box absolute z-20 flex flex-col items-center justify-center rounded-[12px] bg-topbar text-center text-white shadow-[16px_2px_13px_rgb(0_0_0/11%)] transition hover:bg-[#1c2c4e] max-md:hidden">
+             class="navy-box absolute z-20 flex flex-col items-center justify-center rounded-[12px] bg-topbar text-center text-white shadow-[16px_2px_13px_rgb(0_0_0/11%)] transition hover:bg-[#1c2c4e] max-md:static max-md:mx-auto max-md:mb-6 max-md:mt-5 max-md:w-[210px]">
             <img src="/assets/images/emergency-icon.png" alt="" aria-hidden="true" class="mb-[9px] w-[32px] object-contain">
             <b class="mb-[6px] block text-[20px] font-bold leading-[24px]">Emergency</b>
             <span class="mb-1 block text-[14px] font-medium leading-[20px] text-white">Typical arrival<br>30–60 min</span>
@@ -437,7 +423,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
         <ul class="mb-8 grid gap-x-8 gap-y-3 sm:grid-cols-2">
           <li class="relative pl-9 font-medium text-[#3c4656] before:absolute before:left-0 before:top-0.5 before:grid before:size-[23px] before:place-items-center before:rounded-full before:bg-sky before:text-xs before:font-bold before:text-white before:content-['✓']">Free inspection of your entire address for every new customer</li>
           <li class="relative pl-9 font-medium text-[#3c4656] before:absolute before:left-0 before:top-0.5 before:grid before:size-[23px] before:place-items-center before:rounded-full before:bg-sky before:text-xs before:font-bold before:text-white before:content-['✓']">Discounted rates for senior citizens, military, and members</li>
-          <li class="relative pl-9 font-medium text-[#3c4656] before:absolute before:left-0 before:top-0.5 before:grid before:size-[23px] before:place-items-center before:rounded-full before:bg-sky before:text-xs before:font-bold before:text-white before:content-['✓']">Licensed, bonded, and insured — one call covers every service</li>
+          <li class="relative pl-9 font-medium text-[#3c4656] before:absolute before:left-0 before:top-0.5 before:grid before:size-[23px] before:place-items-center before:rounded-full before:bg-sky before:text-xs before:font-bold before:text-white before:content-['✓']">Licensed and insured — one call covers every service</li>
         </ul>
         <div class="flex flex-wrap items-center gap-6">
           <a href="#services" class="pill">
@@ -462,9 +448,9 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
   <section id="services" class="band pad-140">
     <div class="shell">
       <div class="reveal mb-12 max-w-[660px]">
-        <span class="eyebrow eyebrow-brand">Our Services</span>
-        <h2 class="h-section">Full-service home &amp; property support</h2>
-        <p class="mt-4">Licensed and insured services for Hays, Travis, and Williamson counties. One call covers plumbing, electrical, HVAC, carpentry, painting, and more.</p>
+        <span class="eyebrow">One Call, All Services</span>
+        <h2 class="h-section">Our Home &amp; Facility Services</h2>
+        <p class="mt-4">One call covers plumbing, electrical, HVAC, carpentry, painting, and more — all licensed and insured.</p>
       </div>
       <div class="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
         <article class="card card-hover reveal relative overflow-visible">
@@ -472,42 +458,42 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <img src="/assets/images/services-icon1.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Plumbing</h3>
           <p class="px-6 text-[14.5px]">Emergency plumbing, water heaters, leak detection, sinks, faucets, toilets, gas lines, and more.</p>
-          <span class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand">Learn more →</span>
+          <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img2.jpg" alt="Electrical services" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
           <img src="/assets/images/services-icon2.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Electrical</h3>
           <p class="px-6 text-[14.5px]">Residential and commercial electrical, wiring, lighting, ceiling fans, exhaust fans, and panel work.</p>
-          <span class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand">Learn more →</span>
+          <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img3.jpg" alt="HVAC services" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
           <img src="/assets/images/services-icon3.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">HVAC</h3>
           <p class="px-6 text-[14.5px]">Heating, ventilation, and air conditioning installation, repair, and maintenance for homes and properties.</p>
-          <span class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand">Learn more →</span>
+          <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img4.jpg" alt="Carpentry and remodeling" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
           <img src="/assets/images/services-icon4.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Carpentry &amp; Remodeling</h3>
           <p class="px-6 text-[14.5px]">Doors, decks, fences, drywall, siding, flooring, full remodeling, and construction projects.</p>
-          <span class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand">Learn more →</span>
+          <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img5.jpg" alt="Painting and make-readies" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
           <img src="/assets/images/services-icon5.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Painting &amp; Make-Readies</h3>
           <p class="px-6 text-[14.5px]">Interior and exterior painting, make-ready services for rentals, and property turnover coordination.</p>
-          <span class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand">Learn more →</span>
+          <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
         <article class="card card-hover reveal relative overflow-visible">
           <div class="h-[210px] overflow-hidden rounded-t-panel"><img src="/assets/images/services-img6.jpg" alt="Handyman and repairs" class="size-full object-cover transition duration-500 hover:scale-[1.07]"></div>
           <img src="/assets/images/services-icon6.png" alt="" class="-mt-8 ml-6 size-[62px] rounded-[10px] border-[3px] border-white bg-sky object-contain p-3.5 shadow-lift">
           <h3 class="mb-1.5 mt-4 px-6 text-[21px] font-bold text-ink">Handyman &amp; Repairs</h3>
           <p class="px-6 text-[14.5px]">General repairs, handyman services, landscaping, and ongoing property maintenance.</p>
-          <span class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand">Learn more →</span>
+          <a href="/contact" class="mb-[22px] inline-block px-6 pt-1 text-sm font-bold text-brand hover:text-sky">Learn more →</a>
         </article>
       </div>
     </div>
@@ -522,13 +508,13 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     <section id="choose" class="mbox slab bg-mist pad-140">
     <div class="shell grid grid-cols-[1.05fr_.95fr] items-center gap-[70px] max-lg:grid-cols-1 max-lg:gap-11">
       <div class="reveal">
-        <span class="eyebrow eyebrow-brand">Why Call Indigo</span>
+        <span class="eyebrow">Why Call Indigo</span>
         <h2 class="h-section">Why choose Call Indigo</h2>
-        <p class="mt-4">Serving Hays, Travis, and Williamson counties since 2012. Licensed, bonded, and insured for your peace of mind.</p>
+        <p class="mt-4">Four things every new customer gets, whichever service you call us for.</p>
         <div class="mt-7 grid gap-6">
           <div class="reveal flex gap-4.5">
             <img src="/assets/images/choose-icon1.png" alt="" class="size-[54px] shrink-0 object-contain">
-            <div><strong class="text-lg font-bold text-ink">Free property inspection</strong><p class="mt-1 text-sm">Every new customer receives a free inspection of their entire address.</p></div>
+            <div><strong class="text-lg font-bold text-ink">Free property inspection</strong><p class="mt-1 text-sm">We look at the whole address, not only the room you called about.</p></div>
           </div>
           <div class="reveal flex gap-4.5">
             <img src="/assets/images/choose-icon2.png" alt="" class="size-[54px] shrink-0 object-contain">
@@ -567,8 +553,9 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
            Call Indigo membership copy is unchanged; only the structure moves. -->
       <div class="reveal mx-auto mb-12 max-w-[860px] text-center">
         <span class="eyebrow">Membership</span>
-        <h2 class="h-section text-white">Indigo Home Management</h2>
-        <p class="mx-auto mt-4 max-w-[720px] text-[#dfe7fb]">All new customers are given a free inspection of their entire address to identify all options to maximize property value over time. Our membership also involves turn-key STR and LTR services to increase rental income for property owners.</p>
+        <h2 class="h-section text-white">Indigo Home &amp; Facility Membership</h2>
+        <a href="/contact" class="pill mt-7"><span>BECOME A MEMBER</span><span class="pill-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span></a>
+        <p class="mx-auto mt-6 max-w-[720px] text-[#dfe7fb]">All new customers are given a free inspection of their entire address to identify all options to maximize property value over time. Our membership also involves turn-key STR and LTR services to increase rental income for property owners.</p>
       </div>
       <div class="reveal rounded-panel bg-white p-8 text-body shadow-drop md:p-[46px]">
         <div class="grid gap-10 lg:grid-cols-[1.2fr_.8fr] lg:gap-14">
@@ -584,7 +571,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <div>
             <span class="eyebrow">Free Inspection</span>
             <h3 class="mb-2 text-[24px] font-bold text-ink">Book your free inspection</h3>
-            <p class="mb-6 text-sm">Every new customer receives a complete inspection of their entire address. Tell us where to look and the Indigo team will coordinate the next opening.</p>
+            <p class="mb-6 text-sm">Tell us where to look and the Indigo team will coordinate the next opening.</p>
             <div class="grid gap-3.5">
               <a href="tel:+15126084999" class="pill pill-block pill-navy">
                 <span>Call (512) 608-4999</span>
@@ -598,7 +585,6 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
                 </span>
               </a>
-              <p class="mt-1 text-center text-[13px]">Serving Hays, Travis &amp; Williamson counties</p>
             </div>
           </div>
         </div>
@@ -615,7 +601,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
   <section id="process" class="band pad-140">
     <div class="shell">
       <div class="reveal mb-12 max-w-[660px]">
-        <span class="eyebrow eyebrow-brand">How It Works</span>
+        <span class="eyebrow">How It Works</span>
         <h2 class="h-section">A clear path from first call to scheduled work</h2>
       </div>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -649,46 +635,13 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
 
   <div class="spacer"></div>
 
-  <!-- ======================= RESULTS GALLERY ======================= -->
-  <!-- \`.before-after-gallery-con.bg-grey.main-box.br-50.padding-top.padding-bottom\` -->
-  <div class="pad-rl">
-    <section id="results" class="mbox slab bg-mist pad-140">
-    <div class="shell">
-      <div class="reveal mb-12 max-w-[760px]">
-        <span class="eyebrow eyebrow-brand">Recent Work</span>
-        <h2 class="h-section">Real repairs. Real results. Done right.</h2>
-      </div>
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <figure class="reveal relative m-0 overflow-hidden rounded-panel">
-          <img src="/assets/images/repair-img1.jpg" alt="" class="h-[250px] w-full object-cover transition duration-500 hover:scale-[1.08]">
-          <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/88 to-transparent px-4 pb-4 pt-8 font-semibold text-white">Kitchen Line Re-pipe</figcaption>
-        </figure>
-        <figure class="reveal relative m-0 overflow-hidden rounded-panel">
-          <img src="/assets/images/repair-img2.jpg" alt="" class="h-[250px] w-full object-cover transition duration-500 hover:scale-[1.08]">
-          <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/88 to-transparent px-4 pb-4 pt-8 font-semibold text-white">Bathroom Remodel Fit-out</figcaption>
-        </figure>
-        <figure class="reveal relative m-0 overflow-hidden rounded-panel">
-          <img src="/assets/images/repair-img3.jpg" alt="" class="h-[250px] w-full object-cover transition duration-500 hover:scale-[1.08]">
-          <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/88 to-transparent px-4 pb-4 pt-8 font-semibold text-white">Water Heater Swap</figcaption>
-        </figure>
-        <figure class="reveal relative m-0 overflow-hidden rounded-panel">
-          <img src="/assets/images/repair-img4.jpg" alt="" class="h-[250px] w-full object-cover transition duration-500 hover:scale-[1.08]">
-          <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/88 to-transparent px-4 pb-4 pt-8 font-semibold text-white">Emergency Leak Repair</figcaption>
-        </figure>
-      </div>
-    </div>
-    </section>
-  </div>
-
-  <div class="spacer"></div>
-
   <!-- ======================= TESTIMONIALS ======================= -->
   <!-- \`.client-reviews-con\` declares no padding upstream, so it takes the 140px
        band rhythm. Kept on white, matching the reference. -->
   <section id="reviews" class="band pad-140">
     <div class="shell">
       <div class="reveal mb-12 max-w-[660px]">
-        <span class="eyebrow eyebrow-brand">Testimonials</span>
+        <span class="eyebrow">Testimonials</span>
         <h2 class="h-section">Trusted Reviews from Homeowners &amp; Businesses</h2>
       </div>
       <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -725,62 +678,6 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
 
   <div class="spacer"></div>
 
-  <!-- ======================= SERVICE AREA ======================= -->
-  <!-- \`.check-availability-con.main-box.br-50\` (style.css:1392) — 78px vertical
-       (50 at ≤1440), \`background-image: check-bg-img.jpg\` and a \`::before\` of
-       \`rgb(42 90 162 / 90%)\`.
-       The template's layout here is a three-column \`.check-inner-con\` inside
-       \`.wrapper1578\` (max-width 1578): a small + big photo stack on each side,
-       each \`br-30\`, with a dots graphic between them, around a CENTRED content
-       column. This file previously had a two-column text + map layout with no
-       photos and a white background. -->
-  <div class="pad-rl">
-    <section id="area" class="mbox slab slab-photo scrim-blue bg-img-area pad-78 relative bg-brand">
-    <div class="slab-body mx-auto max-w-[1578px]">
-      <div class="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_1.5fr_1fr]">
-        <div class="relative hidden lg:block">
-          <img src="/assets/images/check-small-img1.jpg" alt="" class="ml-auto w-[64%] rounded-[14px]">
-          <img src="/assets/images/dots2.png" alt="" aria-hidden="true" class="absolute right-[10%] top-[44%] w-[72px] opacity-90">
-          <img src="/assets/images/check-big-img1.jpg" alt="" class="mt-5 w-[80%] rounded-[14px]">
-        </div>
-        <!-- \`grid-cols-1\` is not decoration. With no explicit template the single
-             implicit column is \`auto\`, which is sized to its items' MIN-CONTENT —
-             and \`#zip-form\`'s min-content is 368.5px (the text input's intrinsic
-             width plus the button's max-content). The track therefore grew past
-             its 358px container and the form painted 10.5px outside the section's
-             content box, where \`body { overflow-x: hidden }\` hid it.
-             \`minmax(0,1fr)\` caps the track at the container and \`min-w-0\` lets the
-             item shrink; the input, already \`min-w-0 flex-1\`, absorbs the
-             difference. Verified with _audit/v2check/mincontent.py. -->
-        <div class="min-w-0 text-center">
-          <span class="eyebrow">Service Area</span>
-          <h2 class="h-section text-white">Check Service Availability<br>in Your Area</h2>
-          <p class="mx-auto mt-4 max-w-[430px] text-[18px] leading-[28px] text-white">Enter your ZIP to check availability and earliest arrival.</p>
-          <form id="zip-form" class="mx-auto mt-6 flex max-w-[470px] gap-3">
-            <input id="zip-input" type="text" placeholder="Enter ZIP code (e.g., 78701)" maxlength="10" aria-label="ZIP code"
-              class="min-w-0 flex-1 rounded-[10px] border-0 bg-white px-6 py-4 font-medium text-ink placeholder:text-body focus:outline-2 focus:outline-sky">
-            <button type="submit" class="pill pill-sm">
-              <span>Check Now</span>
-              <span class="pill-circle">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
-              </span>
-            </button>
-          </form>
-          <p id="zip-result" hidden class="mt-4 font-semibold text-white">✓ Great news — we cover your area with same-day service!</p>
-          <p class="mt-5 text-[14px] leading-[20px] text-white">Proudly serving Austin, Round Rock, Cedar Park, Pflugerville, and Georgetown.</p>
-        </div>
-        <div class="relative hidden lg:block">
-          <img src="/assets/images/check-small-img2.jpg" alt="" class="w-[64%] rounded-[14px]">
-          <img src="/assets/images/dots.png" alt="" aria-hidden="true" class="absolute left-[10%] top-[44%] w-[72px] opacity-90">
-          <img src="/assets/images/check-big-img2.jpg" alt="" class="ml-auto mt-5 w-[80%] rounded-[14px]">
-        </div>
-      </div>
-    </div>
-    </section>
-  </div>
-
-  <div class="spacer"></div>
-
   <!-- ======================= FAQ ======================= -->
   <!-- \`.faq-con.main-box.bg-grey.br-50.padding-top.padding-bottom\` (style.css:1255)
        — a mist slab at 140px. -->
@@ -788,7 +685,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     <section id="faq" class="mbox slab bg-mist pad-140">
     <div class="shell max-w-[840px]">
       <div class="reveal mb-12">
-        <span class="eyebrow eyebrow-brand">FAQ</span>
+        <span class="eyebrow">FAQ</span>
         <h2 class="h-section">Answers to Your Frequently Asked Questions</h2>
       </div>
       <div class="reveal grid gap-3.5">
@@ -820,7 +717,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <summary class="flex cursor-pointer items-center justify-between gap-4 py-4 text-[16.5px] font-bold text-ink [&::-webkit-details-marker]:hidden">
             Are you licensed and insured?<span class="chev"></span>
           </summary>
-          <p class="max-w-[660px] pb-4">Yes — Call Indigo is licensed, bonded, and insured. We are family owned and locally operated, headquartered in Austin, TX since 2012.</p>
+          <p class="max-w-[660px] pb-4">Yes — Call Indigo is licensed and insured. We are family owned and locally operated, headquartered in Austin, TX since 2012.</p>
         </details>
       </div>
     </div>
@@ -914,10 +811,10 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     <div class="shell grid gap-8 pb-[46px] pt-[52px] md:grid-cols-2 md:gap-10 md:pb-[74px] md:pt-[80px] lg:grid-cols-[2fr_1fr_1fr_1.5fr] lg:gap-[54px]">
       <div>
         <div class="mb-4 flex items-center gap-2.5">
-          <img src="/assets/images/call-indigo-mark-dark.svg" alt="Call Indigo logo" class="size-12 w-auto">
-          <span class="font-sans text-[23px] font-bold leading-none tracking-[-.02em] text-white">Call Indigo</span>
+          <div class="shrink-0 rounded-full bg-white p-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#1e1b4b]" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
+          <span class="font-sans text-[23px] font-bold leading-none tracking-[-0.06em] text-white">Call Indigo</span>
         </div>
-        <p>Licensed, bonded and insured home and facility services. One call covers plumbing, electrical, HVAC, carpentry, painting, and more — done right the first time.</p>
+        <p>Licensed and insured home and facility services. One call covers plumbing, electrical, HVAC, carpentry, painting, and more — done right the first time.</p>
         <p class="mt-3 text-[13px] text-white/60">Indigo Home &amp; Facility Services<br>License: RMP: 45574</p>
         <div class="mt-4 flex gap-3">
           <img src="/assets/images/trust-icon1.png" alt="" class="size-11 object-contain">
@@ -950,14 +847,12 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
         <a href="/contact" class="block py-1 hover:text-sky">Send an inquiry →</a>
         <span class="block py-1">1005 Meredith Drive<br>Austin, TX 78748</span>
         <span class="block py-1">Serving Hays, Travis &amp; Williamson counties</span>
-        <span class="block py-1 text-white/60">Service area: Austin · Buda · Kyle · San Marcos</span>
       </div>
     </div>
     <div class="shell">
       <div class="flex flex-col items-center gap-3 border-t border-white/10 py-5 text-center text-[13px] lg:flex-row lg:justify-between lg:text-left">
-        <p>© <span id="year"></span> Call Indigo LLC — prototype reconstruction for demo purposes.</p>
+        <p>© <span id="year"></span> Call Indigo LLC. All rights reserved.</p>
         <div class="flex flex-col items-center gap-2.5 md:flex-row md:flex-wrap md:justify-center md:gap-x-5 md:gap-y-2">
-          <span class="text-white/60">Licensed, bonded, and insured.</span>
           <button type="button" class="legal-link" data-legal="terms">Terms of Service</button>
           <button type="button" class="legal-link" data-legal="privacy">Privacy Policy</button>
           <a href="/admin" class="transition-colors hover:text-sky">Admin</a>
@@ -1027,7 +922,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           in a trip charge.</p>
 
         <h3>5. Membership Plans</h3>
-        <p>Membership plans, including Indigo Home Management and our facility membership, are billed on the
+        <p>Membership plans, including Indigo Home Membership and our facility membership, are billed on the
           cycle stated at enrollment. Members receive the benefits described at sign-up, which may include a
           free initial inspection and discounted rates on services. Benefits are personal to the enrolled
           property, do not guarantee same-day service, and may be updated with reasonable notice. You may
@@ -1109,12 +1004,14 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
 
         <h3>2. Information We Collect</h3>
         <ul>
-          <li><strong>You give us:</strong> name, phone number, email address, service address, property
-            type, and the description of the work you need.</li>
+          <li><strong>You give us:</strong> your name, phone number, and email address, whether the
+            property is residential or commercial, the service you need, how soon you need it, and your
+            description of the work.</li>
           <li><strong>We create:</strong> inspection notes, photos of the work area, estimates, invoices,
             and service history for your property.</li>
-          <li><strong>We collect automatically:</strong> IP address, browser and device type, the pages
-            you view, and how you arrived at the site.</li>
+          <li><strong>Our hosting provider logs:</strong> the IP address, browser type, and pages
+            requested in standard server logs, which are kept for security and to keep the site running.
+            This site runs no analytics, advertising, or third-party tracking scripts.</li>
         </ul>
 
         <h3>3. How We Use Information</h3>
@@ -1122,28 +1019,29 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <li>Respond to your request, schedule visits, and perform the work.</li>
           <li>Prepare estimates, invoices, and warranty records.</li>
           <li>Confirm, remind, and follow up on appointments.</li>
-          <li>Improve our site, services, and crew routing.</li>
+          <li>Improve our services and how we route crews.</li>
           <li>Meet licensing, insurance, tax, and legal obligations.</li>
         </ul>
 
         <h3>4. How We Share Information</h3>
         <p>We do not sell your personal information. We share it only as needed to run the business: with
-          the crews and trade partners assigned to your job, with software providers who host our
-          scheduling, payment, and email tools, and with insurers, auditors, or authorities when the law
-          requires it. Vendors are expected to protect your information and to use it only for the service
-          they provide to us.</p>
+          the crews and trade partners assigned to your job, with the software providers who host our
+          website, email, and record-keeping tools, and with insurers, auditors, or authorities when the
+          law requires it. Vendors are expected to protect your information and to use it only for the
+          service they provide to us.</p>
 
         <h3>5. Cookies and Analytics</h3>
-        <p>This site uses cookies and similar technologies to remember your preferences and to understand
-          which pages are useful. You can block or delete cookies in your browser settings; some parts of
-          the site may work less smoothly if you do.</p>
+        <p>This public site sets no cookies and runs no analytics, advertising, or third-party tracking
+          scripts. Our private admin dashboard sets a single cookie recording whether its sidebar is open;
+          it carries no personal information and is not used to track you. You can block or delete cookies
+          in your browser settings at any time.</p>
 
         <h3>6. Calls, Texts, and Email</h3>
-        <p>When you give us your phone number or email address, you agree that we may contact you about
-          your request, your appointment, and your account, including by text message. Message and data
-          rates may apply. You can opt out of marketing messages at any time by replying STOP to a text,
-          using the unsubscribe link in an email, or calling us. You may still receive messages about an
-          active job or an unpaid invoice.</p>
+        <p>We use the contact details you give us to answer your request and to arrange the work — that is
+          what the form promises, and it is all we do with them. We do not add you to a marketing list,
+          and we do not send marketing texts or emails on the basis of that form. If we ever want to send
+          you a marketing message, we will ask for your consent separately first. You can ask us to stop
+          contacting you at any time using the details below.</p>
 
         <h3>7. Data Retention</h3>
         <p>We keep job records, estimates, invoices, and warranty documentation for as long as needed to

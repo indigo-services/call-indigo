@@ -47,16 +47,12 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
          from its own edge, landing 47px right of the header brand.
          Now: bar edge = card edge, and \`.mbox\` puts the text on \`--inset\`, the
          same line as the brand and every section heading. -->
-    <div class="pill-topbar mbox bg-topbar text-[13px] text-slate-200 max-md:text-[12px]">
+    <div class="pill-topbar mbox bg-topbar text-[13px] text-slate-200 max-md:text-[14px]">
       <div class="shell flex h-[43px] items-center justify-between gap-4 max-md:h-auto max-md:flex-wrap max-md:gap-2.5 max-md:py-2.5">
         <div class="flex flex-wrap items-center gap-4 max-md:gap-2.5">
           <span class="inline-flex items-center gap-2 font-semibold text-white">
-            <svg class="size-4 text-sky" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-            Residential &amp; commercial services
-          </span>
-          <span class="inline-flex items-center gap-2 font-semibold text-white">
             <svg class="size-4 text-sky" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
-            Hays, Travis, and Williamson counties
+            Proudly serving: Hays, Travis, and Williamson counties
           </span>
         </div>
         <div class="flex items-center gap-2.5 max-md:hidden">
@@ -92,8 +88,8 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
            the header row has ~238px of slack there, but only ~24px at 1024, so
            anything below xl would push the CTA out of the row. -->
       <a href="#top" class="flex shrink-0 items-center gap-2">
-        <img src="/assets/images/call-indigo-mark.svg" alt="Call Indigo logo" class="h-[26px] w-auto max-md:h-[24px] xl:h-[28px]">
-        <span class="font-sans text-[22px] font-extrabold leading-none tracking-[-.045em] text-[#081f3f] max-md:text-[19px] xl:text-[24px]">Call Indigo</span>
+        <div class="shrink-0 rounded-full bg-[#1e1b4b] p-2 max-md:p-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white max-md:size-[18px]" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
+        <span class="font-sans text-[22px] font-bold leading-none tracking-[-0.06em] text-[#1e1b4b] max-md:text-[19px] xl:text-[24px]">Call Indigo</span>
       </a>
 
       <!-- Desktop horizontal nav (reference shows a full menu, not a burger).
@@ -139,7 +135,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
 
       <!-- Phone: the number text is dropped in the md–lg band so the nav + CTA
            both fit at the reference's 960 canvas; the icon stays tappable. -->
-      <a href="tel:+15126084999" class="ml-auto inline-flex shrink-0 items-center gap-[7px] whitespace-nowrap text-[16.5px] font-bold tracking-[-.01em] text-[#081f3f] max-md:[&>span]:hidden md:[&>span]:hidden lg:[&>span]:inline">
+      <a href="tel:+15126084999" class="ml-auto inline-flex shrink-0 items-center gap-[7px] whitespace-nowrap text-[16.5px] font-bold tracking-[-.01em] text-[#081f3f] max-md:gap-[6px] max-md:text-[15px] md:[&>span]:hidden lg:[&>span]:inline">
         <img src="/assets/images/call-icon.png" alt="" class="size-[22px] object-contain">
         <span>(512) 608-4999</span>
       </a>
@@ -167,8 +163,8 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     class="fixed inset-y-0 right-0 z-50 flex w-[min(380px,88vw)] translate-x-[105%] flex-col overflow-y-auto bg-ink px-8 pb-10 pt-7 text-white transition-transform duration-[400ms] ease-[cubic-bezier(.7,0,.2,1)] [&.open]:translate-x-0">
     <div class="mb-6 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
-        <img src="/assets/images/call-indigo-mark-dark.svg" alt="Call Indigo logo" class="size-11 w-auto">
-        <span class="font-sans text-[22px] font-bold leading-none tracking-[-.02em] text-white">Call Indigo</span>
+        <div class="shrink-0 rounded-full bg-white p-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#1e1b4b]" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
+        <span class="font-sans text-[22px] font-bold leading-none tracking-[-0.06em] text-white">Call Indigo</span>
       </div>
       <button id="menu-close" aria-label="Close menu" class="text-2xl leading-none text-white">✕</button>
     </div>
@@ -194,7 +190,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <div class="text-white">
             <span class="eyebrow">Commercial &amp; facility services</span>
             <div class="mb-6 flex flex-wrap gap-2.5">
-              <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">National facility management</span> <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">Licensed, bonded &amp; insured in all 50 states</span>
+              <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">National facility management</span> <span class="rounded-[10px] bg-white/10 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">Licensed &amp; insured in all 50 states</span>
             </div>
             <h1 class="text-[clamp(38px,4.6vw,64px)] font-extrabold leading-[1.04] tracking-[-.02em]">Love Your Facility Forever.</h1>
             <p class="mt-6 max-w-[580px] text-[17px] leading-[28px] text-white/85">Hire our national and insured facility services partners. And join our membership to achieve peace of mind with all things related to your facility.</p>
@@ -260,17 +256,17 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
       </div>
       <div class="grid gap-7 lg:grid-cols-2">
         <article class="reveal rounded-panel bg-topbar p-8 text-white md:p-10">
-          <span class="eyebrow">Indigo Facility Management</span>
-          <h3 class="text-[26px] font-bold leading-tight">Facility Management</h3>
-          <p class="mt-4 text-[15px] leading-[26px] text-white/75">All new customers are given a free inspection of their entire address to identify all options to optimize facility maintenance over time. Our mission is to give our customers peace of mind throughout the continuum of owning, leasing, renting, buying, or selling the address. Our facility membership also involves our FM scope program to plan and predict the current and future demands of your facility's custom maintenance strategy. By getting your FM scope defined and or optimized with us, your team will avoid the frustration and high-costs of navigating facility maintenance alone.</p>
+          <span class="eyebrow">Membership</span>
+          <h3 class="text-[26px] font-bold leading-tight">Indigo Facility Membership</h3>
           <a href="/contact" class="pill mt-7">
-            <span>Learn More</span>
+            <span>Become a Member</span>
             <span class="pill-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
           </a>
+          <p class="mt-6 text-[15px] leading-[26px] text-white/75">All new customers are given a free inspection of their entire address to identify all options to optimize facility maintenance over time. Our facility membership also involves our FM scope program to plan and predict the current and future demands of your facility's custom maintenance strategy. By getting your FM scope defined and or optimized with us, your team will avoid the frustration and high-costs of navigating facility maintenance alone.</p>
         </article>
         <article class="reveal rounded-panel bg-mist p-8 md:p-10">
-          <span class="eyebrow eyebrow-brand">Indigo Facility Partners</span>
-          <h3 class="text-[26px] font-bold leading-tight text-ink">Facility Services</h3>
+          <span class="eyebrow">National Commercial Labor</span>
+          <h3 class="text-[26px] font-bold leading-tight text-ink">Indigo Facility Partners</h3>
           <p class="mt-4 text-[15px] leading-[26px]">In addition to our membership, we provide nationally insured facility services for property teams that need reliable, professional support without a full management commitment.</p>
           <a href="/contact" class="mt-7 inline-block text-sm font-bold text-brand">Contact us &rarr;</a>
         </article>
@@ -285,13 +281,13 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     <section class="mbox slab bg-mist pad-140">
     <div class="shell grid grid-cols-[1.05fr_.95fr] items-center gap-[70px] max-lg:grid-cols-1 max-lg:gap-11">
       <div class="reveal">
-        <span class="eyebrow eyebrow-brand">Why Call Indigo</span>
+        <span class="eyebrow">Why Call Indigo</span>
         <h2 class="h-section">All new customers receive a free inspection</h2>
-        <p class="mt-4">Call Indigo provides national facility management with (512) 608-4999. Licensed, bonded, and insured across all 50 states.</p>
+        <p class="mt-4">Four things every new customer gets, whichever facility you run.</p>
         <div class="mt-7 grid gap-6">
           <div class="reveal flex gap-4.5">
             <img src="/assets/images/choose-icon1.png" alt="" class="size-[54px] shrink-0 object-contain">
-            <div><strong class="text-lg font-bold text-ink">Free facility inspection</strong><p class="mt-1 text-sm">Every new customer receives a complete inspection of their entire address to identify options to optimize facility maintenance.</p></div>
+            <div><strong class="text-lg font-bold text-ink">Free facility inspection</strong><p class="mt-1 text-sm">We walk the whole site before anything is quoted.</p></div>
           </div>
           <div class="reveal flex gap-4.5">
             <img src="/assets/images/choose-icon2.png" alt="" class="size-[54px] shrink-0 object-contain">
@@ -299,7 +295,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           </div>
           <div class="reveal flex gap-4.5">
             <img src="/assets/images/choose-icon3.png" alt="" class="size-[54px] shrink-0 object-contain">
-            <div><strong class="text-lg font-bold text-ink">National crew network</strong><p class="mt-1 text-sm">500+ crews across 250+ locations ready to service your commercial properties nationwide.</p></div>
+            <div><strong class="text-lg font-bold text-ink">National crew network</strong><p class="mt-1 text-sm">One point of contact across every market you operate in.</p></div>
           </div>
           <div class="reveal flex gap-4.5">
             <img src="/assets/images/choose-icon4.png" alt="" class="size-[54px] shrink-0 object-contain">
@@ -321,10 +317,11 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
   <div class="spacer"></div>
 
   <!-- ======================= FINAL CTA ======================= -->
-  <!-- NOTE the heading below is v1's own string, verbatim — it renders as
-       "Call Call Indigo for your commercial property" because v1 interpolates
-       \`Call {brandName}\` and \`brandName\` is itself "Call Indigo". Reproduced
-       as-is per the "exact textual content" brief; drop the leading "Call " to fix. -->
+  <!-- The heading below is v1's string with its leading "Call " dropped. v1
+       interpolates \`Call {brandName}\` and \`brandName\` is itself "Call Indigo",
+       so the source string renders as "Call Call Indigo for your commercial
+       property". The duplication is v1's bug, not a deliberate turn of phrase;
+       the rest of the sentence is unchanged. -->
   <div class="pad-rl">
     <section class="mbox slab slab-photo scrim-blue bg-img-cta pad-30 relative bg-brand">
     <div class="slab-body shell">
@@ -335,7 +332,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
         </div>
         <div>
           <span class="eyebrow">Contact</span>
-          <h2 class="h-section text-white">Call Call Indigo for your commercial property</h2>
+          <h2 class="h-section text-white">Call Indigo for your commercial property</h2>
           <p class="mt-4 max-w-[520px] text-[#dfe7fb]">Tell us about your facility and we will build a custom maintenance strategy with a free inspection.</p>
           <div class="mt-7 flex flex-wrap items-center gap-5">
             <a href="tel:+15126084999" class="pill pill-lg">
@@ -384,10 +381,10 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     <div class="shell grid gap-8 pb-[46px] pt-[52px] md:grid-cols-2 md:gap-10 md:pb-[74px] md:pt-[80px] lg:grid-cols-[2fr_1fr_1fr_1.5fr] lg:gap-[54px]">
       <div>
         <div class="mb-4 flex items-center gap-2.5">
-          <img src="/assets/images/call-indigo-mark-dark.svg" alt="Call Indigo logo" class="size-12 w-auto">
-          <span class="font-sans text-[23px] font-bold leading-none tracking-[-.02em] text-white">Call Indigo</span>
+          <div class="shrink-0 rounded-full bg-white p-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#1e1b4b]" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
+          <span class="font-sans text-[23px] font-bold leading-none tracking-[-0.06em] text-white">Call Indigo</span>
         </div>
-        <p>Licensed, bonded and insured home and facility services. One call covers plumbing, electrical, HVAC, carpentry, painting, and more — done right the first time.</p>
+        <p>Licensed and insured home and facility services. One call covers plumbing, electrical, HVAC, carpentry, painting, and more — done right the first time.</p>
         <p class="mt-3 text-[13px] text-white/60">Indigo Home &amp; Facility Services<br>License: RMP: 45574</p>
         <div class="mt-4 flex gap-3">
           <img src="/assets/images/trust-icon1.png" alt="" class="size-11 object-contain">
@@ -420,14 +417,12 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
         <a href="/contact" class="block py-1 hover:text-sky">Send an inquiry →</a>
         <span class="block py-1">1005 Meredith Drive<br>Austin, TX 78748</span>
         <span class="block py-1">Serving Hays, Travis &amp; Williamson counties</span>
-        <span class="block py-1 text-white/60">Service area: Austin · Buda · Kyle · San Marcos</span>
       </div>
     </div>
     <div class="shell">
       <div class="flex flex-col items-center gap-3 border-t border-white/10 py-5 text-center text-[13px] lg:flex-row lg:justify-between lg:text-left">
-        <p>© <span id="year"></span> Call Indigo LLC — prototype reconstruction for demo purposes.</p>
+        <p>© <span id="year"></span> Call Indigo LLC. All rights reserved.</p>
         <div class="flex flex-col items-center gap-2.5 md:flex-row md:flex-wrap md:justify-center md:gap-x-5 md:gap-y-2">
-          <span class="text-white/60">Licensed, bonded, and insured.</span>
           <button type="button" class="legal-link" data-legal="terms">Terms of Service</button>
           <button type="button" class="legal-link" data-legal="privacy">Privacy Policy</button>
           <a href="/admin" class="transition-colors hover:text-sky">Admin</a>
@@ -497,7 +492,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           in a trip charge.</p>
 
         <h3>5. Membership Plans</h3>
-        <p>Membership plans, including Indigo Home Management and our facility membership, are billed on the
+        <p>Membership plans, including Indigo Home Membership and our facility membership, are billed on the
           cycle stated at enrollment. Members receive the benefits described at sign-up, which may include a
           free initial inspection and discounted rates on services. Benefits are personal to the enrolled
           property, do not guarantee same-day service, and may be updated with reasonable notice. You may
@@ -579,12 +574,14 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
 
         <h3>2. Information We Collect</h3>
         <ul>
-          <li><strong>You give us:</strong> name, phone number, email address, service address, property
-            type, and the description of the work you need.</li>
+          <li><strong>You give us:</strong> your name, phone number, and email address, whether the
+            property is residential or commercial, the service you need, how soon you need it, and your
+            description of the work.</li>
           <li><strong>We create:</strong> inspection notes, photos of the work area, estimates, invoices,
             and service history for your property.</li>
-          <li><strong>We collect automatically:</strong> IP address, browser and device type, the pages
-            you view, and how you arrived at the site.</li>
+          <li><strong>Our hosting provider logs:</strong> the IP address, browser type, and pages
+            requested in standard server logs, which are kept for security and to keep the site running.
+            This site runs no analytics, advertising, or third-party tracking scripts.</li>
         </ul>
 
         <h3>3. How We Use Information</h3>
@@ -592,28 +589,29 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <li>Respond to your request, schedule visits, and perform the work.</li>
           <li>Prepare estimates, invoices, and warranty records.</li>
           <li>Confirm, remind, and follow up on appointments.</li>
-          <li>Improve our site, services, and crew routing.</li>
+          <li>Improve our services and how we route crews.</li>
           <li>Meet licensing, insurance, tax, and legal obligations.</li>
         </ul>
 
         <h3>4. How We Share Information</h3>
         <p>We do not sell your personal information. We share it only as needed to run the business: with
-          the crews and trade partners assigned to your job, with software providers who host our
-          scheduling, payment, and email tools, and with insurers, auditors, or authorities when the law
-          requires it. Vendors are expected to protect your information and to use it only for the service
-          they provide to us.</p>
+          the crews and trade partners assigned to your job, with the software providers who host our
+          website, email, and record-keeping tools, and with insurers, auditors, or authorities when the
+          law requires it. Vendors are expected to protect your information and to use it only for the
+          service they provide to us.</p>
 
         <h3>5. Cookies and Analytics</h3>
-        <p>This site uses cookies and similar technologies to remember your preferences and to understand
-          which pages are useful. You can block or delete cookies in your browser settings; some parts of
-          the site may work less smoothly if you do.</p>
+        <p>This public site sets no cookies and runs no analytics, advertising, or third-party tracking
+          scripts. Our private admin dashboard sets a single cookie recording whether its sidebar is open;
+          it carries no personal information and is not used to track you. You can block or delete cookies
+          in your browser settings at any time.</p>
 
         <h3>6. Calls, Texts, and Email</h3>
-        <p>When you give us your phone number or email address, you agree that we may contact you about
-          your request, your appointment, and your account, including by text message. Message and data
-          rates may apply. You can opt out of marketing messages at any time by replying STOP to a text,
-          using the unsubscribe link in an email, or calling us. You may still receive messages about an
-          active job or an unpaid invoice.</p>
+        <p>We use the contact details you give us to answer your request and to arrange the work — that is
+          what the form promises, and it is all we do with them. We do not add you to a marketing list,
+          and we do not send marketing texts or emails on the basis of that form. If we ever want to send
+          you a marketing message, we will ask for your consent separately first. You can ask us to stop
+          contacting you at any time using the details below.</p>
 
         <h3>7. Data Retention</h3>
         <p>We keep job records, estimates, invoices, and warranty documentation for as long as needed to
