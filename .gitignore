@@ -8,6 +8,9 @@ dist/
 dist-ssr/
 *.tsbuildinfo
 build/
+# Verification sheets rendered by scripts/_*_sheet.cjs and
+# scripts/_credential_row.cjs — generated, never hand-edited.
+/.preview/
 
 # ── Environment & secrets ─────────────────────────────────────
 .env
@@ -69,6 +72,19 @@ archive/audit/v1-audit/v2check/twtest/node_modules/
 # must be tracked by git. The archive exclusions above only apply
 # to archive/** — public/** is explicitly NOT excluded.
 !public/**
+
+# ── Client source drop (NOT shipped) ───────────────────────────
+# /images/ holds the raw media the client supplied (19 MB, 47 files).
+# Only the crops and resizes derived from it ship, and those live in
+# public/assets/images/ and ARE tracked. Same reasoning as the
+# archive/** binary exclusions above.
+#
+# NOTE: the leading slash is load-bearing. A bare `images/` pattern
+# matches a directory of that name at ANY depth — including
+# public/assets/images/ — and because gitignore applies later rules
+# last, it would override the `!public/**` re-include above and
+# silently untrack every shipped image.
+/images/
 
 # ── Misc ───────────────────────────────────────────────────────
 .cache/

@@ -726,20 +726,27 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
 
   <div class="spacer"></div>
 
-  <!-- ======================= BRANDS ======================= -->
+  <!-- ======================= CREDENTIALS ======================= -->
   <!-- \`.trusted-companies-con\` — no \`.padding-top/.padding-bottom\` and no
        \`.padding-rl\` upstream, so it stays a plain white band. The reference shows
-       no rule above the logo row, so the \`border-t\` this file carried is gone. -->
+       no rule above the logo row, so the \`border-t\` this file carried is gone.
+
+       The six \`tc-logo1..6.png\` that used to sit here were stock "Logoipsum"
+       placeholders under the heading "Trusted By Leading Brands" — invented
+       brands making a claim that was not true. Replaced 2026-09-21 with the
+       client's own credential badges, and the heading now describes what is
+       actually shown. The section id stays \`brands\` because it is the anchor
+       name the prototype used. -->
   <section id="brands" class="band py-14">
     <div class="shell">
-      <h2 class="reveal mb-8 text-center text-lg font-bold uppercase tracking-[.08em] text-[#8b97a8]">Trusted By Leading Brands</h2>
+      <h2 class="reveal mb-8 text-center text-lg font-bold uppercase tracking-[.08em] text-[#8b97a8]">Accredited &amp; Reviewed</h2>
       <div class="reveal flex flex-wrap items-center justify-center gap-11">
-        <img src="/assets/images/tc-logo1.png" alt="Brand 1" class="h-10 w-auto object-contain opacity-55 grayscale transition hover:opacity-100 hover:grayscale-0">
-        <img src="/assets/images/tc-logo2.png" alt="Brand 2" class="h-10 w-auto object-contain opacity-55 grayscale transition hover:opacity-100 hover:grayscale-0">
-        <img src="/assets/images/tc-logo3.png" alt="Brand 3" class="h-10 w-auto object-contain opacity-55 grayscale transition hover:opacity-100 hover:grayscale-0">
-        <img src="/assets/images/tc-logo4.png" alt="Brand 4" class="h-10 w-auto object-contain opacity-55 grayscale transition hover:opacity-100 hover:grayscale-0">
-        <img src="/assets/images/tc-logo5.png" alt="Brand 5" class="h-10 w-auto object-contain opacity-55 grayscale transition hover:opacity-100 hover:grayscale-0">
-        <img src="/assets/images/tc-logo6.png" alt="Brand 6" class="h-10 w-auto object-contain opacity-55 grayscale transition hover:opacity-100 hover:grayscale-0">
+        <img src="/assets/images/credential-bbb-accredited.png" alt="BBB Accredited Business" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
+        <img src="/assets/images/credential-angies-list.png" alt="Angie's List Super Service Award 2018" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
+        <img src="/assets/images/credential-homeadvisor-elite.png" alt="HomeAdvisor Elite Service" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
+        <img src="/assets/images/credential-homeadvisor-top-rated.png" alt="HomeAdvisor Top Rated" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
+        <img src="/assets/images/credential-google-reviews.png" alt="Google Reviews" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
+        <img src="/assets/images/credential-facebook-reviews.png" alt="Facebook Reviews" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
       </div>
     </div>
   </section>

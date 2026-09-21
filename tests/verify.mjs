@@ -813,4 +813,63 @@ export async function run() {
     }
     return [...new Set(out)]
   })
+
+  /* -------------------------------------------------------------------------
+   * Credentials — the strip that used to be placeholders
+   *
+   * Until 2026-09-21 this band showed six stock "Logoipsum" marks under the
+   * heading "Trusted By Leading Brands", with alt="Brand 1".."Brand 6". Every
+   * text-based check in this file passed, because the whole defect lived inside
+   * the IMAGES — there was no scaffolding word in the markup to catch. So these
+   * assertions read the image references and the alt text instead of the copy.
+   */
+  suite("Credentials, not placeholder brands", "tests/verify.mjs")
+
+  const brandStrips = pages.filter((p) => /id="brands"/.test(p.clean))
+
+  check("the credentials band exists and is the only one", () => {
+    if (brandStrips.length === 0) return ["no page carries the credentials band (#brands)"]
+    return []
+  })
+
+  check("no page loads a placeholder brand mark", () => {
+    const out = []
+    for (const p of pages) {
+      const srcs = [...p.clean.matchAll(/src="([^"]*assets\/images\/[^"]+)"/g)].map((m) => m[1])
+      for (const src of srcs) {
+        if (/tc-logo|logoipsum/i.test(src)) out.push(`${p.route} — placeholder brand image ${src}`)
+      }
+    }
+    return [...new Set(out)]
+  })
+
+  check("the credentials band shows six badges with real alt text", () => {
+    const out = []
+    for (const p of brandStrips) {
+      const strip = element(p.clean, 'id="brands"') ?? ""
+      const imgs = strip.match(/<img[^>]*>/g) ?? []
+      if (imgs.length !== 6) out.push(`${p.route} — ${imgs.length} credential badges, expected 6`)
+      for (const tag of imgs) {
+        // `attr()` returns every match, not the first one.
+        const alt = (attr(tag, "alt")[0] ?? "").trim()
+        // "Brand 1" is exactly the placeholder alt this replaced.
+        if (!alt) out.push(`${p.route} — credential badge with no alt text`)
+        else if (/^Brand\s*\d/i.test(alt)) out.push(`${p.route} — placeholder alt "${alt}"`)
+      }
+    }
+    return [...new Set(out)]
+  })
+
+  check("the credentials heading does not claim unnamed brands", () => {
+    const out = []
+    for (const p of brandStrips) {
+      const strip = element(p.clean, 'id="brands"') ?? ""
+      const heading = (strip.match(/<h2[^>]*>([^<]*)<\/h2>/) ?? [])[1] ?? ""
+      if (!heading.trim()) out.push(`${p.route} — credentials band has no heading`)
+      else if (/leading brands/i.test(heading)) {
+        out.push(`${p.route} — heading still claims "leading brands" over accreditation badges`)
+      }
+    }
+    return out
+  })
 }
