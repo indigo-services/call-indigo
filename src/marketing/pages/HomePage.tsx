@@ -769,17 +769,25 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
        \`background-image: cta-bg-img.jpg\` and a \`::before\` of
        \`rgb(42 90 162 / 90%)\`.
        The template's \`.cta-inner-con\` is a two-column flex with the PHOTO ON THE
-       LEFT — a \`br-40\` card with a circular \`logo-vector\` overlapping its right
-       edge — and the heading block on the right, ending in a cyan phone pill plus
-       a two-line arrival note beside it. This file previously ran a centred text
-       column with the image on the right over a flat \`bg-ink\`. -->
+       LEFT — a \`br-40\` card with a circular badge overlapping its right edge,
+       then the heading block on the right, ending in a cyan phone pill plus a
+       two-line arrival note beside it.
+
+       The badge is the client's official lockup (lucide \`phone\` in a
+       \`rounded-full\` disc), not the template's demo \`logo-vector.png\` - that
+       asset drew a large cyan glyph that read as a "P" over the photo. The navy
+       disc is the header's light-surface variant, correct here because the badge
+       sits ~75% over the photo: measured against the dark-surface inversion, the
+       white disc disappears where it overlaps the pale tile. Glyph is
+       110 x 20/36 = 61px, the client's lockup ratio. This file previously ran a
+       centred text column with the image on the right over a flat \`bg-ink\`. -->
   <div class="pad-rl">
     <section id="contact" class="mbox slab slab-photo scrim-blue bg-img-cta pad-30 relative bg-brand">
     <div class="slab-body">
       <div class="grid items-center gap-10 lg:grid-cols-[.92fr_1.08fr] lg:gap-[100px]">
         <div class="relative">
           <img src="/assets/images/cta-img.jpg" alt="Call Indigo technician on an emergency call" class="w-full rounded-[18px] object-cover">
-          <img src="/assets/images/logo-vector.png" alt="" aria-hidden="true" class="absolute -right-7 top-1/2 hidden w-[110px] -translate-y-1/2 lg:block">
+          <span class="absolute -right-7 top-1/2 hidden size-[110px] -translate-y-1/2 items-center justify-center rounded-full bg-[#1e1b4b] lg:flex"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-[61px] text-white" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/></svg></span>
         </div>
         <div>
           <span class="eyebrow">Get in Touch</span>

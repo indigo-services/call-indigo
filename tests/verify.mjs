@@ -595,7 +595,13 @@ export async function run() {
     // Anchored to the disc, not to the page, so the header's `tel:` icon cannot
     // satisfy it. Three per page: one light disc in the header, two inverted
     // ones in the drawer and the footer.
-    const re = /rounded-full (?:bg-\[#1e1b4b\]|bg-white)[^"]*">[\s\S]{0,600}?M13\.832 16\.568/g
+    //
+    // `shrink-0` is load-bearing. A looser `rounded-full (bg-…)` also matches the
+    // "Schedule Online" button, whose arrow sits in its own `rounded-full bg-white`
+    // circle - that reads as a fourth disc, and its arrow path as a second,
+    // non-brand glyph. Every chrome lockup disc is `shrink-0 rounded-full`; the
+    // CTA badge and that button are not.
+    const re = /shrink-0 rounded-full (?:bg-\[#1e1b4b\]|bg-white)[^"]*">[\s\S]{0,600}?M13\.832 16\.568/g
     return pages
       .map((p) => ({ route: p.route, n: (p.html.match(re) ?? []).length }))
       .filter((r) => r.n !== 3)
@@ -1020,6 +1026,94 @@ export async function run() {
       }
     }
     if (!/\.hero-eyebrow\s*\{/.test(css)) out.push(".hero-eyebrow was not emitted")
+    return out
+  })
+
+  suite("CTA badge is the client's mark", "tests/verify.mjs")
+
+  /* The template shipped its own demo logo (`logo-vector.png`) as a decorative
+     watermark on all three CTA bands, where it drew a large cyan glyph that read
+     as a "P" over the photo. The client's official lockup replaces it.
+
+     Everything here scans `clean`, not `html`. The replacement comments name the
+     old asset, so a raw-markup scan would match the explanation of the change
+     rather than the change - and would pass on a page that still shipped it. */
+  check("no marketing page still loads the template's demo logo", () =>
+    pages
+      .filter((p) => /src="\/assets\/images\/logo-vector\.png"/.test(p.clean))
+      .map((p) => `${p.route} — still loads logo-vector.png, the template's demo logo`),
+  )
+
+  /* Anchored to the badge's own positioning classes, not to its size: the size is
+     asserted separately below, and coupling the two would make a resize report
+     three failures instead of one. The 12 chrome lockups cannot satisfy this. */
+  const BADGE = /<span class="[^"]*absolute -right-7 top-1\/2 hidden[^"]*rounded-full[^"]*">[\s\S]{0,700}?<\/span>/g
+
+  check("each CTA band carries exactly one official badge", () => {
+    const expected = { home: 1, residential: 1, commercial: 1, contact: 0 }
+    return pages
+      .map((p) => ({ route: p.route, name: p.name, n: (p.clean.match(BADGE) ?? []).length }))
+      .filter((r) => r.n !== expected[r.name])
+      .map((r) => `${r.route} — ${r.n} CTA badge(s), expected ${expected[r.name]}`)
+  })
+
+  check("the CTA badge glyph holds the client's 20-in-p-2 lockup ratio", () => {
+    // The lockup is a 20px glyph inside a p-2 disc, i.e. the glyph is 20/36 of
+    // the disc diameter. Derived rather than hardcoded to 61, so resizing the
+    // disc without resizing the glyph fails instead of drifting quietly.
+    const out = []
+    let seen = 0
+    for (const p of pages) {
+      const re = new RegExp(BADGE.source, "g")
+      let m
+      while ((m = re.exec(p.clean)) !== null) {
+        seen += 1
+        const disc = /size-\[(\d+)px\]/.exec(m[0])
+        const glyph = /class="size-\[(\d+)px\]/.exec(m[0])
+        if (!disc || !glyph) {
+          out.push(`${p.route} — badge is missing an explicit disc or glyph size`)
+          continue
+        }
+        const want = (Number(disc[1]) * 20) / 36
+        if (Math.abs(Number(glyph[1]) - want) > 1) {
+          out.push(
+            `${p.route} — ${glyph[1]}px glyph in a ${disc[1]}px disc; the 20/36 lockup ratio wants ${want.toFixed(1)}px`,
+          )
+        }
+      }
+    }
+    if (seen !== 3) out.push(`matched ${seen} badge(s), expected 3`)
+    return out
+  })
+
+  check("the CTA badge uses the same phone glyph as the chrome lockups", () => {
+    // This is what makes it the *official* mark rather than a lookalike: the path
+    // data has to be byte-identical to the one the 12 chrome lockups draw.
+    const chrome = new Set()
+    for (const p of pages) {
+      // `shrink-0 rounded-full` is the chrome-lockup signature. A looser pattern
+      // also catches the "Schedule Online" button's arrow disc, which draws
+      // `M7 17L17 7M9 7h8v8` and would read as a second, non-brand glyph.
+      const re = /shrink-0 rounded-full (?:bg-\[#1e1b4b\]|bg-white)[^"]*">[\s\S]{0,600}?<path d="([^"]+)"/g
+      let m
+      while ((m = re.exec(p.clean)) !== null) chrome.add(m[1])
+    }
+    if (chrome.size !== 1) {
+      return [`the chrome lockups draw ${chrome.size} distinct glyph paths, expected 1`]
+    }
+    const out = []
+    let seen = 0
+    for (const p of pages) {
+      const re = new RegExp(BADGE.source, "g")
+      let m
+      while ((m = re.exec(p.clean)) !== null) {
+        seen += 1
+        const d = /<path d="([^"]+)"/.exec(m[0])
+        if (!d) out.push(`${p.route} — CTA badge carries no glyph path`)
+        else if (!chrome.has(d[1])) out.push(`${p.route} — CTA badge glyph differs from the chrome lockup glyph`)
+      }
+    }
+    if (seen !== 3) out.push(`matched ${seen} badge(s), expected 3`)
     return out
   })
 }
