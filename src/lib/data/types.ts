@@ -69,6 +69,18 @@ export interface SiteSettings {
   licenseNumber: string
   /** Where new-inquiry notification emails are delivered. */
   notificationEmail: string
+  /**
+   * Per-page marketing primaries, `#rrggbb`.
+   *
+   * These are the shipped defaults, and they are also the values the Design
+   * System page's colour picker writes. Because Tailwind v4 emits
+   * `background-color:var(--color-residential)`, setting the matching custom
+   * property re-colours every surface that reads it — see `src/marketing/theme.ts`
+   * for the token map and for why a saved value is per-browser.
+   */
+  themeHome: string
+  themeResidential: string
+  themeCommercial: string
 }
 
 export interface AdminProfile {

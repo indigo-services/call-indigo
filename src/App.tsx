@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { useSiteTheme } from "@/lib/use-theme"
 
 // Marketing pages (bespoke — PRD §8)
 import HomePage from "@/marketing/pages/HomePage"
@@ -20,6 +21,11 @@ import AssetsPage from "@/admin/AssetsPage"
 import ComponentsPage from "@/admin/ComponentsPage"
 
 export default function App() {
+  // Publishes the saved per-page primaries onto :root. Here rather than on the
+  // marketing pages because those are raw HTML strings, and rather than in the
+  // admin because the colours it edits are the public site's.
+  useSiteTheme()
+
   return (
     <TooltipProvider>
       <Routes>

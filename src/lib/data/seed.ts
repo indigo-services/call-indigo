@@ -17,6 +17,12 @@ import type {
   SiteSettings,
   Urgency,
 } from "@/lib/data/types"
+import { THEME_TOKENS } from "@/lib/theme"
+
+/** The shipped value of each theme token, keyed by its `SiteSettings` field. */
+const THEME_DEFAULTS = Object.fromEntries(
+  THEME_TOKENS.map((t) => [t.key, t.default]),
+) as Pick<SiteSettings, "themeHome" | "themeResidential" | "themeCommercial">
 
 /** ISO timestamp `daysAgo` days back, at `hour`:00 local time. */
 function daysAgo(days: number, hour = 9): string {
@@ -167,6 +173,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   serviceArea: "Hays, Travis, and Williamson counties",
   licenseNumber: "RMP: 45574",
   notificationEmail: "support@call-indigo.com",
+  ...THEME_DEFAULTS,
 }
 
 export const DEFAULT_PROFILE: AdminProfile = {

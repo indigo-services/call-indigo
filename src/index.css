@@ -78,9 +78,28 @@
   --color-mist: #f4f8fe;        /* --light--bg--color (was #f5f8ff) */
   --color-body: #696969;        /* --text--color      (was #5a6478) */
   --color-line: #e3e8f2;
-  /* The two scrim colours, quoted from the template's ::before layers. */
-  --color-scrim-hero: rgb(25 80 160 / 88%);   /* .banner-con::before            */
-  --color-scrim-blue: rgb(42 90 162 / 90%);   /* price-estimation / check / cta */
+  /* ---- Scrims -------------------------------------------------------------
+     The ::before tint that sits over every photo band. Each scrim is DERIVED
+     from a primary rather than written out, so one token drives both the slab
+     and the tint over its photo.
+
+     That derivation is what makes the admin colour picker work. A picker that
+     moved only `--color-brand` would leave the old hardcoded scrim painting over
+     the new slab, and because `.slab-photo::before` is opaque-ish at 88% the old
+     colour would visibly win — the slab would barely appear to change.
+
+     The default pair is the baseline tint, derived from `--color-brand`, so home
+     needs no page class of its own. `--color-scrim-blue` was already exactly
+     brand at 90%; `--color-scrim-hero` was the template's `rgb(25 80 160 / 88%)`,
+     a separate and slightly darker blue, and deriving it is what lets a brand
+     change reach the home hero at all. It is also the one visible consequence of
+     this change: the home hero's tint lifts to brand at 88%. The three service
+     scrims are unchanged, because their hardcoded values already equalled their
+     primary.
+
+     `color-mix` is Baseline 2023 and Tailwind v4 already emits it. */
+  --color-scrim-hero: color-mix(in srgb, var(--color-brand) 88%, transparent);
+  --color-scrim-blue: color-mix(in srgb, var(--color-brand) 90%, transparent);
   /* --secondary--color in the template; resolves to white inside the hero. */
   --color-secondary: #ffffff;
 
@@ -92,15 +111,24 @@
      Home keeps the brand blue and is deliberately NOT re-tokenised — it is the
      baseline the other two move away from, in different directions:
        home        #2a5aa2  hue 217  white 6.81:1  cyan-eyebrow 3.29:1
-       residential #0a6153  hue 170  white 7.37:1  cyan-eyebrow 3.56:1
-       commercial  #3f3d9e  hue 250  white 8.85:1  cyan-eyebrow 4.27:1
+       residential #0c6a4e  hue 162  white 6.59:1  cyan-eyebrow 3.18:1
+       commercial  #37479e  hue 231  white 8.21:1  cyan-eyebrow 3.96:1
      Both service values were chosen so white body copy clears AA (4.5:1) with
      room to spare AND the cyan `.hero-eyebrow` clears the 3:1 large-text bar.
-     The teal was darkened from #0b6d5e specifically to buy that eyebrow headroom
-     — cyan on teal is a narrow hue gap, so contrast has to come from luminance.
-     Hues sit 47° and 80° apart, so they read as different colours, not shades. */
-  --color-residential: #0a6153;
-  --color-commercial: #3f3d9e;
+     That second bar is what caps "brighter": cyan on either hue is a narrow gap,
+     so contrast has to come from luminance, and past roughly 0.119 relative
+     luminance the eyebrow drops under 3:1. Every value here was picked by
+     rendering candidates on the real band (`scripts/_primary_candidates.cjs`),
+     not by choosing a hue and hoping.
+
+     Revised 2026-09-21, client direction: residential was #0a6153 (hue 170) —
+     read as a dark army green, so it was lifted ~18% in luminance and slid to
+     hue 162. Commercial was #3f3d9e (hue 241) — read as purple, so it slid to
+     hue 231. Note that leaves commercial only 14° from home in hue; it stays
+     legible as a separate colour because it is ~25% darker in luminance
+     (0.078 vs 0.104), and that gap is the thing to preserve if either moves. */
+  --color-residential: #0c6a4e;
+  --color-commercial: #37479e;
 
   /* ---- Typography ---- */
   --font-sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
@@ -377,16 +405,18 @@
      suite renders each page module directly, so a wrapper in `App.tsx` would be
      invisible to both the layout and the suite.
 
-     Without this the slab would be re-coloured while its scrim stayed the
-     template's blue at 88% opacity, and the blue would win — the slab would
-     barely change. */
+     Derived from the page primary, so the admin colour picker moving
+     `--color-residential` on `:root` moves this too — the element inherits the
+     new value and re-resolves its own `color-mix`. Writing the tint out as a
+     literal instead would pin it to whatever was current when it was written,
+     and the stale tint would paint over the new slab. */
   .page-residential {
-    --color-scrim-hero: rgb(10 97 83 / 88%);
-    --color-scrim-blue: rgb(10 97 83 / 90%);
+    --color-scrim-hero: color-mix(in srgb, var(--color-residential) 88%, transparent);
+    --color-scrim-blue: color-mix(in srgb, var(--color-residential) 90%, transparent);
   }
   .page-commercial {
-    --color-scrim-hero: rgb(63 61 158 / 88%);
-    --color-scrim-blue: rgb(63 61 158 / 90%);
+    --color-scrim-hero: color-mix(in srgb, var(--color-commercial) 88%, transparent);
+    --color-scrim-blue: color-mix(in srgb, var(--color-commercial) 90%, transparent);
   }
 
   /* At <=767 the outer gutter is 0, so every card is full-bleed. A radius on a

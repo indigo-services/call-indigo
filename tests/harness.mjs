@@ -63,6 +63,12 @@ const loaded = new Map()
  * `packages: "external"` is NOT used: it would also externalise the `@/…`
  * alias. Instead React is named explicitly, which is all that needs to be a
  * single shared instance.
+ *
+ * `lucide-react` is external for a different reason: it ships CJS, and esbuild
+ * cannot convert its `require("react")` into ESM — bundling it fails at import
+ * time with `Dynamic require of "react" is not supported`. Leaving it external
+ * lets node resolve it from node_modules instead. Only admin modules pull it in;
+ * the marketing pages are raw HTML strings and import nothing.
  */
 export async function load(relativePath, name) {
   if (loaded.has(name)) return loaded.get(name)
@@ -79,7 +85,7 @@ export async function load(relativePath, name) {
     target: "node22",
     jsx: "automatic",
     tsconfig: path.join(ROOT, "tsconfig.app.json"),
-    external: ["react", "react-dom", "react-dom/server", "react/jsx-runtime"],
+    external: ["react", "react-dom", "react-dom/server", "react/jsx-runtime", "lucide-react"],
     define: { "process.env.NODE_ENV": '"test"' },
     logLevel: "silent",
   })

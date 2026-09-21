@@ -21,6 +21,7 @@ import {
   classTokens,
   element,
   hasClass,
+  load,
   render,
   siteFooter,
   stripComments,
@@ -1013,7 +1014,7 @@ export async function run() {
     const css = distCss()
     if (!css) return ["dist CSS not found — the suite expects the build to have run first"]
     const out = []
-    const hex = { residential: "#0a6153", commercial: "#3f3d9e" }
+    const hex = { residential: "#0c6a4e", commercial: "#37479e" }
     for (const [name, value] of Object.entries(hex)) {
       if (!new RegExp(`--color-${name}\\s*:\\s*${value}`, "i").test(css)) {
         out.push(`--color-${name} is not ${value} in the built stylesheet`)
@@ -1114,6 +1115,159 @@ export async function run() {
       }
     }
     if (seen !== 3) out.push(`matched ${seen} badge(s), expected 3`)
+    return out
+  })
+
+  suite("Theme tokens are authorable", "tests/verify.mjs")
+
+  /* The three marketing primaries are authorable from /admin/design. The colour
+     values necessarily appear twice — `index.css` needs one for first paint,
+     before any JS runs, and the picker needs one to seed its inputs — and CSS
+     cannot import TypeScript. That duplication is the whole risk here, so it is
+     asserted rather than trusted. */
+  const theme = await load("src/lib/theme.ts", "theme")
+  const cssSource = readFileSync(path.join(ROOT, "src", "index.css"), "utf8")
+
+  /* Rendered up front, NOT inside the check below. `check` is synchronous and
+     treats a returned promise as "no problems", so an `async` assertion would
+     report a green tick while asserting nothing. Note this renders in the page's
+     loading state — `renderToStaticMarkup` does not run effects, so `useApiData`
+     never fires and the picker rows are skeletons. The caveat text sits outside
+     that branch, which is why it is the thing worth asserting here. */
+  const designHtml = await render("src/admin/DesignSystemPage.tsx", "design-system")
+
+  check("the theme module's defaults match the stylesheet", () => {
+    const out = []
+    for (const t of theme.THEME_TOKENS) {
+      // First declaration wins: the `@theme` block is the authoritative one, and
+      // every later use of the token is a `var()` reference with no value.
+      const m = new RegExp(`${t.token}\\s*:\\s*(#[0-9a-fA-F]{3,8})`).exec(cssSource)
+      if (!m) {
+        out.push(`${t.token} is not declared in src/index.css`)
+      } else if (m[1].toLowerCase() !== t.default.toLowerCase()) {
+        out.push(
+          `${t.token}: index.css has ${m[1]}, src/lib/theme.ts default is ${t.default} — the picker would seed the wrong value`,
+        )
+      }
+    }
+    return out
+  })
+
+  check("a colour value is normalised or rejected", () => {
+    const cases = [
+      ["#0C6A4E", "#0c6a4e", "uppercase is lowered"],
+      ["  #37479e  ", "#37479e", "surrounding space is trimmed"],
+      ["#abc", "#aabbcc", "the 3-digit form is expanded"],
+      ["#0c6a4", null, "4 digits is not a colour"],
+      ["0c6a4e", null, "a missing # is not a colour"],
+      ["#gggggg", null, "non-hex characters are not a colour"],
+      ["", null, "empty is not a colour"],
+      [null, null, "null is not a colour"],
+      [{}, null, "an object is not a colour"],
+    ]
+    return cases
+      .filter(([input, want]) => theme.normaliseHex(input) !== want)
+      .map(([input, want, why]) => `${why}: normaliseHex(${JSON.stringify(input)}) returned ${JSON.stringify(theme.normaliseHex(input))}, expected ${JSON.stringify(want)}`)
+  })
+
+  check("an invalid colour is dropped rather than applied", () => {
+    // The load-bearing safety property. A corrupt localStorage record must not be
+    // able to paint the site black, and a half-typed value must not blank a token.
+    const applied = {}
+    theme.applyTheme(
+      { style: { setProperty: (k, v) => (applied[k] = v) } },
+      { themeHome: "chartreuse", themeResidential: "#0c6a4e", themeCommercial: undefined },
+    )
+    const keys = Object.keys(applied)
+    const out = []
+    if (keys.length !== 1 || keys[0] !== "--color-residential") {
+      out.push(`applied ${JSON.stringify(keys)}, expected only --color-residential`)
+    }
+    if (applied["--color-residential"] !== "#0c6a4e") {
+      out.push(`--color-residential was set to ${applied["--color-residential"]}`)
+    }
+    return out
+  })
+
+  check("the copy-paste token block carries all three tokens", () => {
+    const block = theme.cssTokenBlock({ themeHome: "#111111" })
+    // A partial record must fall back to the shipped default, not emit a hole:
+    // this text is what gets pasted into index.css, so a missing line would
+    // silently delete a token from the stylesheet.
+    const out = []
+    for (const t of theme.THEME_TOKENS) {
+      if (!new RegExp(`${t.token}\\s*:\\s*#[0-9a-f]{6}`, "i").test(block)) {
+        out.push(`the block omits ${t.token}`)
+      }
+    }
+    if (!block.includes("--color-brand: #111111")) {
+      out.push("the block did not use the value it was given")
+    }
+    if (!block.includes(`--color-residential: ${theme.THEME_TOKENS[1].default}`)) {
+      out.push("an absent key did not fall back to its shipped default")
+    }
+    return out
+  })
+
+  check("every shipped primary clears its contrast bars", () => {
+    // The real product requirement, asserted on the shipped defaults rather than
+    // on a formula: white body copy needs AA 4.5:1, and the cyan eyebrow is
+    // large text at 3:1. A picker makes this easy to break by accident.
+    const out = []
+    for (const t of theme.THEME_TOKENS) {
+      const body = theme.contrastRatio("#ffffff", t.default)
+      const eyebrow = theme.contrastRatio(theme.EYEBROW_ACCENT, t.default)
+      if (body === null || body < theme.CONTRAST_BARS.body) {
+        out.push(`${t.label} ${t.default}: white copy is ${body?.toFixed(2)}:1, below ${theme.CONTRAST_BARS.body}`)
+      }
+      if (eyebrow === null || eyebrow < theme.CONTRAST_BARS.eyebrow) {
+        out.push(`${t.label} ${t.default}: cyan eyebrow is ${eyebrow?.toFixed(2)}:1, below ${theme.CONTRAST_BARS.eyebrow}`)
+      }
+    }
+    // Negative-control the maths itself: white on black is exactly 21:1.
+    const known = theme.contrastRatio("#ffffff", "#000000")
+    if (known === null || Math.abs(known - 21) > 0.01) {
+      out.push(`contrastRatio(white, black) returned ${known}, expected 21 — the readout cannot be trusted`)
+    }
+    return out
+  })
+
+  check("each page scrim is derived from its own primary", () => {
+    const css = distCss()
+    if (!css) return ["dist CSS not found — the suite expects the build to have run first"]
+    const out = []
+    // The baseline pair lands on `:root,:host` (Tailwind emits both), so the
+    // selector is matched as a pattern rather than as a literal string.
+    const scopes = [
+      ["--color-brand", ":root(?:,:host)?", "the baseline"],
+      ["--color-residential", "\\.page-residential", "/residential"],
+      ["--color-commercial", "\\.page-commercial", "/commercial"],
+    ]
+    for (const [token, selector, where] of scopes) {
+      // Derived, not literal. A literal tint is pinned to whatever was current
+      // when it was written, so a runtime override of the primary would leave the
+      // old colour painting over the new slab — the hero would barely appear to
+      // change, which is exactly the bug this derivation removes.
+      const re = new RegExp(`${selector}\\{[^}]*color-mix\\(in srgb, var\\(${token}\\)`)
+      if (!re.test(css)) {
+        out.push(`${where} (${selector}) does not derive its scrim from var(${token}) with color-mix`)
+      }
+    }
+    return out
+  })
+
+  check("the design page says a saved theme is per-browser", () => {
+    // Not decoration: the picker rethemes the real pages the moment a colour
+    // moves, so without this the page reads as though it published the change to
+    // the live site. If the caveat is ever deleted, the UI becomes a lie.
+    const text = textOf(designHtml).replace(/\s+/g, " ")
+    const out = []
+    if (!/this browser, not the live site/i.test(text)) {
+      out.push("the per-browser limitation is not stated")
+    }
+    if (!/local storage|localStorage/i.test(text)) {
+      out.push("the page does not say where a saved theme is stored")
+    }
     return out
   })
 }
