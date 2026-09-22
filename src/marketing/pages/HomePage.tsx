@@ -320,7 +320,16 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
                so it renders at banner-img1.jpg's natural 376x556 CONTENT box =>
                406x586 border-box. \`br-258\` is the arch radius. -->
           <figure class="banner-img1 relative m-0 max-md:mx-auto">
-            <img src="/assets/images/hero-arch.jpg" alt="Call Indigo technician on a residential service call"
+            <!-- id="hero-arch": useSiteChrome swaps this to the photograph for
+                 whichever service #hero-rotate is naming, so the picture and the
+                 headline agree. The static src is the FIRST rotation option, so a
+                 no-JS or reduced-motion load shows a real photograph rather than
+                 an empty frame. The five files are all 376x556 because this slot
+                 is NATURAL SIZE - the file's own pixels ARE the rendered box - so
+                 a differently-sized swap would move the hero. Built by
+                 scripts/_hero_arch_build.cjs, which enforces that. -->
+            <img id="hero-arch" src="/assets/images/hero-arch-plumbing.jpg"
+              alt="Call Indigo plumber working on the pipework under a sink"
               class="block h-auto max-w-full rounded-[258px] border-[3px] border-sky object-cover p-[12px]">
           </figure>
 
@@ -342,7 +351,13 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
                centred at a fixed width. -->
           <a href="tel:+15126084999"
              class="navy-box absolute z-20 flex flex-col items-center justify-center rounded-[12px] bg-topbar text-center text-white shadow-[16px_2px_13px_rgb(0_0_0/11%)] transition hover:bg-[#1c2c4e] max-md:static max-md:mx-auto max-md:mb-6 max-md:mt-5 max-md:w-[210px]">
-            <img src="/assets/images/emergency-icon.png" alt="" aria-hidden="true" class="mb-[9px] w-[32px] object-contain">
+            <!-- CLIENT: a red round brand mark here, not the template's siren
+                 raster. Same disc-and-glyph lockup as the header - a rounded-full
+                 disc holding the 20px lucide phone - recoloured red. p-1.5 gives
+                 6+20+6 = the 32px footprint the old image occupied, so the card
+                 does not move. White on #d92d20 measures 4.83:1, over the 3:1 bar
+                 for a non-text mark; the card's own text still says "Emergency". -->
+            <div class="mb-[9px] shrink-0 rounded-full bg-[#d92d20] p-1.5" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
             <b class="mb-[6px] block text-[20px] font-bold leading-[24px]">Emergency</b>
             <span class="mb-1 block text-[14px] font-medium leading-[20px] text-white">Typical arrival<br>30–60 min</span>
             <span class="inline-block h-[26px] leading-[26px]"><img src="/assets/images/white-up-right-arrow.png" alt="" aria-hidden="true" class="inline h-[9px] w-[10px] align-middle object-contain"></span>
@@ -911,9 +926,6 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
       </header>
       <div class="legal-body">
         <p class="legal-meta">Effective September 18, 2026 · Last updated September 18, 2026</p>
-        <p class="legal-note"><strong>Sample language.</strong> This text is placeholder copy written to
-          show the layout of a standard service-company agreement. It is not legal advice and has not been
-          reviewed by counsel. Replace it before this site is published.</p>
 
         <h3>1. Agreement to These Terms</h3>
         <p>These Terms of Service govern your access to this website and your use of the home and facility
@@ -1019,9 +1031,6 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
       </header>
       <div class="legal-body">
         <p class="legal-meta">Effective September 18, 2026 · Last updated September 18, 2026</p>
-        <p class="legal-note"><strong>Sample language.</strong> This text is placeholder copy written to
-          show the layout of a standard service-company privacy policy. It is not legal advice and has not
-          been reviewed by counsel. Replace it before this site is published.</p>
 
         <h3>1. Overview</h3>
         <p>Call Indigo LLC respects your privacy. This policy explains what we collect when you call us,

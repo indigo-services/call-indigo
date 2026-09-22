@@ -26,8 +26,10 @@
  *                             section is expected back; see CHANGELOG.)
  *   7. hero headline rotation `#hero-rotate`     -> cycles the hero's second word
  *                             through Plumbing / Electrical / HVAC / Home Services
- *                             / Facility Services, auto-fitting the font size
- *                             so the longest option cannot reflow the hero
+ *                             / Facility Services, swapping `#hero-arch` to the
+ *                             matching photograph as it goes, and auto-fitting
+ *                             the font size so the longest option cannot reflow
+ *                             the hero
  *
  * The prototype is a single long-lived page, so main.js can register listeners
  * once and forget them. Here the hook is mounted per route and unmounted on
@@ -37,6 +39,13 @@
 import { useEffect } from "react"
 
 import { checkServiceArea } from "@/marketing/service-area"
+import {
+  ARCH_ALT_BY_SERVICE,
+  ARCH_BY_SERVICE,
+  ROTATION,
+  fitFontSize,
+  type ServiceCategory,
+} from "@/marketing/hero-rotation"
 
 /** `#terms` / `#privacy` deep links, and the modal ids themselves, all resolve. */
 const LEGAL_HASHES: Record<string, string> = {
@@ -44,6 +53,25 @@ const LEGAL_HASHES: Record<string, string> = {
   "#privacy": "legal-privacy",
   "#legal-terms": "legal-terms",
   "#legal-privacy": "legal-privacy",
+}
+
+/**
+ * Width of the text immediately after `el` — the "." in `Expert <word>.`.
+ *
+ * It is a SIBLING text node rather than part of the rotating span, so it inherits
+ * the h1's font-size and does NOT shrink when the span is scaled down. The fit
+ * has to budget for it or the period is orphaned onto a line of its own and the
+ * hero grows by a line-height on the longest option. Returns 0 when there is no
+ * trailing text, so the fit still behaves if the punctuation is ever dropped.
+ */
+function trailingWidth(el: Element): number {
+  const next = el.nextSibling
+  if (!next || next.nodeType !== Node.TEXT_NODE || !next.nodeValue?.trim()) return 0
+  const range = document.createRange()
+  range.selectNodeContents(next)
+  let width = 0
+  for (const rect of Array.from(range.getClientRects())) width += rect.width
+  return width
 }
 
 export function useSiteChrome() {
@@ -255,16 +283,22 @@ export function useSiteChrome() {
 
     /* ---------- Hero headline rotation ----------
        The hero h1 reads "Expert <word>." and the client asked for the word to
-       cycle. The options differ in width by more than 3x — "HVAC" against
-       "Facility Services" — so at the hero's 126px the longest would wrap or run
-       past the column, changing the hero's height on every tick. `fit` measures
-       each option against the real column and scales the word's font-size down
-       until the widest one fits, then re-runs on resize and once webfonts land.
+       cycle, with the arch photograph beside it changing to match. The words and
+       their photographs both live in `@/marketing/hero-rotation`, so the two
+       lists cannot drift apart.
+
+       `fit` keeps the headline a fixed height. The options differ in width by
+       more than 3x — "HVAC" against "Facility Services" — and the period after
+       the word is a SIBLING text node, so it stays at the h1's full size while
+       the span shrinks. `fitFontSize` budgets for it explicitly; without that the
+       column is filled exactly and the period drops to a line of its own on every
+       pass of the longest option, growing the hero by one line-height. It re-runs
+       on resize and once webfonts land.
 
        Rotation is skipped under `prefers-reduced-motion`, which leaves the first
-       word in place — the headline still reads correctly. */
-    const ROTATION = ["Plumbing", "Electrical", "HVAC", "Home Services", "Facility Services"]
+       word — and its arch — in place, so the headline still reads correctly. */
     const rotator = document.getElementById("hero-rotate")
+    const arch = document.getElementById("hero-arch") as HTMLImageElement | null
     let rotateTimer = 0
     let swapTimer = 0
     let fitObserver: ResizeObserver | null = null
@@ -282,9 +316,8 @@ export function useSiteChrome() {
           widest = Math.max(widest, rotator.scrollWidth)
         }
         rotator.textContent = shown
-        if (widest > available) {
-          rotator.style.fontSize = `${Math.floor((base * available) / widest)}px`
-        }
+        const size = fitFontSize(base, widest, available, trailingWidth(rotator))
+        if (size !== null) rotator.style.fontSize = `${size}px`
       }
 
       fit()
@@ -295,13 +328,30 @@ export function useSiteChrome() {
       // Measurements taken before the webfont loads are in the fallback face.
       if (document.fonts?.ready) document.fonts.ready.then(fit).catch(() => {})
 
+      /* Warm every arch up front. The rotation swaps `src` mid-cycle, so without
+         this the first pass through the list would paint an empty frame while
+         each file is fetched. The swap itself is deliberately NOT faded: the img
+         carries the cyan ring and its 12px padding, so fading it would blink the
+         frame. It changes while the word is at opacity 0 instead. */
+      if (arch) {
+        for (const word of ROTATION) {
+          const src = ARCH_BY_SERVICE[word]
+          if (arch.getAttribute("src") !== src) new Image().src = src
+        }
+      }
+
       if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         rotateTimer = window.setInterval(() => {
           rotator.style.opacity = "0"
           swapTimer = window.setTimeout(() => {
-            const at = ROTATION.indexOf(rotator.textContent ?? "")
-            rotator.textContent = ROTATION[(at + 1) % ROTATION.length]
+            const at = ROTATION.indexOf((rotator.textContent ?? "") as ServiceCategory)
+            const next = ROTATION[(at + 1) % ROTATION.length]
+            rotator.textContent = next
             rotator.style.opacity = "1"
+            if (arch) {
+              arch.src = ARCH_BY_SERVICE[next]
+              arch.alt = ARCH_ALT_BY_SERVICE[next]
+            }
           }, 280)
         }, 2600)
       }

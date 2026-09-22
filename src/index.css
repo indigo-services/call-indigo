@@ -571,7 +571,13 @@
      `nowrap` let `useSiteChrome` measure each option's natural width, so it can
      scale the font down until the longest one ("Facility Services" — over three
      times the width of "HVAC") fits the hero column. Without that the line would
-     wrap on the long options and the hero's height would change on every tick. */
+     wrap on the long options and the hero's height would change on every tick.
+
+     NOTE the period sits OUTSIDE this span, so it does not scale with it — it
+     stays at the h1's size. The fit therefore subtracts the period's width from
+     the column before sizing the word (`fitFontSize` in `hero-rotation.ts`);
+     sizing the word to the full column instead leaves the period nowhere to go
+     and costs a line-height on every pass of the longest option. */
   .hero-rotate { display: inline-block; white-space: nowrap; transition: opacity 280ms ease; }
 
   /* ==========================================================================

@@ -8,6 +8,7 @@
  * and turns the harness's tally into an exit code.
  */
 import { finish } from "./harness.mjs"
+import { run as heroRotation } from "./hero-rotation.mjs"
 import { run as policy } from "./policy.mjs"
 import { run as serviceArea } from "./service-area.mjs"
 import { run as verify } from "./verify.mjs"
@@ -16,6 +17,7 @@ process.stdout.write("\nCall Indigo \u2014 verification suite\n")
 
 await policy()
 await serviceArea()
+await heroRotation()
 await verify()
 
 process.exit(finish())

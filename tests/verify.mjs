@@ -256,14 +256,23 @@ export async function run() {
     return out
   })
 
-  check("the legal dialogs still warn that the text is sample language", () => {
+  check("the legal dialogs no longer carry the sample-language notice", () => {
+    // Inverted 2026-09-22: the client asked for the notice to be removed. Paired
+    // with a positive control, because an absent dialog would satisfy "no notice"
+    // vacuously — the dialog must still exist AND still carry its body copy.
+    // NOTE this reverses a deliberate earlier decision (see CHANGELOG.md): the
+    // warning was kept on the argument that removing it would make unreviewed
+    // text look reviewed, and the text underneath is still unreviewed.
     const out = []
     for (const p of pages) {
       for (const id of ["legal-terms", "legal-privacy"]) {
         const dialog = element(p.clean, `id="${id}"`)
-        if (dialog && !/Sample language/.test(dialog)) {
-          out.push(`${p.route} — #${id} has no "Sample language" note`)
+        if (!dialog) {
+          out.push(`${p.route} — #${id} is missing entirely`)
+          continue
         }
+        if (/Sample language/.test(dialog)) out.push(`${p.route} — #${id} still carries the notice`)
+        if (!/legal-body/.test(dialog)) out.push(`${p.route} — #${id} lost its body copy`)
       }
     }
     return out
@@ -544,9 +553,11 @@ export async function run() {
   check("the hero rotation offers every service the client listed", () => {
     // The list lives in the hook, not in markup, so this reads the source. A
     // missing option is otherwise invisible until someone watches the hero.
-    const src = readFileSync(path.join(ROOT, "src/marketing/useSiteChrome.ts"), "utf8")
+    // The list moved out of the hook into `hero-rotation.ts` on 2026-09-22, so
+    // the words and their arch photographs live together and cannot drift apart.
+    const src = readFileSync(path.join(ROOT, "src/marketing/hero-rotation.ts"), "utf8")
     const m = /const ROTATION = \[([^\]]*)\]/.exec(src)
-    if (!m) return ["no ROTATION list in useSiteChrome.ts"]
+    if (!m) return ["no ROTATION list in hero-rotation.ts"]
     const words = [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1])
     return ["Plumbing", "Electrical", "HVAC", "Home Services", "Facility Services"]
       .filter((w) => !words.includes(w))

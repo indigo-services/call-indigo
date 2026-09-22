@@ -482,9 +482,6 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
       </header>
       <div class="legal-body">
         <p class="legal-meta">Effective September 18, 2026 · Last updated September 18, 2026</p>
-        <p class="legal-note"><strong>Sample language.</strong> This text is placeholder copy written to
-          show the layout of a standard service-company agreement. It is not legal advice and has not been
-          reviewed by counsel. Replace it before this site is published.</p>
 
         <h3>1. Agreement to These Terms</h3>
         <p>These Terms of Service govern your access to this website and your use of the home and facility
@@ -590,9 +587,6 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
       </header>
       <div class="legal-body">
         <p class="legal-meta">Effective September 18, 2026 · Last updated September 18, 2026</p>
-        <p class="legal-note"><strong>Sample language.</strong> This text is placeholder copy written to
-          show the layout of a standard service-company privacy policy. It is not legal advice and has not
-          been reviewed by counsel. Replace it before this site is published.</p>
 
         <h3>1. Overview</h3>
         <p>Call Indigo LLC respects your privacy. This policy explains what we collect when you call us,
