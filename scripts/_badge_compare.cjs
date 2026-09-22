@@ -59,11 +59,12 @@ async function main() {
     await page.addStyleTag({ content: FREEZE })
     await page.waitForTimeout(400)
 
-    // The badge is the immediate next sibling of the CTA photo - precise, and
-    // immune to the Tailwind class escaping that `size-[110px]` would need.
-    const badge = page.locator('img[src*="cta-img"] + span').first()
+    // The badge is the immediate next sibling of the CTA photo. Selected
+    // structurally, not by filename: the three routes no longer share one CTA
+    // photo, so a `src` substring match breaks on at least one of them.
+    const badge = page.locator('section.bg-img-cta .slab-body .relative > img + span').first()
     if ((await badge.count()) === 0) {
-      console.log(`  ! ${name}: no badge sibling found after img[src*=cta-img]`)
+      console.log(`  ! ${name}: no badge sibling found after the CTA photo`)
       await page.close()
       continue
     }
@@ -71,7 +72,7 @@ async function main() {
     for (const variant of ["as-built", "swapped"]) {
       if (variant === "swapped") {
         await page.evaluate(() => {
-          const span = document.querySelector('img[src*="cta-img"] + span')
+          const span = document.querySelector('section.bg-img-cta .slab-body .relative > img + span')
           if (!span) return
           const svg = span.querySelector("svg")
           // Flip whichever way the built markup currently reads.

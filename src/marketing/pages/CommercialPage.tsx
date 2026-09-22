@@ -190,7 +190,19 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
        below and in the footer. -->
   <div class="pad-rl">
     <section class="mbox slab slab-photo scrim-hero relative bg-commercial pad-140">
-      <img src="/assets/images/banner-bg-img.jpg" alt="" aria-hidden="true"
+      <!-- COMMERCIAL-ONLY IMAGERY. Every photo this page used to render was a
+           template file shared with another route - banner-bg-img.jpg and
+           cta-img.jpg are on all three marketing pages, repair-img2.jpg and
+           about-img2.jpg on two - so this page owned no image of its own and
+           read as residential. The four commercial-*.jpg files are used by this
+           route and nothing else; Home and Residential keep the originals.
+
+           Each is pre-cropped at build time to the ratio its slot imposes,
+           measured off the live DOM rather than assumed: 2.092 / 1.262 / 0.621 /
+           1.708. The 0.621 figure is a natural-size slot, so its file dimensions
+           ARE its rendered dimensions - changing them moves the layout.
+           Build and rationale: scripts/_commercial_build.cjs. -->
+      <img src="/assets/images/commercial-hero-bg.jpg" alt="" aria-hidden="true"
         class="pointer-events-none absolute inset-0 z-0 size-full object-cover">
       <div class="slab-body shell">
         <div class="grid items-center gap-12 lg:grid-cols-[1.02fr_.98fr] lg:gap-[70px]">
@@ -211,7 +223,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
             <a href="tel:+15126084999" class="mt-7 inline-block text-[12.5px] font-bold uppercase tracking-[0.16em] text-white/80">Call for a Consultation: (512) 608-4999</a>
           </div>
           <div class="relative">
-            <img src="/assets/images/repair-img2.jpg" alt="Call Indigo facility services crew on a commercial job"
+            <img src="/assets/images/commercial-crew.jpg" alt="Call Indigo facility services crew on a commercial job"
               class="h-[320px] w-full rounded-[18px] border-[3px] border-white/25 object-cover md:h-[400px] lg:h-[470px]">
             <div class="absolute bottom-5 left-5 max-w-[300px] rounded-[14px] bg-white p-5 shadow-drop">
               <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-body">National coverage · Austin, TX</p>
@@ -312,7 +324,11 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
         </a>
       </div>
       <div class="reveal">
-        <img src="/assets/images/about-img2.jpg" alt="Call Indigo facility inspection" class="rounded-panel shadow-lift">
+        <!-- Natural size: no w-full, so the file's own dimensions ARE the
+             rendered box (measured 435x701 at a 1440 viewport). The crop is
+             west, not centred - the technician sits left of centre in the
+             source and a centred crop decapitates him. -->
+        <img src="/assets/images/commercial-facade.jpg" alt="Call Indigo crew carrying out exterior maintenance on a commercial building" class="rounded-panel shadow-lift">
       </div>
     </div>
     </section>
@@ -331,7 +347,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     <div class="slab-body shell">
       <div class="grid items-center gap-10 lg:grid-cols-[.92fr_1.08fr] lg:gap-[100px]">
         <div class="relative">
-          <img src="/assets/images/cta-img.jpg" alt="Call Indigo technician on an emergency call" class="w-full rounded-[18px] object-cover">
+          <img src="/assets/images/commercial-cta.jpg" alt="Call Indigo technician repainting a commercial property" class="w-full rounded-[18px] object-cover">
           <!-- The client's official mark - a \`rounded-full\` disc + lucide \`phone\` -
                replacing the template's demo \`logo-vector.png\`, which drew a large
                cyan glyph that read as a "P" over the photo. The navy disc is the
