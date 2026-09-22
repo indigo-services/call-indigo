@@ -33,7 +33,16 @@ const FREEZE = `
   .reveal { opacity: 1 !important; transform: none !important; }
 `
 
-/* Candidate sets. First entry is the colour currently shipped, as the baseline. */
+/* Candidate sets. First entry is a colour currently shipped, as the baseline.
+ *
+ * ⚠️ THE SCRIM HANDLING IN THIS SCRIPT IS NOW WRONG FOR THE SHIPPED STYLESHEET.
+ * It writes the two scrim tokens as literal `rgb()`, which is how the scrims used
+ * to be defined. They are now `color-mix()`-derived from the page primary in
+ * `index.css`, so an inline literal here would OVERRIDE the derivation and pin the
+ * tint to the candidate — which is fine for a preview, but it means this script no
+ * longer proves what the shipped CSS will do. It is kept because the RENDER is
+ * still the point (choosing by looking, not by hue arithmetic), and superseded for
+ * the blue pass by `_blue_band_sheet.cjs` / `_blue_compare.cjs`. */
 const SETS = [
   {
     name: "residential",
@@ -41,8 +50,10 @@ const SETS = [
     selector: "section.scrim-blue",
     token: "--color-residential",
     pageClass: "page-residential",
-    // "brighter, less army" - lift luminance and slide hue from teal (170) toward green.
-    candidates: ["#0a6153", "#0d6b5e", "#0b6a54", "#0c6a4e"],
+    // Blue pass, 2026-09-21. Hue 208 azure: blue under a photo + scrim, and dark
+    // enough that the cyan eyebrow clears 3:1. See `_blue_band_sheet.cjs` for why
+    // 200 renders teal and 212 renders as home's own blue.
+    candidates: ["#215583", "#1f507a", "#235a8b", "#255f93"],
   },
   {
     name: "commercial",
@@ -50,8 +61,8 @@ const SETS = [
     selector: "section.scrim-blue",
     token: "--color-commercial",
     pageClass: "page-commercial",
-    // "less purple" - slide hue from violet (241) toward blue.
-    candidates: ["#3f3d9e", "#37479e", "#2f4d9e", "#2f519e"],
+    // Hue 232 deep indigo — the far side of home from residential.
+    candidates: ["#2c3a96", "#293e8e", "#2e3d9e", "#2c4196"],
   },
 ]
 

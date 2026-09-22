@@ -1014,7 +1014,7 @@ export async function run() {
     const css = distCss()
     if (!css) return ["dist CSS not found — the suite expects the build to have run first"]
     const out = []
-    const hex = { residential: "#0c6a4e", commercial: "#37479e" }
+    const hex = { residential: "#215583", commercial: "#2c3a96" }
     for (const [name, value] of Object.entries(hex)) {
       if (!new RegExp(`--color-${name}\\s*:\\s*${value}`, "i").test(css)) {
         out.push(`--color-${name} is not ${value} in the built stylesheet`)
@@ -1155,11 +1155,13 @@ export async function run() {
 
   check("a colour value is normalised or rejected", () => {
     const cases = [
-      ["#0C6A4E", "#0c6a4e", "uppercase is lowered"],
-      ["  #37479e  ", "#37479e", "surrounding space is trimmed"],
+      ["#215583", "#215583", "lowercase passes through"],
+      ["#2C3A96", "#2c3a96", "uppercase is lowered"],
+      ["  #2c3a96  ", "#2c3a96", "surrounding space is trimmed"],
       ["#abc", "#aabbcc", "the 3-digit form is expanded"],
-      ["#0c6a4", null, "4 digits is not a colour"],
-      ["0c6a4e", null, "a missing # is not a colour"],
+      ["#21558", null, "5 digits is not a colour"],
+      ["#2155830", null, "7 digits is not a colour"],
+      ["215583", null, "a missing # is not a colour"],
       ["#gggggg", null, "non-hex characters are not a colour"],
       ["", null, "empty is not a colour"],
       [null, null, "null is not a colour"],
@@ -1176,14 +1178,14 @@ export async function run() {
     const applied = {}
     theme.applyTheme(
       { style: { setProperty: (k, v) => (applied[k] = v) } },
-      { themeHome: "chartreuse", themeResidential: "#0c6a4e", themeCommercial: undefined },
+      { themeHome: "chartreuse", themeResidential: "#215583", themeCommercial: undefined },
     )
     const keys = Object.keys(applied)
     const out = []
     if (keys.length !== 1 || keys[0] !== "--color-residential") {
       out.push(`applied ${JSON.stringify(keys)}, expected only --color-residential`)
     }
-    if (applied["--color-residential"] !== "#0c6a4e") {
+    if (applied["--color-residential"] !== "#215583") {
       out.push(`--color-residential was set to ${applied["--color-residential"]}`)
     }
     return out

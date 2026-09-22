@@ -50,14 +50,14 @@ export const THEME_TOKENS: readonly ThemeToken[] = [
     token: "--color-residential",
     label: "Residential",
     page: "/residential",
-    default: "#0c6a4e",
+    default: "#215583",
   },
   {
     key: "themeCommercial",
     token: "--color-commercial",
     label: "Commercial",
     page: "/commercial",
-    default: "#37479e",
+    default: "#2c3a96",
   },
 ] as const
 

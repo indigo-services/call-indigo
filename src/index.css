@@ -108,27 +108,35 @@
      tell which part of the business they are reading, and so the header's active
      pill agrees with the hero it belongs to rather than contradicting it.
 
-     Home keeps the brand blue and is deliberately NOT re-tokenised — it is the
-     baseline the other two move away from, in different directions:
-       home        #2a5aa2  hue 217  white 6.81:1  cyan-eyebrow 3.29:1
-       residential #0c6a4e  hue 162  white 6.59:1  cyan-eyebrow 3.18:1
-       commercial  #37479e  hue 231  white 8.21:1  cyan-eyebrow 3.96:1
+     ALL THREE ARE BLUE, and the two service pages bracket home on either side of
+     the hue wheel rather than sitting off it. Home is the pivot and is
+     deliberately NOT re-tokenised:
+       residential #215583  hue 208  white 7.80:1  cyan-eyebrow 3.76:1   azure
+       home        #2a5aa2  hue 216  white 6.81:1  cyan-eyebrow 3.29:1   (pivot)
+       commercial  #2c3a96  hue 232  white 9.76:1  cyan-eyebrow 4.71:1   indigo
      Both service values were chosen so white body copy clears AA (4.5:1) with
      room to spare AND the cyan `.hero-eyebrow` clears the 3:1 large-text bar.
-     That second bar is what caps "brighter": cyan on either hue is a narrow gap,
-     so contrast has to come from luminance, and past roughly 0.119 relative
-     luminance the eyebrow drops under 3:1. Every value here was picked by
-     rendering candidates on the real band (`scripts/_primary_candidates.cjs`),
-     not by choosing a hue and hoping.
+     That second bar is what caps "brighter": cyan sits at hue ~195, so every
+     degree a primary moves toward it narrows the gap and forces more of the
+     contrast to come from luminance — past roughly 0.119 relative luminance the
+     eyebrow drops under 3:1, from any hue. Both service blues are therefore
+     DARKER than home, and hue is what makes them read as different colours:
+     residential 8° to the cyan side, commercial 16° the other way, with the
+     luminance gap (1.15x and 1.43x against home) doing the rest.
 
-     Revised 2026-09-21, client direction: residential was #0a6153 (hue 170) —
-     read as a dark army green, so it was lifted ~18% in luminance and slid to
-     hue 162. Commercial was #3f3d9e (hue 241) — read as purple, so it slid to
-     hue 231. Note that leaves commercial only 14° from home in hue; it stays
-     legible as a separate colour because it is ~25% darker in luminance
-     (0.078 vs 0.104), and that gap is the thing to preserve if either moves. */
-  --color-residential: #0c6a4e;
-  --color-commercial: #37479e;
+     Revised 2026-09-21 (twice). First pass, client direction: residential was
+     #0c6a4e, which had itself replaced #0a6153 ("dark army green"); commercial
+     was #37479e, replacing #3f3d9e ("purple"). Second pass, same day: the client
+     asked for blue tones throughout rather than green and purple.
+     ⚠️ The obvious-looking move is wrong twice over, and both were rejected on a
+     render, not on paper: hue 200 with normal saturation comes back visibly TEAL
+     — the same complaint as the green — and hue 212 renders as literally home's
+     own blue, only darker, because it IS home's hue (216) within sampling error.
+     So residential moved to 208, which is blue under a photo and a scrim, and a
+     candidate set is only ever accepted after being shot on the real band
+     (`scripts/_blue_band_sheet.cjs` + `scripts/_blue_compare.cjs`). */
+  --color-residential: #215583;
+  --color-commercial: #2c3a96;
 
   /* ---- Typography ---- */
   --font-sans: "Archivo", "Helvetica Neue", Arial, sans-serif;

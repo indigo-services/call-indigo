@@ -170,7 +170,7 @@ async function main() {
   /* ── 7. restore the shipped defaults ───────────────────────────────────── */
   await page.goto(base + "/admin/design", { waitUntil: "networkidle" })
   await page.waitForSelector('input[type="color"]', { timeout: 10000 })
-  const defaults = ["#2a5aa2", "#0c6a4e", "#37479e"]
+  const defaults = ["#2a5aa2", "#215583", "#2c3a96"]
   for (let i = 0; i < defaults.length; i++) {
     await setPicker(page, i, defaults[i])
     await page.waitForTimeout(100)
