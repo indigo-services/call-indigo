@@ -15,7 +15,6 @@ with pre-release tags for release candidates.
 | # | Request | Why it is still open |
 |---|---|---|
 | T2 | **"Each service icon has a stack issue with the color"** (home + residential) | The *symptom* is clear, the *remedy* is not. Measured: all six `services-icon*.png` are pure-white glyphs (`#ffffff`, alpha) inside a chip that is `bg-sky` (`#30c3eb`), a `3px` white ring, and `14px` padding — so the glyph renders at roughly 28px inside a 62px chip. Any of those three surfaces could be the "stack issue". Needs: is it the chip colour, the white ring, or the padding? |
-| T3 | **"Get the Hero images relevant or make the textual impact larger"** (other) | Two alternatives offered, no choice made, and "relevant" needs a subject. The current hero image is `hero-arch.jpg` (a technician on a service call). Needs: replace the imagery, enlarge the type, or both — and if imagery, what should it show? |
 | T4 | **"Then get the ToS and Privacy finished up"** (other), now restated as: *"update the terms of service and privacy policy to match the old version of the company's website at `indigoservices-tx.com`"* | The two documents still ship behind a visible "Sample language — have this reviewed before publishing" warning, and finishing them is an owner/lawyer decision, not a copy edit. **The old site cannot supply the text.** It has **no Terms page at all** — absent from its own 53-URL `page-sitemap.xml`, and `/terms/`, `/terms-of-service/` and `/terms-and-conditions/` each 404 — and its only legal page, `/privacy-policy/`, is the **unedited WordPress boilerplate**: it still carries literal `**Suggested text:**` prefixes and clauses about blog comments, Gravatars, a login page, password resets and registered user profiles, none of which this site has (it has no comments, no accounts, no login). Copying either verbatim would ship placeholder scaffolding to visitors and describe data practices that do not exist, while omitting the ones that do — the inquiry form collects name, phone, email, property type, service, urgency and message, behind a captcha and a honeypot. Needs: the client's actual approved text, or a decision to author one for this site. Tracked as a release blocker, not a code task. **Partially advanced 2026-09-20:** six statements in our own copy that were false about this build have been corrected in all four copies — see "Legal copy — audited against the build" below. What remains is the client's decision on marketing texts and analytics, plus counsel review. |
 | T5 | **Does "drop management" also cover the descriptive uses?** (commercial) | The product names are renamed (see below). Two descriptive uses of the word remain on the commercial page: the hero chip **"National facility management"** and **"…without a full management commitment"** in the services box. Those describe a service category rather than the membership product, so they were left. Needs: keep or reword. |
 | T6 | **The home membership eyebrow now repeats its heading** | The block reads `MEMBERSHIP` above `Indigo Home & Facility Membership`. The eyebrow was not in the instruction so it was left alone. Needs: drop the eyebrow, or keep it. |
@@ -109,6 +108,75 @@ block.
   hero lost an overlay, the stat numeral is wider, a CTA was added to the
   membership band, and two whole sections are gone. Page height changed by design.
 
+### Home hero — relevant imagery, headline wrap, legal notice (2026-09-22)
+
+Commit `55a9b6f`. Four client requests, verified by `npm test` (**89 → 95 checks**) and
+measured in a browser against production.
+
+**T3 resolved — the imagery, not the type.** The client was offered "get the hero images
+relevant or make the textual impact larger" and chose relevance, so the arch now changes with
+the rotating service word instead of showing one static photograph. Five files at **376x556**,
+one per category: `public/assets/images/hero-arch-{plumbing,electrical,hvac,home,facility}.jpg`,
+**115,103 bytes** total against the single incumbent's 106,274. Built by
+`scripts/_hero_arch_build.cjs`, which refuses to upscale a source and refuses to run at all
+if the incumbent's dimensions have changed.
+
+- **The arch is a NATURAL-SIZE slot**, so the file's own pixels *are* its rendered box
+  (376x556 content in a 406x586 border-box). Any other size moves the hero — which is why the
+  dimensions are pinned by a test as well as by the build script.
+- **The crop axis that matters is horizontal.** Cropping a 1.538 landscape down to a 0.676
+  portrait consumes the source's whole height, so `north`/`centre`/`south` are no-ops: the
+  first focus sheet produced three *identical* tiles per candidate. Plumbing is cropped `east`,
+  where the technician actually is; `west` is an empty cabinet panel.
+- **"Home Services" is a cut-out on a light backdrop, not a photograph.** `about-img2.jpg`
+  renders further down this same page and is already built from `Residential_1_Repairs.jpg`, so
+  using that photo would have shown the same picture twice. `row-handyman-pic030.png` was the
+  only spare candidate containing a person; it carries a real alpha channel, and flattening it
+  to JPEG without a backdrop would have shipped a black rectangle. The backdrop is a *light*
+  gradient because the incumbent `hero-arch.jpg` is a bright, airy close-up — dark would have
+  been the jarring choice.
+
+**The headline no longer reflows — and it was never the word that wrapped.** The rotating span
+always fitted its column. The culprit is the **trailing period**, which is a *sibling* text
+node and so does not shrink when the span is scaled down; the fit filled the column exactly and
+left the period nowhere to go. It dropped onto a line of its own on "Facility Services" and grew
+the hero by **exactly one line-height at every breakpoint** (+119px at 1920/1600, +80px at
+1440/1280, +65px at 1199/1024, +60px at 991/768, +50px at 390). The fit now subtracts the
+period's width before sizing the word, so every category renders at one constant height. Page
+height moves **+0..2px** against the previous build; the 119px jump is gone.
+
+- Proven by deleting the text node and re-measuring: with the period the h1 had **two** distinct
+  heights at every viewport, without it **one** (`scripts/_probe_hero_dot.cjs`). Re-confirmed on
+  the deployed site.
+- `scripts/_probe_hero_wrap.cjs` is committed **superseded, with a header saying why**: it tried
+  to detect the wrap by comparing rect `top`s, which is invalid for a baseline-aligned
+  `inline-block`, and reported "wrapped" on every row including ones whose height never changed.
+  Kept because the mistake is instructive — it *looked* like confirmation.
+- `ROTATION` moved out of `useSiteChrome` into `src/marketing/hero-rotation.ts` alongside the
+  image map and a pure `fitFontSize`, so the words and their photographs cannot drift apart and
+  the arithmetic is testable without a DOM. The new `tests/hero-rotation.mjs` pins the measured
+  breakpoint table **and asserts the old formula fails those same cases** — a test that only
+  shows the new code passing cannot tell a real fix from a vacuous one.
+
+**The Emergency card carries a red round brand mark.** The template's siren raster is replaced
+by the same `rounded-full` disc + 20px lucide `phone` lockup the chrome uses, recoloured
+`#d92d20`. `p-1.5` keeps the 32px footprint the old image occupied, so the card does not move;
+white on `#d92d20` measures 4.83:1, over the 3:1 bar for a non-text mark. `emergency-icon.png`
+(2 KiB) is now unreferenced — the eighth such asset.
+
+**The "Sample language" notice is gone from both legal dialogs.** Removed from all four copies
+by `scripts/_legal_notice_removal.py`, which asserts its match count per file because
+`tests/verify.mjs` requires the four copies to be byte-identical. **This reverses a decision
+recorded below as deliberate:** the warning was kept precisely because removing it makes
+unreviewed text look reviewed, and the body of both documents is *still* unreviewed placeholder
+copy the client could not supply — **T4 remains a release blocker**. The check that asserted the
+warning's presence is inverted rather than deleted, and paired with a positive control, because
+an absent dialog would otherwise satisfy "no notice" vacuously.
+
+**Not verified in a browser:** the arch swap's timing on a slow connection. The five files are
+prewarmed at init so the first pass through the list should never paint an empty frame, but that
+has only been observed on localhost and a warm CDN.
+
 ### Brand lockup — the client's icon + wordmark (2026-09-20)
 
 The client supplied the brand as HTML: a `20x20` lucide `phone` glyph inside a `p-2`
@@ -173,8 +241,11 @@ own copy: statements that are demonstrably false about this build. Each was chec
 Six corrections, applied to all four copies of the legal text — `chrome-markup.ts`, plus an inline
 copy on each mirror page — by `scripts/_legal.py`, which asserts one match per correction per file.
 
-**Kept deliberately:** the "Sample language — not legal advice" warning. These are correctness fixes,
-not a legal review, and removing the warning would make unreviewed text look reviewed.
+**Kept deliberately at the time:** the "Sample language — not legal advice" warning. These are
+correctness fixes, not a legal review, and removing the warning would make unreviewed text look
+reviewed. **Reversed 2026-09-22** at the client's request — the notice is now removed from all four
+copies, and both documents remain unreviewed. See "Home hero — relevant imagery, headline wrap, legal
+notice (2026-09-22)" above.
 
 **Also checked and left alone:** the captcha is a **local arithmetic challenge**
 (`src/marketing/Captcha.tsx`, zero external calls), so there is no third-party widget to disclose.
