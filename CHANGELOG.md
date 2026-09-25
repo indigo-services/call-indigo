@@ -10,6 +10,119 @@ with pre-release tags for release candidates.
 
 ## [Unreleased] — working dashboard, public inquiry page, copy pass, client punch list
 
+### Client feedback round 2 — nine requests, 2026-09-25
+
+Every claim below was measured **before** anything was changed, with
+`scripts/_probe_client_feedback.cjs` at six widths (1920 / 1440 / 1199 / 991 /
+768 / 390). The same probe produced the after-shot, so both sets of numbers come
+from one instrument rather than two. Full evidence, risk register and open
+questions with recommendations: **`docs/plan-client-feedback-2026-09-25.md`**.
+Suite: **67 → 100 checks**.
+
+**The red Emergency button**
+
+- **Bigger on desktop.** Disc `p-2` → `p-2.5`, glyph 20px → 24px, label 22px →
+  26px, sub-label 15px. The card measures **197.7×210 at 1920** (was 159×179);
+  the disc alone was 32px with a 20px glyph.
+- **It renders on a phone for the first time.** The markup had carried
+  `max-md:static` since the previous round — but `index.css` hid `.navy-box` with
+  `display: none !important` below 991px, and the stylesheet won. The card had
+  **never** appeared on a phone at any point, at any width. It is now a normal
+  flow item in a stacked column: **177.7×196 at 1199, 991, 768 and 390**,
+  `position: static`.
+- ⚠️ **The v1.0.1 entry further down that claims "The Emergency button now renders
+  on mobile" was wrong when it was written.** It is corrected here rather than
+  quietly deleted, because the guard that missed it is the instructive part: the
+  old check tested the *source text* for `navy-box … max-md:hidden`, which cannot
+  see a stylesheet rule at all. That check now asserts both layers, and a
+  positive control feeds the detector the very rule that caused the bug and
+  requires a hit — otherwise an absence assertion passes on a pattern that
+  matches nothing.
+
+**The hero arch — bigger, centred, and centred on mobile**
+
+- **Balance.** Measured before: the arch sat on its column's **left edge at every
+  width** — its centre 210px left of the column's centre at 1920, 130px at 1440,
+  99px at 1199, 34px at 390. The cause was not the flexbox: the arch `<img>`
+  carries Tailwind's `block`, so the template's `text-align: center` / `right` on
+  the figure **had never applied to it**. Those rules were dead for the life of
+  the port.
+- The image column is now a centred flex row (`gap: 24px`) and the figure takes
+  the slack. Offset from its column's centre is now **0px at 991, 768 and 390**,
+  and −111 / −105 / −101px at 1920 / 1440 / 1199 — the residue is the Emergency
+  card sharing the row, which is the intended reading.
+- **Bigger.** `.banner-img1 img` 350 → **406** at ≤1440, 320 → **380** at ≤1199,
+  260 → **300** at ≤767. 406px is the arch source's own ceiling: the `Home
+  Services` photograph is 424×560, and `scripts/_hero_arch_build.cjs` refuses to
+  upscale a source, so 376×556 content + 12px padding + 3px ring is as large as
+  the five arch images can go. Growing it further means replacing all five.
+- **Mobile "does not move" was NOT reproduced.** At 390px with motion ON the
+  probe observed **4 distinct words and 4 distinct arch sources** — the carousel
+  runs on mobile. `prefers-reduced-motion: reduce` is the only thing that stops
+  it, and honouring that is deliberate. The off-centre half of the report was
+  real and is fixed; the motion half is carried as an open question in the plan,
+  not as a bug fix.
+- A `hero-arch-slot` wrapper now holds the arch and its decorative dots. Anchored
+  to the figure the dots sat at the bottom-left of the whole *column*, off the
+  photograph entirely once the figure took the row's slack.
+
+**The redundant small round frame**
+
+- Deleted. It rendered 266×387 at 1920 alongside the larger arch, which is the
+  duplication the client described. Its rules (base 266px, ≤1199 140px, ≤991
+  `display:none !important`, ≤767 `display:none`) are gone with it, and
+  `repair-img2.jpg` is now unreferenced.
+
+**The "How It Works" sequence numbers**
+
+- They shipped as `text-mist` — **#f4f8fe painted on a white card, a contrast
+  ratio of 1.07:1**, i.e. invisible, exactly as reported. Now `text-brand`:
+  **6.81:1**.
+
+**"Accredited & Reviewed"**
+
+- Moved to sit directly under the testimonials, between `#reviews` and `#faq`,
+  on the home page (the only page that has either section). The band renders
+  identically wherever it sits, so this is asserted on DOM order — nothing else
+  in the suite would notice it sliding back down the page.
+
+**The CTA phone badge**
+
+- Deleted on all three marketing pages. It was a 110px navy disc absolutely
+  positioned `-right-7 top-1/2` in the "Get in touch" band. The three suite checks
+  that used to assert its presence, its 20/36 lockup ratio and its glyph are
+  **inverted** — and the lockup-glyph half, which never depended on the badge, is
+  kept as "every chrome lockup still draws one and the same phone glyph".
+
+**Contact form: "Already a member?"**
+
+- New Yes/No radio group as the **first field, before Name**, as requested.
+- The data layer models the two directions differently on purpose: `member` is
+  **required** on `NewInquiry` and **optional** on `Inquiry`, because inquiries
+  written before today have no answer and `readInquiries()` must keep returning
+  them rather than inventing one. `Pick` would have inherited the optional
+  modifier, so it is restated explicitly.
+- Answering it is required, and it is validated first so that the
+  focus-the-first-problem path lands on the topmost field. No default is
+  pre-selected: a pre-filled answer to a question the visitor may never read is
+  fabricated data.
+- `/admin/inquiries` now shows a **Member** badge on the record detail — only for
+  "yes", since "no" on every record is noise and pre-existing records must show
+  nothing rather than a false "No". A badge in the list table was left out
+  deliberately; the table's columns are unchanged.
+
+**Measuring instrument fixes (no product effect)**
+
+- The section-order line in `_probe_client_feedback.cjs` re-printed its own
+  hardcoded selector list, so it read identically whatever the DOM did. It now
+  sorts by the real DOM index and prints an explicit PASS/FAIL. **The F7 move had
+  in fact landed correctly** — the line was a rubber stamp, not a measurement.
+- Added `scripts/_feedback_pages.py` and `scripts/_feedback_css.py`: single
+  asserted passes over the four page files and the stylesheet. Parallel `Edit`
+  calls to one file race on the write and the last writer wins *while every call
+  reports success*, so the pages and the CSS are edited by one script each that
+  fails loudly if a needle stops matching.
+
 ### Client punch list v1.0.1 — pending, needs clarity (TBD)
 
 | # | Request | Why it is still open |
@@ -42,6 +155,11 @@ Confirmed requests, all verified by `npm test` (67 checks).
 - The **Emergency button now renders on mobile.** Rather than re-anchor an
   absolutely-positioned box over a hero column that has stacked, it drops into
   normal flow below the arch, centred at a fixed width.
+  ⚠️ **This entry was wrong when it was written and is kept only as a record.**
+  The markup gained `max-md:static`, but `index.css` still hid `.navy-box` with
+  `display: none !important` below 991px and the stylesheet won, so the card did
+  not render on a phone until 2026-09-25 — see "Client feedback round 2" above.
+  The check that passed here read the source text and could not see the CSS rule.
 - Stat: **`250+` "Projects Completed" → `52,550+` "Jobs Completed"**.
 - **"Our Services" → "One Call, All Services"**, with the heading below it now
   **"Our Home & Facility Services"**.

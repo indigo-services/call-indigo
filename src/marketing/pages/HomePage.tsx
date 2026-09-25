@@ -245,30 +245,19 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           </div><!-- /banner-top -->
 
           <!-- banner-bottom: base \`gap:31px\`, but responsive.css sets 20px at ≤1440
-               (the live branch). banner-img2 is a 168 x 244 box (aspect .69, an EGG
-               not a circle) whose IMG carries \`padding:12px; border:3px solid
-               var(--secondary--color)\` and sizes to the box's width. -->
+               (the live branch). -->
           <div class="banner-bottom flex">
-            <!-- NOT \`shrink-0\`: the template's figure is \`flex: 0 1 auto\` above
-                 1199 and only becomes \`flex-shrink:0\` in the ≤1199 block. Above
-                 that the oval is the IMG's natural 266px border-box. -->
-            <figure class="banner-img2 m-0 hidden md:block">
-              <!-- NO \`w-full\` here: the template sizes this IMG directly
-                   (natural 266px above 1440, 140px at ≤1199). A Tailwind \`w-full\`
-                   utility out-ranks the class rule in the cascade and made the
-                   image fill the flex leftover — measured 775 wide vs the real
-                   266. The \`border-white\` ring and 12px padding are the
-                   \`.banner-content-con .banner-img2 img\` rule. -->
-              <img src="/assets/images/repair-img2.jpg" alt="Call Indigo technician fitting a sink trap"
-                class="rounded-[188px] border-[3px] border-white object-cover p-[12px]">
-            </figure>
+            <!-- CLIENT 2026-09-25: the smaller round frame that used to sit
+                 here - a 266x387 white-ringed oval immediately under the
+                 headline, next to the much larger arch - is deleted. Against
+                 the arch it read as a second, competing picture frame.
+                 repair-img2.jpg is now unreferenced. -->
             <!-- Deliberately unclassed. The reference's \`.inner-wrap\` is
                  \`flex: 0 1 auto\` with \`min-width:auto\`, which is already the
                  default for a flex item — it does NOT grow. It is the CONTENT's
                  natural width (250px CTA + the stat row) that sets the
-                 distribution, which is what squeezes the oval down to 150.7 @1300
-                 and 138.1 @1200. A \`flex-1\` here (flex:1 1 0%) instead swallows
-                 the slack and the oval never shrinks. -->
+                 distribution. A \`flex-1\` here (flex:1 1 0%) instead swallows
+                 the slack and the row stops being content-sized. -->
             <div>
               <!-- \`.banner-content-con p\` is 22px/29px at base but responsive.css
                    overrides to 18px/27px at ≤1440 (with margin-bottom 25px). The
@@ -310,8 +299,11 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
         </div>
         <!-- col-lg-6 — the image column. \`.banner-img-con\` has NO side padding in
              the template (measured w=647.7 at x=735, i.e. the same box as the text
-             column's content). The arch is its natural-width first child at the
-             left edge; the plumber overlay and navy-box right-align to x=1382.7. -->
+             column's content). In the template the arch is its natural-width first
+             child pinned to the left edge, with the navy box absolutely placed at
+             the far right — which left ~210px of dead space between them at 1920.
+             CLIENT 2026-09-25: both are now FLOW items of a centred flex row, so
+             the arch is centred in the space left of the card. -->
         <div class="relative px-[15px]">
         <div class="banner-img-con relative">
           <!-- banner-img1 — the arch. The template sizes the IMAGE, not the
@@ -319,7 +311,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
                var(--primary--color) }\` (style.css:1221) with NO width above 1440,
                so it renders at banner-img1.jpg's natural 376x556 CONTENT box =>
                406x586 border-box. \`br-258\` is the arch radius. -->
-          <figure class="banner-img1 relative m-0 max-md:mx-auto">
+          <figure class="banner-img1 relative m-0">
             <!-- id="hero-arch": useSiteChrome swaps this to the photograph for
                  whichever service #hero-rotate is naming, so the picture and the
                  headline agree. The static src is the FIRST rotation option, so a
@@ -327,40 +319,50 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
                  an empty frame. The five files are all 376x556 because this slot
                  is NATURAL SIZE - the file's own pixels ARE the rendered box - so
                  a differently-sized swap would move the hero. Built by
-                 scripts/_hero_arch_build.cjs, which enforces that. -->
-            <img id="hero-arch" src="/assets/images/hero-arch-plumbing.jpg"
-              alt="Call Indigo plumber working on the pipework under a sink"
-              class="block h-auto max-w-full rounded-[258px] border-[3px] border-sky object-cover p-[12px]">
+                 scripts/_hero_arch_build.cjs, which enforces that.
+
+                 CLIENT 2026-09-25: the arch is no longer pinned to the column's
+                 left edge. It is centred in the space left of the Emergency card
+                 (see .banner-img-con in src/index.css). This wrapper is what keeps
+                 the decorative dots glued to the arch rather than to the column. -->
+            <span class="hero-arch-slot">
+              <img id="hero-arch" src="/assets/images/hero-arch-plumbing.jpg"
+                alt="Call Indigo plumber working on the pipework under a sink"
+                class="block h-auto max-w-full rounded-[258px] border-[3px] border-sky object-cover p-[12px]">
+              <!-- dot-img - the template puts this at the image column's bottom-left
+                   with a 54px width above 1440 and 34px at 1199. It lives inside
+                   the arch wrapper now, so bottom-left means the arch's. -->
+              <img src="/assets/images/dots.png" alt="" aria-hidden="true"
+                class="dot-img pointer-events-none absolute left-0 opacity-90">
+            </span>
           </figure>
 
-          <!-- dot-img — \`.banner-con .dot-img { bottom: 0 }\` base, 15px at ≤1440;
-               \`img{width:54px}\` (its natural size), 34px at ≤1199. Anchored to the
-               LEFT edge of the image column (measured x=975, the same x as the
-               arch), not inset. -->
-          <img src="/assets/images/dots.png" alt="" aria-hidden="true"
-            class="dot-img pointer-events-none absolute left-0 opacity-90">
+          <!-- navy-box.bg-accent.br-20 - the template's \`.banner-con .navy-box\`
+               was \`position:absolute; right:50px; top:126px\`, measured 159x179,
+               and hidden below 768 because that anchoring assumes the two-column
+               hero.
 
-          <!-- navy-box.bg-accent.br-20 — \`.banner-con .navy-box { position:absolute;
-               right:50px; top:126px; padding:19px 25px }\` base (style.css:1261),
-               then right:0/top:39px/13px 20px at ≤1440, right:0/top:28px/10px 15px
-               at ≤1199. The template renders it 159x179 and hides it below 768,
-               because its absolute anchoring assumes the two-column hero.
-               CLIENT: the Emergency button must exist on mobile too. Rather than
-               re-anchor an absolute box over a column that has stacked, it drops
-               into normal flow below the arch on mobile (\`max-md:static\`) and is
-               centred at a fixed width. -->
+               CLIENT 2026-09-25: "the red button is small on desktop, and on
+               mobile it is not there". Both were true. The card is now a FLOW
+               item in the hero image column (see \`.banner-img-con\` in
+               src/index.css), which is what makes it render at every width: an
+               earlier \`max-md:static\` attempt had been defeated by a
+               \`.navy-box { display:none !important }\` in the <=991 block, so the
+               card had never once appeared on a phone. The disc, the label and
+               the padding are all larger so it reads as the emergency action
+               rather than as a caption. -->
           <a href="tel:+15126084999"
-             class="navy-box absolute z-20 flex flex-col items-center justify-center rounded-[12px] bg-topbar text-center text-white shadow-[16px_2px_13px_rgb(0_0_0/11%)] transition hover:bg-[#1c2c4e] max-md:static max-md:mx-auto max-md:mb-6 max-md:mt-5 max-md:w-[210px]">
+             class="navy-box flex flex-col items-center justify-center rounded-[12px] bg-topbar text-center text-white shadow-[16px_2px_13px_rgb(0_0_0/11%)] transition hover:bg-[#1c2c4e]">
             <!-- CLIENT: a red round brand mark here, not the template's siren
                  raster. Same disc-and-glyph lockup as the header - a rounded-full
-                 disc holding the 20px lucide phone - recoloured red. p-1.5 gives
-                 6+20+6 = the 32px footprint the old image occupied, so the card
-                 does not move. White on #d92d20 measures 4.83:1, over the 3:1 bar
-                 for a non-text mark; the card's own text still says "Emergency". -->
-            <div class="mb-[9px] shrink-0 rounded-full bg-[#d92d20] p-1.5" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
-            <b class="mb-[6px] block text-[20px] font-bold leading-[24px]">Emergency</b>
-            <span class="mb-1 block text-[14px] font-medium leading-[20px] text-white">Typical arrival<br>30–60 min</span>
-            <span class="inline-block h-[26px] leading-[26px]"><img src="/assets/images/white-up-right-arrow.png" alt="" aria-hidden="true" class="inline h-[9px] w-[10px] align-middle object-contain"></span>
+                 disc holding a lucide phone - recoloured red. Enlarged 2026-09-25
+                 from p-1.5/20px to p-2.5/24px, i.e. a 44px disc: 10+24+10. White
+                 on #d92d20 measures 4.83:1, over the 3:1 bar for a non-text mark;
+                 the card's own text still says "Emergency". -->
+            <div class="mb-[10px] shrink-0 rounded-full bg-[#d92d20] p-2.5" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
+            <b class="mb-[6px] block text-[26px] font-bold leading-[30px]">Emergency</b>
+            <span class="mb-1.5 block text-[15px] font-medium leading-[21px] text-white">Typical arrival<br>30–60 min</span>
+            <span class="inline-block h-[28px] leading-[28px]"><img src="/assets/images/white-up-right-arrow.png" alt="" aria-hidden="true" class="inline h-[11px] w-[12px] align-middle object-contain"></span>
           </a>
         </div>
         </div>
@@ -632,25 +634,25 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
       </div>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <div class="card card-hover reveal relative p-[30px]">
-          <b class="absolute right-5 top-4 text-[34px] font-bold text-mist">01</b>
+          <b class="absolute right-5 top-4 text-[34px] font-bold text-brand">01</b>
           <img src="/assets/images/work-icon1.png" alt="" class="mb-3.5 size-[54px] object-contain">
           <strong class="mb-1.5 block text-[17px] font-bold text-ink">Call Indigo</strong>
           <p class="text-[13.5px]">Start with one phone call and the address that needs service.</p>
         </div>
         <div class="card card-hover reveal relative p-[30px]">
-          <b class="absolute right-5 top-4 text-[34px] font-bold text-mist">02</b>
+          <b class="absolute right-5 top-4 text-[34px] font-bold text-brand">02</b>
           <img src="/assets/images/work-icon2.png" alt="" class="mb-3.5 size-[54px] object-contain">
           <strong class="mb-1.5 block text-[17px] font-bold text-ink">Define the scope</strong>
           <p class="text-[13.5px]">Simple work may be estimated by phone. Larger jobs get a walk-through or detailed proposal.</p>
         </div>
         <div class="card card-hover reveal relative p-[30px]">
-          <b class="absolute right-5 top-4 text-[34px] font-bold text-mist">03</b>
+          <b class="absolute right-5 top-4 text-[34px] font-bold text-brand">03</b>
           <img src="/assets/images/work-icon3.png" alt="" class="mb-3.5 size-[54px] object-contain">
           <strong class="mb-1.5 block text-[17px] font-bold text-ink">Schedule the work</strong>
           <p class="text-[13.5px]">Approved estimates are coordinated by the Indigo team and scheduled around your property needs.</p>
         </div>
         <div class="card card-hover reveal relative p-[30px]">
-          <b class="absolute right-5 top-4 text-[34px] font-bold text-mist">04</b>
+          <b class="absolute right-5 top-4 text-[34px] font-bold text-brand">04</b>
           <img src="/assets/images/work-icon4.png" alt="" class="mb-3.5 size-[54px] object-contain">
           <strong class="mb-1.5 block text-[17px] font-bold text-ink">Maintain the address</strong>
           <p class="text-[13.5px]">Use Indigo as your ongoing service partner for recurring home and property needs.</p>
@@ -698,6 +700,36 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
             <div><strong class="block text-[15px] font-bold text-ink">Derrick M.</strong><span class="text-[13px]">Property Manager</span></div>
           </footer>
         </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="spacer"></div>
+
+  <!-- Moved 2026-09-25 (client feedback): "Accredited & Reviewed" now sits
+       directly under the testimonials. As a trust signal it belongs beside the
+       reviews, not underneath the FAQ. -->
+  <!-- ======================= CREDENTIALS ======================= -->
+  <!-- \`.trusted-companies-con\` — no \`.padding-top/.padding-bottom\` and no
+       \`.padding-rl\` upstream, so it stays a plain white band. The reference shows
+       no rule above the logo row, so the \`border-t\` this file carried is gone.
+
+       The six \`tc-logo1..6.png\` that used to sit here were stock "Logoipsum"
+       placeholders under the heading "Trusted By Leading Brands" — invented
+       brands making a claim that was not true. Replaced 2026-09-21 with the
+       client's own credential badges, and the heading now describes what is
+       actually shown. The section id stays \`brands\` because it is the anchor
+       name the prototype used. -->
+  <section id="brands" class="band py-14">
+    <div class="shell">
+      <h2 class="reveal mb-8 text-center text-lg font-bold uppercase tracking-[.08em] text-[#8b97a8]">Accredited &amp; Reviewed</h2>
+      <div class="reveal flex flex-wrap items-center justify-center gap-11">
+        <img src="/assets/images/credential-bbb-accredited.png" alt="BBB Accredited Business" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
+        <img src="/assets/images/credential-angies-list.png" alt="Angie's List Super Service Award 2018" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
+        <img src="/assets/images/credential-homeadvisor-elite.png" alt="HomeAdvisor Elite Service" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
+        <img src="/assets/images/credential-homeadvisor-top-rated.png" alt="HomeAdvisor Top Rated" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
+        <img src="/assets/images/credential-google-reviews.png" alt="Google Reviews" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
+        <img src="/assets/images/credential-facebook-reviews.png" alt="Facebook Reviews" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
       </div>
     </div>
   </section>
@@ -752,33 +784,6 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
 
   <div class="spacer"></div>
 
-  <!-- ======================= CREDENTIALS ======================= -->
-  <!-- \`.trusted-companies-con\` — no \`.padding-top/.padding-bottom\` and no
-       \`.padding-rl\` upstream, so it stays a plain white band. The reference shows
-       no rule above the logo row, so the \`border-t\` this file carried is gone.
-
-       The six \`tc-logo1..6.png\` that used to sit here were stock "Logoipsum"
-       placeholders under the heading "Trusted By Leading Brands" — invented
-       brands making a claim that was not true. Replaced 2026-09-21 with the
-       client's own credential badges, and the heading now describes what is
-       actually shown. The section id stays \`brands\` because it is the anchor
-       name the prototype used. -->
-  <section id="brands" class="band py-14">
-    <div class="shell">
-      <h2 class="reveal mb-8 text-center text-lg font-bold uppercase tracking-[.08em] text-[#8b97a8]">Accredited &amp; Reviewed</h2>
-      <div class="reveal flex flex-wrap items-center justify-center gap-11">
-        <img src="/assets/images/credential-bbb-accredited.png" alt="BBB Accredited Business" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
-        <img src="/assets/images/credential-angies-list.png" alt="Angie's List Super Service Award 2018" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
-        <img src="/assets/images/credential-homeadvisor-elite.png" alt="HomeAdvisor Elite Service" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
-        <img src="/assets/images/credential-homeadvisor-top-rated.png" alt="HomeAdvisor Top Rated" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
-        <img src="/assets/images/credential-google-reviews.png" alt="Google Reviews" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
-        <img src="/assets/images/credential-facebook-reviews.png" alt="Facebook Reviews" class="h-10 w-auto object-contain opacity-55 transition hover:opacity-100">
-      </div>
-    </div>
-  </section>
-
-  <div class="spacer"></div>
-
   <!-- ======================= EMERGENCY CTA ======================= -->
   <!-- \`.cta-con.main-box.br-50.padding-rl-30\` (style.css:1008) — 30px vertical,
        \`background-image: cta-bg-img.jpg\` and a \`::before\` of
@@ -788,21 +793,24 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
        then the heading block on the right, ending in a cyan phone pill plus a
        two-line arrival note beside it.
 
-       The badge is the client's official lockup (lucide \`phone\` in a
-       \`rounded-full\` disc), not the template's demo \`logo-vector.png\` - that
-       asset drew a large cyan glyph that read as a "P" over the photo. The navy
-       disc is the header's light-surface variant, correct here because the badge
-       sits ~75% over the photo: measured against the dark-surface inversion, the
-       white disc disappears where it overlaps the pale tile. Glyph is
-       110 x 20/36 = 61px, the client's lockup ratio. This file previously ran a
-       centred text column with the image on the right over a flat \`bg-ink\`. -->
+       A 110px navy disc carrying the client's phone glyph used to hang off
+       the photo's right edge here. Deleted 2026-09-25 on client feedback: it
+       read as a stray phone logo floating between the photograph and the text
+       block rather than as part of either. logo-vector.png - the template's
+       demo mark it had replaced, which drew a cyan glyph that read as a "P"
+       over the photo - does NOT come back. This file previously ran a centred
+       text column with the image on the right over a flat bg-ink. -->
   <div class="pad-rl">
     <section id="contact" class="mbox slab slab-photo scrim-blue bg-img-cta pad-30 relative bg-brand">
     <div class="slab-body">
       <div class="grid items-center gap-10 lg:grid-cols-[.92fr_1.08fr] lg:gap-[100px]">
         <div class="relative">
           <img src="/assets/images/cta-img.jpg" alt="Call Indigo technician on an emergency call" class="w-full rounded-[18px] object-cover">
-          <span class="absolute -right-7 top-1/2 hidden size-[110px] -translate-y-1/2 items-center justify-center rounded-full bg-[#1e1b4b] lg:flex"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-[61px] text-white" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/></svg></span>
+          <!-- CLIENT 2026-09-25: the 110px navy disc that hung here is
+               deleted. It read as a stray phone logo floating between the
+               photograph and the text block rather than as part of either.
+               logo-vector.png - the template's demo mark it had replaced -
+               does NOT come back. -->
         </div>
         <div>
           <span class="eyebrow">Get in Touch</span>

@@ -292,8 +292,22 @@ export async function run() {
   check("the inquiry form asks for everything the data layer stores", () => {
     const contact = pages.find((p) => p.name === "contact")
     const names = new Set(attr(contact.clean, "name"))
-    const required = ["name", "email", "phone", "propertyType", "service", "urgency", "message"]
+    const required = ["member", "name", "email", "phone", "propertyType", "service", "urgency", "message"]
     return required.filter((n) => !names.has(n)).map((n) => `/contact — the form has no "${n}" field`)
+  })
+
+  check("the membership question is the first thing the form asks", () => {
+    // The client asked for the radio "at the very top before 'Name'", so the
+    // position is part of the requirement, not an accident of the markup. The
+    // form is sliced out of the page first: `attr(…, "name")` over the whole
+    // document would also collect any `name=` the chrome happens to carry, and
+    // the first of those would not be a form field at all.
+    const contact = pages.find((p) => p.name === "contact")
+    const start = contact.clean.indexOf("<form")
+    const end = contact.clean.lastIndexOf("</form>")
+    if (start === -1 || end === -1) return ["/contact — no <form> to inspect"]
+    const first = attr(contact.clean.slice(start, end), "name")[0]
+    return first === "member" ? [] : [`/contact — the first named field is "${first}", expected "member"`]
   })
 
   /* ── Design-system coverage ──────────────────────────────────────────────
@@ -537,8 +551,21 @@ export async function run() {
     if (!home.clean.includes("52,550")) out.push("the jobs-completed stat is not 52,550+")
     if (!home.text.includes("Jobs Completed")) out.push('the stat is not labelled "Jobs Completed"')
     if (home.text.includes("Projects Completed")) out.push('the old "Projects Completed" label survives')
-    if (/navy-box[^"]*max-md:hidden/.test(home.clean)) {
-      out.push("the Emergency button is still hidden on mobile")
+    /* The mobile Emergency card.
+       The guard that used to sit here tested the source text for
+       `navy-box … max-md:hidden`, and it stayed green for the whole life of a
+       defect in which the card never appeared on a phone: the markup carried
+       `max-md:static` (a previous attempt at this same request) while
+       `index.css` hid `.navy-box` outright below 991px — and the stylesheet won.
+       A markup-only assertion cannot see that, so this checks both layers. The
+       detector is positive-controlled by the check immediately below. */
+    const navyTag = /<a[^>]*class="([^"]*\bnavy-box\b[^"]*)"/.exec(home.clean)
+    if (!navyTag) out.push("the home hero has no .navy-box Emergency card")
+    else if (/(^|\s)(hidden|max-md:hidden|md:hidden)(\s|$)/.test(navyTag[1])) {
+      out.push(`the Emergency card carries a hide utility: ${navyTag[1]}`)
+    }
+    if (css && /\.navy-box\s*\{[^}]*display:\s*none/.test(css)) {
+      out.push(".navy-box is hidden by a stylesheet rule, so the card cannot render at any width")
     }
     if (!home.text.includes("One Call, All Services")) {
       out.push('the services eyebrow is not "One Call, All Services"')
@@ -548,6 +575,44 @@ export async function run() {
     }
     if (!home.text.includes("BECOME A MEMBER")) out.push("the membership CTA is missing")
     return out
+  })
+
+  check("the .navy-box hide detector still detects hiding", () => {
+    // Positive control for the check above. That one asserts an ABSENCE, and a
+    // pattern that matched nothing would satisfy it on a page that still hides
+    // the card — which is precisely how the original defect survived the guard
+    // it had. Feed the detector the rule that caused the bug and require a hit.
+    const detector = /\.navy-box\s*\{[^}]*display:\s*none/
+    const fixture = "@media (max-width:991px){.navy-box{display:none!important}}"
+    return detector.test(fixture)
+      ? []
+      : ["the .navy-box hide detector is dead, so the assertion above proves nothing"]
+  })
+
+  check("the How It Works sequence numbers are legible", () => {
+    // The numerals shipped as `text-mist` — #f4f8fe painted on the white card,
+    // which is a contrast ratio of 1.07:1, i.e. invisible. The suite renders
+    // markup and has no layout engine, so it cannot measure a colour; it asserts
+    // the class that decides one instead. Every token listed here resolves to a
+    // near-white surface, so on the white `.card` any of them is the same bug.
+    const proc = element(home.clean, 'id="process"') ?? ""
+    const nums = [...proc.matchAll(/<b class="([^"]*)"[^>]*>\s*(\d+)\s*<\/b>/g)]
+    if (nums.length !== 4) return [`#process shows ${nums.length} sequence numbers, expected 4`]
+    const INVISIBLE = /\btext-(mist|white|secondary|line|sky-soft)\b|\bopacity-(?:0|10|20)\b/
+    return nums
+      .filter((m) => INVISIBLE.test(m[1]))
+      .map((m) => `#process numeral "${m[2]}" is painted with a surface token: ${m[1]}`)
+  })
+
+  check("the redundant small round frame is gone", () => {
+    // The client asked for the smaller of the two overlapping round frames under
+    // the Expert roll to be deleted: it duplicated the larger one. Scanned on
+    // `clean`, never `html` — the comments left behind in all three pages name
+    // `.banner-img2` and `repair-img2.jpg` on purpose, so a raw-markup scan would
+    // match the explanation of the removal and pass on a page still shipping it.
+    return pages
+      .filter((p) => /banner-img2|repair-img2/.test(p.clean))
+      .map((p) => `${p.route} — still references the removed small round frame`)
   })
 
   check("the hero rotation offers every service the client listed", () => {
@@ -891,6 +956,28 @@ export async function run() {
     return out
   })
 
+  check("the credentials band sits under the testimonials, not the FAQ", () => {
+    // The client asked for this move explicitly: as a trust signal the band
+    // belongs beside the reviews it corroborates, not underneath the FAQ. It is
+    // asserted on DOM order because the move is invisible to every other check
+    // in this file — the band renders identically wherever it sits, so nothing
+    // else here would notice it sliding back down the page.
+    const out = []
+    for (const p of brandStrips) {
+      const iReviews = p.clean.indexOf('id="reviews"')
+      const iBrands = p.clean.indexOf('id="brands"')
+      const iFaq = p.clean.indexOf('id="faq"')
+      if (iReviews === -1 || iFaq === -1) {
+        out.push(`${p.route} — cannot judge the order: the page has no #reviews or no #faq`)
+        continue
+      }
+      if (!(iReviews < iBrands && iBrands < iFaq)) {
+        out.push(`${p.route} — #brands is at ${iBrands}, outside #reviews(${iReviews}) … #faq(${iFaq})`)
+      }
+    }
+    return out
+  })
+
   // ───────────────────────────────────────────────────────────────────────────
   // Three defects, one shared property: every assertion that came before was
   // blind to them. One lived in CSS paint order (this suite renders markup, it
@@ -1041,7 +1128,7 @@ export async function run() {
     return out
   })
 
-  suite("CTA badge is the client's mark", "tests/verify.mjs")
+  suite("CTA bands carry the client's mark and no floating badge", "tests/verify.mjs")
 
   /* The template shipped its own demo logo (`logo-vector.png`) as a decorative
      watermark on all three CTA bands, where it drew a large cyan glyph that read
@@ -1056,77 +1143,58 @@ export async function run() {
       .map((p) => `${p.route} — still loads logo-vector.png, the template's demo logo`),
   )
 
-  /* Anchored to the badge's own positioning classes, not to its size: the size is
-     asserted separately below, and coupling the two would make a resize report
-     three failures instead of one. The 12 chrome lockups cannot satisfy this. */
+  /* Anchored to the badge's own positioning classes rather than to its size or
+     its glyph, so the pattern survives a resize and stays usable as the positive
+     control below. The 12 chrome lockups cannot satisfy it: they are not
+     `absolute -right-7`.
+
+     This suite is now INVERTED. It used to prove the badge was present on each
+     CTA band and correctly built; the client asked for it to be deleted
+     ("a phone logo floating between the visual and the information block"),
+     so it now proves the badge is gone. An absence assertion is worth nothing
+     unless the pattern can still see the thing it is asserting the absence of,
+     which is why the first check below exists. */
   const BADGE = /<span class="[^"]*absolute -right-7 top-1\/2 hidden[^"]*rounded-full[^"]*">[\s\S]{0,700}?<\/span>/g
 
-  check("each CTA band carries exactly one official badge", () => {
-    const expected = { home: 1, residential: 1, commercial: 1, contact: 0 }
+  check("the CTA badge pattern still matches the markup it was written for", () => {
+    // Positive control for the check that follows. Without it, a pattern that had
+    // quietly stopped matching would make "no page carries the badge" pass while
+    // the badge sat on all three pages — which is exactly the shape of failure
+    // this file has been bitten by before.
+    const fixture =
+      '<span class="absolute -right-7 top-1/2 hidden -translate-y-1/2 rounded-full bg-white shadow-xl md:grid">' +
+      '<span class="grid size-[61px] place-items-center"><svg viewBox="0 0 24 24"><path d="M13.832 16.568"/></svg></span></span>'
+    const n = (fixture.match(new RegExp(BADGE.source, "g")) ?? []).length
+    return n === 1
+      ? []
+      : [`the CTA badge pattern matched ${n} of 1 synthetic badge(s) — it is dead, so the absence check proves nothing`]
+  })
+
+  check("no marketing page still floats the CTA phone badge", () => {
     return pages
-      .map((p) => ({ route: p.route, name: p.name, n: (p.clean.match(BADGE) ?? []).length }))
-      .filter((r) => r.n !== expected[r.name])
-      .map((r) => `${r.route} — ${r.n} CTA badge(s), expected ${expected[r.name]}`)
+      .map((p) => ({ route: p.route, n: (p.clean.match(BADGE) ?? []).length }))
+      .filter((r) => r.n !== 0)
+      .map((r) => `${r.route} — still carries ${r.n} CTA phone badge(s), expected 0`)
   })
 
-  check("the CTA badge glyph holds the client's 20-in-p-2 lockup ratio", () => {
-    // The lockup is a 20px glyph inside a p-2 disc, i.e. the glyph is 20/36 of
-    // the disc diameter. Derived rather than hardcoded to 61, so resizing the
-    // disc without resizing the glyph fails instead of drifting quietly.
-    const out = []
-    let seen = 0
-    for (const p of pages) {
-      const re = new RegExp(BADGE.source, "g")
-      let m
-      while ((m = re.exec(p.clean)) !== null) {
-        seen += 1
-        const disc = /size-\[(\d+)px\]/.exec(m[0])
-        const glyph = /class="size-\[(\d+)px\]/.exec(m[0])
-        if (!disc || !glyph) {
-          out.push(`${p.route} — badge is missing an explicit disc or glyph size`)
-          continue
-        }
-        const want = (Number(disc[1]) * 20) / 36
-        if (Math.abs(Number(glyph[1]) - want) > 1) {
-          out.push(
-            `${p.route} — ${glyph[1]}px glyph in a ${disc[1]}px disc; the 20/36 lockup ratio wants ${want.toFixed(1)}px`,
-          )
-        }
-      }
-    }
-    if (seen !== 3) out.push(`matched ${seen} badge(s), expected 3`)
-    return out
-  })
-
-  check("the CTA badge uses the same phone glyph as the chrome lockups", () => {
-    // This is what makes it the *official* mark rather than a lookalike: the path
-    // data has to be byte-identical to the one the 12 chrome lockups draw.
+  check("every chrome lockup still draws one and the same phone glyph", () => {
+    // Salvaged from the badge suite, which compared the badge's glyph against the
+    // chrome's. The badge is gone, but this half never depended on it: if the 12
+    // lockups drifted to two different glyph paths, the brand mark would differ
+    // between the header and the footer and nothing else in this file would say
+    // so. This is what makes the lockup the *official* mark rather than a
+    // lookalike — the path data has to be byte-identical everywhere it appears.
+    //
+    // `shrink-0 rounded-full` is the chrome-lockup signature. A looser pattern
+    // also catches the "Schedule Online" button's arrow disc, which draws
+    // `M7 17L17 7M9 7h8v8` and would read as a second, non-brand glyph.
     const chrome = new Set()
     for (const p of pages) {
-      // `shrink-0 rounded-full` is the chrome-lockup signature. A looser pattern
-      // also catches the "Schedule Online" button's arrow disc, which draws
-      // `M7 17L17 7M9 7h8v8` and would read as a second, non-brand glyph.
       const re = /shrink-0 rounded-full (?:bg-\[#1e1b4b\]|bg-white)[^"]*">[\s\S]{0,600}?<path d="([^"]+)"/g
       let m
       while ((m = re.exec(p.clean)) !== null) chrome.add(m[1])
     }
-    if (chrome.size !== 1) {
-      return [`the chrome lockups draw ${chrome.size} distinct glyph paths, expected 1`]
-    }
-    const out = []
-    let seen = 0
-    for (const p of pages) {
-      const re = new RegExp(BADGE.source, "g")
-      let m
-      while ((m = re.exec(p.clean)) !== null) {
-        seen += 1
-        const d = /<path d="([^"]+)"/.exec(m[0])
-        if (!d) out.push(`${p.route} — CTA badge carries no glyph path`)
-        else if (!chrome.has(d[1])) out.push(`${p.route} — CTA badge glyph differs from the chrome lockup glyph`)
-      }
-    }
-    if (seen !== 3) out.push(`matched ${seen} badge(s), expected 3`)
-    return out
+    return chrome.size === 1 ? [] : [`the chrome lockups draw ${chrome.size} distinct glyph paths, expected 1`]
   })
 
   suite("Theme tokens are authorable", "tests/verify.mjs")

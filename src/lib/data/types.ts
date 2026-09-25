@@ -14,6 +14,21 @@ export type PropertyType = "residential" | "commercial"
 
 export type Urgency = "emergency" | "soon" | "flexible"
 
+/**
+ * The answer to "Already a member?" — the one question the public form asks
+ * before it asks for a name.
+ *
+ * There is deliberately no "unknown" member: a third option would let the form
+ * record a non-answer, and the dashboard cannot act on one. Callers that need
+ * to represent a record predating the question use `undefined` instead.
+ */
+export type MemberAnswer = "yes" | "no"
+
+export const MEMBER_ANSWERS: ReadonlyArray<{ value: MemberAnswer; label: string }> = [
+  { value: "yes", label: "Yes" },
+  { value: "no", label: "No" },
+]
+
 /** The six services the site advertises, plus an escape hatch. */
 export const SERVICES = [
   "Plumbing",
@@ -42,6 +57,12 @@ export interface Inquiry {
   service: Service
   urgency: Urgency
   message: string
+  /**
+   * Optional on the way OUT: inquiries written before 2026-09-25 predate the
+   * question, and `readInquiries()` has to keep returning them rather than
+   * inventing an answer. Required on the way IN — see `NewInquiry`.
+   */
+  member?: MemberAnswer
   status: InquiryStatus
   /** ISO 8601. */
   createdAt: string
@@ -54,7 +75,15 @@ export interface Inquiry {
 export type NewInquiry = Pick<
   Inquiry,
   "name" | "email" | "phone" | "propertyType" | "service" | "urgency" | "message"
->
+> & {
+  /**
+   * `member` is restated rather than added to the `Pick` above because the two
+   * sides are deliberately asymmetric: `Pick` would inherit the `?` from
+   * `Inquiry.member` and let a form submit without answering. Every inquiry the
+   * form creates carries an answer; only the ones already in storage do not.
+   */
+  member: MemberAnswer
+}
 
 /* ── Settings, profile, notifications, security ──────────────────────────── */
 

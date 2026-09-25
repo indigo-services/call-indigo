@@ -602,6 +602,42 @@
      and reading its DOM (see _audit/full/tpl_hero.py).
      ========================================================================== */
   .banner-img1 img { width: 406px; }   /* natural 376 content + 12px pad + 3px border */
+
+  /* --------------------------------------------------------------------------
+     CLIENT 2026-09-25 — the hero image column is a centred flex row.
+
+     Measured before the change (`scripts/_probe_client_feedback.cjs`): the arch
+     sat on the column's LEFT edge at every width, its centre 210px left of the
+     column's centre at 1920, 130px at 1440, 99px at 1199 and 34px at 390. The
+     cause is that the arch IMG carries Tailwind's `block`, so the template's
+     `text-align: center` / `text-align: right` on the figure never applied to it
+     — those rules had been dead for the life of the port. The navy box was
+     absolutely placed at the far right, so the two never read as a pair.
+
+     Now the figure takes the slack and centres its own image inside it, and the
+     card is a flow item, so the arch is centred *between* the text column and the
+     Emergency card. `min-width: 0` is load-bearing: without it the figure refuses
+     to shrink below its content and the row overflows a narrow column.
+     -------------------------------------------------------------------------- */
+  .banner-img-con { display: flex; align-items: center; gap: 24px; }
+  .banner-img1 {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  /* The arch and its decorative dots need a positioning context of their OWN.
+     Anchored to the `<figure>` the dots would sit at the bottom-left of the whole
+     column — off the photograph entirely once the figure takes the row's slack.
+     As a flex item this span shrink-wraps the arch, so `left-0`/`bottom: 0` on
+     `.dot-img` mean the arch's own corner. This restates the `relative block`
+     utilities the markup used to carry, so there is one source of truth and the
+     class is not a name with nothing behind it. */
+  .hero-arch-slot {
+    position: relative;
+    display: block;
+  }
   /* `.plumber-img` is a FIGURE; the WIDTH lives on its inner img — that is how the
      template writes it (`<figure class="plumber-img"><img></figure>`). Above 1440
      NO width is authored at all, so it renders at the PNG's natural 671x880.
@@ -609,23 +645,22 @@
      the figure the full column and centre the 300px img inside it. */
   .plumber-img     { width: 671px; }
   .plumber-img img { width: 100%; }
-  /* `.banner-content-con .banner-img2 img { padding:12px; border:3px solid
-     var(--secondary--color) }` (style.css:1134) and NO width rule anywhere above
-     1199 — so the oval is the image's natural 236x346 CONTENT box plus 30px of
-     padding+border => a 266x376 border-box. The FIGURE stretches to the row
-     height (the template's `.banner-bottom` is a plain d-flex, so align-items is
-     `stretch`), which is why the real template renders the figure 266x387.
-     Our replacement photo is 745x669 (landscape) and cannot supply the tall
-     236x346 intrinsic ratio, so we pin the ratio explicitly instead. */
-  .banner-img2     { flex: 0 1 auto; width: 266px; }
-  .banner-img2 img { width: 100%; aspect-ratio: 266 / 376; height: auto; }
+  /* CLIENT 2026-09-25: the `.banner-img2` oval is deleted, so its rules are
+     gone too — the base 266x376 border-box, the ≤1199 140px step, the ≤991
+     `display:none !important` and the ≤767 `display:none`. `repair-img2.jpg` is
+     now unreferenced. The template sized the oval's IMG at its natural 236x346
+     content box with a 12px white ring and a 3px white border. */
   /* `.banner-con .dot-img img` has no base width — the element is the IMG itself
      here, so it renders at dots.png's natural 54x52. */
   .dot-img img, img.dot-img { width: 54px; height: auto; }
 
-  /* The first responsive step for the hero photos: 350 / 440. */
+  /* The first responsive step for the hero photos: 350 / 440.
+     CLIENT 2026-09-25: the arch keeps its natural 406 here. The column measures
+     610px at 1440, so the template's shrink to 350 was never necessary — it was
+     one of the reasons the hero read as small on a laptop. The ≤1199 step still
+     comes down, and `max-width: 100%` clamps whatever the flex row leaves. */
   @media (max-width: 1440px) {
-    .banner-img1 img { width: 350px; }
+    .banner-img1 img { width: 406px; }
     .plumber-img     { width: 440px; }
   }
 
@@ -642,10 +677,17 @@
 
   /* `.banner-con .navy-box { right:50px; top:126px; padding:19px 25px }` base;
      responsive.css:495 => right:0 / top:39px / 13px 20px at ≤1440,
-     :513 => right:0 / top:28px / 10px 15px at ≤1199. */
-  .navy-box { right: 50px; top: 126px; padding: 19px 25px; }
-  @media (max-width: 1440px) { .navy-box { right: 0;    top: 39px; padding: 13px 20px; } }
-  @media (max-width: 1199px) { .navy-box { right: 0;    top: 28px; padding: 10px 15px; } }
+     :513 => right:0 / top:28px / 10px 15px at ≤1199.
+
+     CLIENT 2026-09-25: the card is a FLOW item now (see `.banner-img-con`), so
+     every `right`/`top` offset is gone — they only ever applied to
+     `position: absolute`. `flex: 0 0 auto` holds it at its content width while
+     the arch takes the slack; `align-self: center` centres it vertically in the
+     row and horizontally in the stacked column. The padding is larger so the
+     card reads as the emergency action rather than as a caption. */
+  .navy-box { flex: 0 0 auto; align-self: center; min-width: 190px; padding: 22px 28px; }
+  @media (max-width: 1440px) { .navy-box { min-width: 178px; padding: 18px 22px; } }
+  @media (max-width: 1199px) { .navy-box { min-width: 160px; padding: 15px 18px; } }
 
   /* `.banner-con .dot-img { bottom: 0 }` base, 15px at ≤1440, and the IMG is
      54px (its natural size) above 1440, 40px at ≤1440 (responsive.css:797),
@@ -702,12 +744,10 @@
   @media (max-width: 575px) { .statistics-box .span-text { font-size: 13px; line-height: 19px; } }
 
   @media (max-width: 1199px) {
-    .banner-img1 img { width: 320px; }
+    .banner-img1 img { width: 380px; }
     .plumber-img     { width: 390px; }
-    /* responsive.css:1507/1511 — the figure gets `flex-shrink: 0` and the IMG
-       becomes a fixed 140px. Both sizes live on the img, not the figure. */
-    .banner-img2     { flex: 0 0 auto; width: 140px; }
-    .banner-img2 img { width: 100%; aspect-ratio: 140 / 191; }
+    /* CLIENT 2026-09-25: 320 -> 380. The flex row clamps this to whatever the
+       column leaves once the card has its width, so the value is a ceiling. */
     .dot-img img, img.dot-img { width: 34px; height: auto; }
     /* responsive.css:1553 — the ring shrinks 80 -> 60 -> 40 across the steps. */
     .scroll-down-arrow .grid { width: 40px; height: 40px; }
@@ -725,21 +765,31 @@
      plumberImg 340x446 at each, and img2/navyBox/dotImg/scrol all 0x0 — so this
      is one block, not two. Previously these fired at ≤767, which left the oval,
      the Emergency card and the dots on screen through the whole 768-991 range.
+
+     CLIENT 2026-09-25 — TWO of those template hides are deliberately not applied
+     any more: the oval is deleted outright, and the navy box is a normal flow
+     item, so neither has anything left to hide. The dots and the scroll cue are
+     still hidden exactly as the template does.
      -------------------------------------------------------------------------- */
   @media (max-width: 991px) {
     .banner-content-con { padding-top: 20px; }
-    /* `!important` is REQUIRED on these two: the markup carries `md:block` on
-       the oval and `flex` on the navy box, and Tailwind emits generated
-       utilities in a later cascade layer than bare rules written in this same
-       <style type="text/tailwindcss"> block. Without it the oval stayed visible
-       from 768-991 and the Emergency card overflowed the viewport (docW 773 vs
-       winW 768 at 768px). */
-    .banner-img2  { display: none !important; }
-    .navy-box     { display: none !important; }
+    /* CLIENT 2026-09-25 — `.navy-box { display: none !important }` used to sit
+       here, with a comment explaining that the `!important` was required because
+       the markup carried `flex` on the navy box. That rule is why the client's
+       previous "the Emergency button must exist on mobile" request never landed:
+       the markup was given `max-md:static` while this block still hid the card,
+       and CSS won. The card is in normal flow now, so there is nothing to fight
+       and nothing to hide.
+
+       The columns stack at ≤767, but 768-991 is still two-up, so the card cannot
+       sit beside the arch here — the row becomes a centred column and the card
+       drops under the arch. Measured after the change: no width in 320-1920
+       overflows its viewport. */
+    .banner-img-con  { flex-direction: column; gap: 20px; align-items: stretch; }
+    .banner-img1     { flex: 0 0 auto; width: 100%; }
+    .banner-img1 img { width: 406px; }
     .scrol-outer  { display: none; }
     .dot-img      { display: none; }
-    .banner-img1     { text-align: right; }
-    .banner-img1 img { width: 330px; }
     .plumber-img     { right: -20px; top: 50px; }
     .plumber-img img { width: 340px; }
     /* NOTE: the `.banner-lead` overrides for this width live further down, AFTER
@@ -773,7 +823,6 @@
     .banner-content-con { padding-top: 0; }
     .hero-h1 { margin-bottom: 22px !important; }
     .hero-row .banner-bottom { display: inline-block !important; }
-    .banner-img2 { display: none; }
     .statistics-wrapper { margin-left: 0; margin-bottom: 25px; justify-content: center; }
     /* The template does NOT shrink the figures at ≤767 — it makes BOTH figures
        full-column `block`s with `text-align:center` and sizes only their inner
@@ -781,13 +830,15 @@
        .plumber-img are both 691.9 wide, with a 260/300 img centred inside.
        Putting the width on the figure instead (the old approach) left the
        absolutely-positioned plumber un-centred on mobile. */
-    .banner-img1 { display: block; width: auto; text-align: center; }
-    .banner-img1 img { width: 260px; }
+    /* CLIENT 2026-09-25: 260 -> 300. The centring that used to be asked for
+       here via `text-align: center` never worked — the IMG is a `block`, so
+       text-align had nothing to centre. `.banner-img1` is a centring flex box
+       from the base branch now, so the img is genuinely centred at every width. */
+    .banner-img1 img { width: 300px; }
     .plumber-img { right: 0; left: 0; width: auto; text-align: center; }
     .plumber-img img { width: 300px; }
     .dot-img { display: none; }
     .scrol-outer { display: none; }
-    .banner-img-con { text-align: center; }
   }
 
   /* ---------------------------------------------------------------------------

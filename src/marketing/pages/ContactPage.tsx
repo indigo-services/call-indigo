@@ -19,12 +19,14 @@
 import { useId, useRef, useState, type FormEvent } from "react"
 import { Captcha, type CaptchaHandle } from "@/marketing/Captcha"
 import { api } from "@/lib/data/api"
-import { SERVICES, URGENCIES, type PropertyType, type Service, type Urgency } from "@/lib/data/types"
+import { SERVICES, URGENCIES, MEMBER_ANSWERS, type MemberAnswer, type PropertyType, type Service, type Urgency } from "@/lib/data/types"
 import { SiteChrome } from "@/marketing/SiteChrome"
 
 /* ── Form model ──────────────────────────────────────────────────────────── */
 
 interface FormValues {
+  /** Answered first, before the name — see the fieldset in the form body. */
+  member: MemberAnswer | ""
   name: string
   email: string
   phone: string
@@ -40,6 +42,7 @@ type FieldName = keyof FormValues
 type Errors = Partial<Record<FieldName, string>>
 
 const INITIAL: FormValues = {
+  member: "",
   name: "",
   email: "",
   phone: "",
@@ -68,6 +71,10 @@ const HONEYPOT_STYLE: React.CSSProperties = {
 
 function validate(v: FormValues): Errors {
   const e: Errors = {}
+
+  /* Checked first so that `Object.keys(e)[0]` — which is what onSubmit uses to
+     decide where to put the focus — is also the topmost field on the page. */
+  if (v.member === "") e.member = "Let us know if you're already a member."
 
   if (v.name.trim().length < 2) e.name = "Please enter your name."
 
@@ -192,6 +199,7 @@ export default function ContactPage() {
     setPending(true)
     try {
       const created = await api.createInquiry({
+        member: values.member as MemberAnswer,
         name: values.name.trim(),
         email: values.email.trim(),
         phone: values.phone.trim(),
@@ -319,6 +327,55 @@ export default function ContactPage() {
                   {failure}
                 </p>
               ) : null}
+
+              {/* Answered before the name, because it is the one question that
+                  changes what the rest of the form means to the person filling
+                  it in: a member is already in our system, and their address is
+                  on file.
+
+                  Built as a real `fieldset`/`legend` rather than the `Field`
+                  primitive, because `Field` labels a single control by `htmlFor`
+                  and a radio group has no single control to point at. The group
+                  carries `id={fid("member")}` + `tabIndex={-1}` so that the
+                  focus-the-first-problem path in `onSubmit` has somewhere to
+                  land — it looks the id up with `querySelector`. */}
+              <fieldset
+                id={fid("member")}
+                tabIndex={-1}
+                aria-invalid={submitted && !!errors.member}
+                aria-describedby={submitted && errors.member ? `${fid("member")}-error` : undefined}
+                className="grid gap-3"
+              >
+                <legend className="mb-1 text-[14px] font-bold text-ink">Already a member?</legend>
+                <div className="flex flex-wrap gap-3">
+                  {MEMBER_ANSWERS.map((m) => {
+                    const chosen = values.member === m.value
+                    return (
+                      <label
+                        key={m.value}
+                        className={`flex cursor-pointer items-center gap-2.5 rounded-[10px] border px-5 py-3 text-[15px] font-bold text-ink transition ${
+                          chosen ? "border-sky bg-sky/10" : "border-line bg-white hover:border-sky/60"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="member"
+                          value={m.value}
+                          checked={chosen}
+                          onChange={() => set("member", m.value)}
+                          className="size-4 accent-[#30c3eb]"
+                        />
+                        {m.label}
+                      </label>
+                    )
+                  })}
+                </div>
+                {submitted && errors.member ? (
+                  <p id={`${fid("member")}-error`} role="alert" className="text-[13px] font-semibold text-[#d1453b]">
+                    {errors.member}
+                  </p>
+                ) : null}
+              </fieldset>
 
               <div className="grid gap-6 md:grid-cols-2">
                 <Field label="Your name" htmlFor={fid("name")} error={submitted ? errors.name : undefined}>

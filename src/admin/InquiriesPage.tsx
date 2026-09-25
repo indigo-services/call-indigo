@@ -340,6 +340,15 @@ function InquiryDetail({ inquiry, onClose }: { inquiry: Inquiry | null; onClose:
                 <Badge variant="outline" className="capitalize">
                   {inquiry.propertyType}
                 </Badge>
+                {/* Shown only for "yes". "No" is the unremarkable answer and a
+                    badge for it on every record is noise — and inquiries taken
+                    before the question existed (2026-09-25) have no answer at
+                    all, so they must show nothing rather than a false "No". */}
+                {inquiry.member === "yes" ? (
+                  <Badge variant="outline" className="border-sky/40 bg-sky/10 text-ink">
+                    Member
+                  </Badge>
+                ) : null}
               </div>
 
               <Separator />

@@ -50,6 +50,9 @@ tests/.tmp/
 # These are session/agent state, not project artifacts
 .workbuddy-ai/
 .freebuff/
+# The session's overview summary, written to the repo root for the artifact
+# panel. The durable version of it is CHANGELOG.md plus docs/plan-*.md.
+/overview.md
 
 # ── Archive: screenshots & binary references ───────────────────
 # The archive directory holds large reference screenshots and
