@@ -43,6 +43,46 @@ Also measured, at every width: the `#process` numerals compute to
 `rgb(244,248,254)` on `rgb(255,255,255)` — **1.07:1** — and `#brands` sits after
 `#faq` in the DOM.
 
+### The same probe, run against the LIVE site
+
+The table above is the local build. The client was looking at something else, so
+the probe was also pointed at production — it takes `--base`, so **one instrument
+measured both**:
+
+```
+NODE_PATH=… node scripts/_probe_client_feedback.cjs --base https://call-indigo.com
+```
+
+Two things came out of that, and the second is the important one.
+
+**First, the live site is the "before" state of this very document.** Every
+diagnosis above is confirmed on the artifact the client actually used, not only on
+a local build:
+
+| claim | live measurement |
+|---|---|
+| F2 the card is missing on mobile | `.navy-box` `display:none` at **991, 768 and 390**; `position:absolute` at 991/768 and `position:static` at 390 — the two layers disagreeing exactly as diagnosed |
+| F5 the small round frame exists | `present=true`, 266×387 @1920, 158×240 @1440 |
+| F6 the numerals are invisible | `rgb(244,248,254)` on `rgb(255,255,255)` = **1.07:1** |
+| F7 the order is wrong | `reviews=13 faq=14 brands=15` → **FAIL** |
+| F8 the badge floats in the CTA band | `present=true`, 110×110 |
+| F9 there is no membership question | first field `input:name`; the only radioset is "How soon?" |
+
+**Second, F4 is refuted on the live site as well.** With motion ON at 390px, the
+deployed page produced **4 distinct words and 4 distinct arch sources**, exactly
+as the local build does. So the client's "the carousel does not move" is not a
+stale-deployment artifact — which was the leading hypothesis, and the reason for
+running this at all. It is recorded as an open question below, not as a bug fix.
+
+**⚠️ And a factual correction that outlives this round:**
+`call-indigo.vercel.app` **307-redirects to `call-indigo.com`**, and
+`call-indigo.com` serves **this same Vite codebase** — its shell loads
+`/assets/index-*.js`, the bundle contains `hero-rotate`, `navy-box` and
+`hero-arch-`, and there is **no `_next/static`, no `__NEXT_DATA__`** anywhere.
+An earlier note described `call-indigo.com` as a *different codebase (Next.js)*;
+that is no longer true. Practical consequences: the URL to check a deploy against
+is `call-indigo.com`, and the URL to give the client is the same one.
+
 ## The requests
 
 ### F1 + F2 — the red Emergency button: bigger on desktop, and present on mobile
@@ -168,13 +208,20 @@ record would be a lie about data that exists.
 
 ## Open questions — each with a recommendation
 
-1. **F4: is the mobile carousel really static for the client?** It rotates in a
-   browser with motion enabled. `prefers-reduced-motion: reduce` is the only thing
-   that stops it, and honouring it is deliberate.
-   **Recommendation: keep the guard and ask the client to check Settings →
-   Accessibility → Motion → Reduce Motion.** If it is on, that is the answer and no
-   code should change — a rotation that ignores reduce-motion is an accessibility
-   regression, and the arch still loads correctly under it.
+1. **F4: is the mobile carousel really static for the client?** It rotates with
+   motion enabled — **and it rotates on the live site too**, which was measured
+   after this document was first written: at 390px, `call-indigo.com` produced 4
+   distinct words and 4 distinct arch sources. So this is not a stale deployment,
+   and not something a local build is masking. `prefers-reduced-motion: reduce` is
+   the only thing that stops it, and honouring that is deliberate.
+   **Recommendation: keep the guard and ask the client three things** — which
+   device and browser, whether Settings → Accessibility → Motion → Reduce Motion
+   is on, and whether they were looking at the live page or a screenshot of it. If
+   reduce-motion is on, that is the whole answer and no code should change: a
+   rotation that ignores reduce-motion is an accessibility regression, and the arch
+   still loads correctly under it. If it is off and they still see it static, then
+   the report is about a device this project has no other evidence for, and the
+   next step is a screen recording rather than a code change.
 
 2. **F8: delete the badge on home only, or on all three mirror pages?**
    **Recommendation: all three.** The band is one component rendered three times; the
@@ -255,7 +302,7 @@ the whole point of asking is that someone on the team wants to know. So
 question must show nothing rather than a false "No". The list *table* was
 deliberately left alone: a new column is a layout decision, not a data one.
 
-Still open, unchanged: **F4's "the carousel does not move"** (not reproduced in a
-browser with motion enabled — it is `prefers-reduced-motion`), **T4's legal copy**
-(a release blocker the client must supply), and the five remaining punch-list
-items T2, T5, T6, T7.
+Still open, unchanged: **F4's "the carousel does not move"** — not reproduced
+locally *or* on the live site, with motion enabled (see the deployed section
+above); **T4's legal copy** (a release blocker the client must supply), and the
+five remaining punch-list items T2, T5, T6, T7.

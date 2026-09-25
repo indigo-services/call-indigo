@@ -136,6 +136,28 @@ photo/text seam in the CTA band, the six credential badges, and the membership
 pills sized for touch at 390. Captures land in `.preview/`, which is gitignored,
 so the check costs the working tree nothing. `docW === winW` at all six widths.
 
+**The same probe, run against the live site**
+
+Because the client's report was about the deployed page and not a local build, the
+probe was pointed at production too — it takes `--base`, so one instrument
+measured both. The live site was the "before" state of this whole section: the
+Emergency card `display:none` at 991/768/390, the small round frame present at
+266×387, the numerals at **1.07:1**, the order `#reviews #faq #brands`, the 110px
+CTA badge, and no membership question. Six of the nine reports are confirmed on the
+artifact the client actually used.
+
+**"The carousel does not move" is refuted there as well** — 4 distinct words and 4
+distinct arch sources at 390px with motion on, the same as local. So it is not a
+stale deployment, which was the leading hypothesis. It stays an open question
+rather than a fix.
+
+⚠️ **And a correction that outlives this round:** `call-indigo.vercel.app`
+**307-redirects to `call-indigo.com`**, and `call-indigo.com` serves **this same
+Vite codebase** — its shell loads `/assets/index-*.js`, the bundle contains
+`hero-rotate` / `navy-box` / `hero-arch-`, and there is **no `_next/static` and no
+`__NEXT_DATA__`**. An earlier note described that domain as a *different codebase
+(Next.js)*. Check a deploy against `call-indigo.com`; give the client the same URL.
+
 ### Client punch list v1.0.1 — pending, needs clarity (TBD)
 
 | # | Request | Why it is still open |
