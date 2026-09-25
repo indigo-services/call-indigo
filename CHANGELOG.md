@@ -18,7 +18,34 @@ Every claim below was measured **before** anything was changed, with
 from one instrument rather than two. Full evidence, risk register and open
 questions with recommendations: **`docs/plan-client-feedback-2026-09-25.md`**.
 Suite: **67 → 100 checks**. Shipped as **`788913f`** — `feat(marketing): act on
-the client's nine feedback items` (14 files, +1577/−207).
+the client's nine feedback items` (14 files, +1577/−207), pushed to `main` as
+`ca91664..656d3e9`.
+
+**Deployed and verified live, 2026-09-25.** `call-indigo.com` now serves
+`index-DiVqDhQ1.js` / `index-D85KNRgC.css`, and both are **byte-identical to the
+local build** (803,827 and 125,198 bytes — the content hash matching is the proof,
+not the status badge). The two bug signatures are gone from the served stylesheet:
+`.navy-box{…display:none}` → **0 matches**, `.banner-img2` rule → **0 matches**.
+
+Re-running the probe against production returns the **after** state at all six
+widths for every request — the same instrument that recorded the before state, so
+the two columns are comparable:
+
+| request | live, before | live, now |
+|---|---|---|
+| F1/F2 Emergency card | `display:none` at 991 / 768 / 390; 159×179 @1920 | **shown at every width**, 197.7×210 @1920, `position: static` |
+| F5 small round frame | present, 266×387 | **absent** |
+| F6 numerals | **1.07:1** | **6.81:1** |
+| F7 section order | FAIL — `#reviews #faq #brands` | **PASS** |
+| F8 CTA phone badge | present, 110×110 | **absent** |
+| F9 membership question | absent; first field `name` | **PASS**; first field `member` |
+| F4 carousel @390 | 4 distinct words | 4 distinct words *(unchanged — never a bug)* |
+
+⚠️ **The author gate did not apply here**, and it is worth recording that it was
+checked rather than assumed: every commit is authored by
+`Indigo Services <indigobuildops@gmail.com>`, the same identity as the commits that
+deployed before, and GitHub's commit-status API reports `success | Vercel:
+Deployment has completed` on `656d3e9`.
 
 **The red Emergency button**
 
