@@ -17,7 +17,8 @@ Every claim below was measured **before** anything was changed, with
 768 / 390). The same probe produced the after-shot, so both sets of numbers come
 from one instrument rather than two. Full evidence, risk register and open
 questions with recommendations: **`docs/plan-client-feedback-2026-09-25.md`**.
-Suite: **67 → 100 checks**.
+Suite: **67 → 100 checks**. Shipped as **`788913f`** — `feat(marketing): act on
+the client's nine feedback items` (14 files, +1577/−207).
 
 **The red Emergency button**
 
@@ -122,6 +123,18 @@ Suite: **67 → 100 checks**.
   calls to one file race on the write and the last writer wins *while every call
   reports success*, so the pages and the CSS are edited by one script each that
   fails loudly if a needle stops matching.
+
+**Verified by eye, not only by the suite**
+
+The suite renders markup with `renderToStaticMarkup`, which has no layout engine —
+it is green on things that are visibly broken. This project has also already
+shipped a contrast sweep that cleared both bars arithmetically and still looked
+wrong. So every change above was additionally rendered in a real browser at 1440
+and 390 with `scripts/_shot.cjs` and **looked at**: the Emergency card on a phone,
+the arch centred at both widths, `01` legible on the white card, the clean
+photo/text seam in the CTA band, the six credential badges, and the membership
+pills sized for touch at 390. Captures land in `.preview/`, which is gitignored,
+so the check costs the working tree nothing. `docW === winW` at all six widths.
 
 ### Client punch list v1.0.1 — pending, needs clarity (TBD)
 
