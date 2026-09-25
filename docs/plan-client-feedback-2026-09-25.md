@@ -252,6 +252,7 @@ src/admin/InquiriesPage.tsx             F9 (the Member badge)
 src/index.css                           F1–F3
 tests/verify.mjs                        F1, F2, F6, F7, F8, F9
 scripts/_probe_client_feedback.cjs      the instrument for all of the above
+scripts/_probe_member_badge.cjs         F9's dashboard half, invisible to the suite
 scripts/_feedback_pages.py              the four page files, one asserted pass
 scripts/_feedback_css.py                the stylesheet, one asserted pass
 ```
@@ -281,6 +282,43 @@ come from one instrument.
 
 `docW === winW` at all six widths — the hero restructure introduced no horizontal
 overflow.
+
+### The dashboard half of F9, and why the suite could not check it
+
+`/admin/inquiries` shows a **Member** badge on the record detail for `"yes"` only.
+**`tests/verify.mjs` cannot verify that**, and not for want of trying: it renders
+with `renderToStaticMarkup`, which does not run effects, so `InquiriesPage`'s
+`useApiData` never fires and the page renders in its **skeleton** state. The rows —
+and therefore the badge — are structurally invisible to the suite. The suite's own
+comment on the design-system page records this same limitation.
+
+So it is verified in a browser instead, by `scripts/_probe_member_badge.cjs`, which
+seeds the store with one record per answer state and opens each one:
+
+| record | `member` | badge | |
+|---|---|---|---|
+| Amanda Reyes | `"yes"` | **yes** | PASS |
+| Brandon Cole | `"no"` | no | PASS |
+| Casey Lin | *absent* — what a pre-2026-09-25 inquiry looks like | no | PASS |
+
+Both directions are asserted on purpose. A probe that only looked for the badge on
+the `"yes"` record would pass just as happily on a page that painted it on every
+record, including the ones that predate the question and have no answer to show.
+
+### F3 confirmed as a visual before/after, not only as an offset
+
+The deployed site and the local build were captured at the same 826×586 box, so the
+two are directly comparable:
+
+- **Live:** the arch is jammed against the left edge and **clipped** by it, the
+  Emergency card is marooned at the far right, and the decorative dots sit at the
+  bottom-left of the **column**.
+- **Local:** the arch is centred with clear space to its left, the card is larger
+  and adjacent, and **the dots have moved with the arch** to its own bottom-left.
+
+That last point is the `hero-arch-slot` rule doing exactly what it was added for —
+and it is the one part of the hero change that no offset measurement would have
+caught, because the dots are decorative and carry no id.
 
 ### Two corrections worth carrying forward
 

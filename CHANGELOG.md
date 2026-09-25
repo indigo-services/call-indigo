@@ -158,6 +158,24 @@ Vite codebase** — its shell loads `/assets/index-*.js`, the bundle contains
 `__NEXT_DATA__`**. An earlier note described that domain as a *different codebase
 (Next.js)*. Check a deploy against `call-indigo.com`; give the client the same URL.
 
+**The Member badge, and the one claim the suite could not check**
+
+The dashboard half of F9 is verified by `scripts/_probe_member_badge.cjs`, because
+`tests/verify.mjs` structurally cannot reach it: it renders with
+`renderToStaticMarkup`, which does not run effects, so `useApiData` never fires and
+`/admin/inquiries` renders in its **skeleton** state. The probe seeds one record per
+answer state and opens each — `"yes"` shows the badge, `"no"` does not, and a record
+with no `member` key at all (what a pre-2026-09-25 inquiry looks like) does not.
+Both directions are asserted deliberately: checking only the `"yes"` record would
+pass on a page that badged every record.
+
+**F3 was also confirmed as a visual before/after.** At the same 826×586 box, the
+deployed column has the arch clipped against its left edge with the card marooned at
+the far right and the dots at the bottom-left of the *column*; locally the arch is
+centred, the card is larger and adjacent, and the dots have moved with the arch. The
+last point is the `hero-arch-slot` rule working, and it is the one part of the change
+no offset measurement would have caught — the dots are decorative and carry no id.
+
 ### Client punch list v1.0.1 — pending, needs clarity (TBD)
 
 | # | Request | Why it is still open |
