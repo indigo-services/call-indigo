@@ -647,6 +647,198 @@ export async function run() {
     return out
   })
 
+  /* ── The 2026-09-26 revision round ────────────────────────────────────────
+   *
+   * Two changes that a layout engine decides and this suite therefore CANNOT
+   * measure: a disc that protrudes half out of its card, and a badge moved into
+   * the seam between two photos. `renderToStaticMarkup` has no layout engine, so
+   * "halfway out" and "between the photos" are not observable here at all. Both
+   * were verified in a browser — `scripts/_probe_hero_about_refine.cjs` at six
+   * widths, plus a 4x crop of the badge's edge to check it does not clip a face.
+   *
+   * What IS assertable is the structure those measurements depend on: that the
+   * protrusion is DERIVED from the disc's own size rather than a number that
+   * drifts, that the muted red clears the contrast bar its own small print sets,
+   * that the two photos swap and each keeps its own natural width, and that the
+   * badge is anchored to the seam rather than to the row's right end.
+   *
+   * Rules are read from `src/index.css`, not from the compiled stylesheet: the
+   * build reorders and re-layers rules, so "the FIRST .navy-box rule" is not a
+   * stable thing to assert on. That the classes reach the compiled CSS at all is
+   * already covered by the stylesheet-coverage check above.
+   */
+  suite("Hero Emergency card and About row", "tests/verify.mjs")
+
+  const indexCss = readFileSync(path.join(ROOT, "src/index.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, " ")
+  const ruleBody = (selector) => {
+    const m = new RegExp(`${selector}\\s*\\{([^}]*)\\}`).exec(indexCss)
+    return m ? m[1] : null
+  }
+
+  /* Relative luminance / WCAG contrast, so "is white readable on that red" is
+     arithmetic in the test rather than a colour someone liked. */
+  const srgb = (c) => {
+    const s = c / 255
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
+  }
+  const contrastWithWhite = (hex) => {
+    const n = parseInt(hex.slice(1), 16)
+    const lum = 0.2126 * srgb((n >> 16) & 255) + 0.7152 * srgb((n >> 8) & 255) + 0.0722 * srgb(n & 255)
+    return Math.round((1.05 / (lum + 0.05)) * 100) / 100
+  }
+
+  check("the Emergency card's red clears AA for its own small print", () => {
+    // The card carries a 15px/500 sub-line ("Typical arrival 30–60 min"), so it
+    // needs 4.5:1 — not the 3:1 a 24px+ bold line would. That is the whole reason
+    // the muted red is #b5534a and not something deeper: a red merely DARKER than
+    // the old #d92d20 disc fails it. The arithmetic runs here so a future "let's
+    // make it a deeper red" edit cannot land silently.
+    const tag = /<a[^>]*class="([^"]*\bnavy-box\b[^"]*)"/.exec(home.clean)
+    if (!tag) return ["the home hero has no .navy-box Emergency card"]
+    const bg = /\bbg-\[(#[0-9a-fA-F]{6})\]/.exec(tag[1])
+    if (!bg) return [`the Emergency card has no literal background colour: ${tag[1]}`]
+    const ratio = contrastWithWhite(bg[1])
+    return ratio < 4.5
+      ? [`the Emergency card is ${bg[1]}, where white is ${ratio}:1 — under the 4.5:1 its 15px sub-line needs`]
+      : []
+  })
+
+  check("the contrast helper can tell a failing red from a passing one", () => {
+    // A helper that returned a passing number for anything would make the check
+    // above vacuous. #c26a5e is a real near-miss — the same muted red one step
+    // lighter — where white measures 3.81:1.
+    const bad = contrastWithWhite("#c26a5e")
+    const good = contrastWithWhite("#b5534a")
+    return bad < 4.5 && good >= 4.5
+      ? []
+      : [`the helper reports ${bad}:1 for #c26a5e and ${good}:1 for #b5534a, so it cannot tell them apart`]
+  })
+
+  check("the Emergency disc's protrusion is derived from its own size", () => {
+    // "Halfway out of the top edge" is a claim about two rects, so it needs a
+    // layout engine — measured in a browser at 29px of a 58px disc, at every
+    // width. What is assertable is that the margin producing it is DERIVED: half
+    // the disc PLUS the card's top padding, both read from variables. A
+    // hardcoded `margin-top: -29px` is indistinguishable in a screenshot and
+    // wrong the moment either number moves — and the padding changes at every
+    // breakpoint, so it WILL move.
+    const box = ruleBody("\\.navy-box")
+    const disc = ruleBody("\\.emergency-disc")
+    const out = []
+    if (box === null) out.push("no .navy-box rule in src/index.css")
+    else {
+      for (const v of ["--emergency-disc", "--emergency-pad-y"]) {
+        if (!new RegExp(`${v}\\s*:`).test(box)) out.push(`.navy-box does not declare ${v}`)
+      }
+    }
+    if (disc === null) out.push("no .emergency-disc rule in src/index.css")
+    else {
+      for (const prop of ["width", "height"]) {
+        if (!new RegExp(`${prop}:\\s*var\\(--emergency-disc\\)`).test(disc)) {
+          out.push(`.emergency-disc does not take its ${prop} from --emergency-disc`)
+        }
+      }
+      const mt = /margin-top:\s*([^;]+)/.exec(disc)
+      if (!mt) out.push(".emergency-disc has no margin-top, so the disc does not protrude at all")
+      else {
+        if (!/calc\(/.test(mt[1])) out.push(`the disc's margin-top is not a calc(): ${mt[1]}`)
+        for (const v of ["--emergency-disc", "--emergency-pad-y"]) {
+          if (!mt[1].includes(v)) out.push(`the disc's margin-top does not read ${v}: ${mt[1]}`)
+        }
+      }
+    }
+    if (!/\bemergency-disc\b/.test(home.clean)) out.push("the markup does not use .emergency-disc")
+    return out
+  })
+
+  check("the protrusion detector would catch a hardcoded margin", () => {
+    // Positive control. Feed the predicate the exact edit it exists to prevent —
+    // a literal -29px, which is what "half of 58" happens to be TODAY — and
+    // require a complaint. Without this, the check above passes on a rule that
+    // has quietly stopped being derived.
+    const fixture = "width: var(--emergency-disc); height: var(--emergency-disc); margin-top: -29px;"
+    const mt = /margin-top:\s*([^;]+)/.exec(fixture)[1]
+    const derived = /calc\(/.test(mt) && mt.includes("--emergency-disc") && mt.includes("--emergency-pad-y")
+    return derived
+      ? ["the detector accepted `margin-top: -29px`, so the derivation check above proves nothing"]
+      : []
+  })
+
+  check("the About photos swap slots, and each keeps its own natural width", () => {
+    // The client asked for the two photos to be swapped so the badge — now at
+    // the seam — does not sit on the left photo's person. The width allocation
+    // has to travel with them: `flex-[…]`/`max-w-[…]` are each FILE's natural
+    // width (372 for about-img1, 347 for about-img2), so leaving them behind
+    // upscales one source into a bigger box and squeezes the other.
+    //
+    // The allocation is NOT in the same place for both: it is on the `<figure>`
+    // for the left photo and on the WRAPPER `<div>` for the right one, because
+    // that wrapper is the `relative` box the badge hangs from. Reading one
+    // element's class would therefore only ever check one of the two, so each
+    // photo is matched to the nearest `flex-[…]` in front of it instead.
+    const NATURAL = { "about-img1": "372", "about-img2": "347" }
+    const photos = [...home.clean.matchAll(/<img src="[^"]*\/(about-img\d)\.jpg"/g)]
+    if (photos.length !== 2) return [`the home page shows ${photos.length} About photos, expected 2`]
+    const want = ["about-img2", "about-img1"]
+    const out = []
+    photos.forEach((m, i) => {
+      const file = m[1]
+      if (file !== want[i]) {
+        out.push(`photo ${i + 1} renders ${file}, expected ${want[i]} — the two are swapped`)
+      }
+      const before = home.clean.slice(Math.max(0, m.index - 400), m.index)
+      const alloc = [...before.matchAll(/flex-\[(\d+)\]/g)].pop()
+      if (!alloc) out.push(`photo ${i + 1} (${file}) has no flex-[…] allocation in front of it`)
+      else if (alloc[1] !== NATURAL[file]) {
+        out.push(`photo ${i + 1} (${file}) is allocated ${alloc[1]}px; its own natural width is ${NATURAL[file]}px`)
+      }
+    })
+    return out
+  })
+
+  /* The badge's anchor as one predicate, so the positive control below runs the
+     SAME logic against the markup and rule this replaced. */
+  const badgeAnchorProblems = (cls, rule) => {
+    const out = []
+    if (/(?:^|\s)-right-/.test(cls)) out.push(`the badge is still right-anchored: ${cls}`)
+    if (/\babsolute\b/.test(cls)) {
+      out.push("the badge still carries `absolute` in the markup, so .years-badge is not the single source of its positioning")
+    }
+    if (rule === null) {
+      out.push("no .years-badge rule in src/index.css")
+    } else {
+      if (!/position:\s*absolute/.test(rule)) out.push(".years-badge is not position: absolute")
+      if (!/left:\s*-\d/.test(rule)) {
+        out.push(`.years-badge has no negative pixel \`left\`: ${rule.replace(/\s+/g, " ").slice(0, 100)}`)
+      }
+      if (/right:\s*-/.test(rule)) {
+        out.push(".years-badge sets a negative right, which is the anchor the client asked to move")
+      }
+    }
+    return out
+  }
+
+  check("the years badge is anchored to the seam between the photos", () => {
+    // It used to be `right: -29%` of the RIGHT photo's wrapper: measured at 1920
+    // it sat 360px to the right of the seam, 104px of it on the right photo and
+    // its last 100px hanging past the photo row entirely. The client asked for it
+    // "between the two photos". The rendered result was checked in a browser;
+    // what this pins is the anchor, which is the part that can silently revert.
+    const tag = /<div class="([^"]*\byears-badge\b[^"]*)"/.exec(home.clean)
+    if (!tag) return ["the home page has no .years-badge element"]
+    return badgeAnchorProblems(tag[1], ruleBody("\\.years-badge"))
+  })
+
+  check("the badge-anchor detector would catch the old right: -29%", () => {
+    // The exact markup and rule the badge shipped with before this round.
+    const oldCls =
+      "absolute -right-[29%] top-0 bottom-0 my-auto grid h-[301px] w-[205px] place-content-center rounded-[104px] bg-white text-center shadow-lift max-md:hidden"
+    const oldRule = " position: absolute; right: -29%; top: 0; bottom: 0; margin: auto; "
+    return badgeAnchorProblems(oldCls, oldRule).length > 0
+      ? []
+      : ["the detector passes the markup and rule the badge shipped with, so the check above proves nothing"]
+  })
+
   /* ── Brand lockup — the client-supplied icon + wordmark ───────────────────
    *
    * The client replaced the v1 `call-indigo-mark*.svg` imagery with a

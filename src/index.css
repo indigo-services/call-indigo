@@ -381,6 +381,50 @@
   @media (max-width: 991px)  { .spacer { height: 24px; } }
   @media (max-width: 767px)  { .spacer { height: 20px; } }
 
+  /* --------------------------------------------------------------------------
+     ABOUT — the "15+ Years of Experience" lozenge.
+
+     CLIENT 2026-09-26: "the icon box needs to be between the two photos to the
+     left, but with the images swapped so it doesn't overlap the left image
+     person's photo."
+
+     It used to be `right: -29%` of the RIGHT photo's wrapper. Measured at 1920
+     (`scripts/_probe_hero_about_refine.cjs`): the badge sat at x 744.6 — 360px
+     to the right of the seam between the photos, 104px of it ON the right photo,
+     and its last 100px hanging past the photo row's right edge altogether.
+
+     `left: -30px` puts the badge's left edge exactly on the left photo's right
+     edge, because 30px IS the row's own gap (`gap-[30px]` on the flex row, which
+     is the only width at which this badge is on screen — `max-md:hidden` hides it
+     at ≤767, where the row's gap drops to 0). So the badge bridges the gap and
+     overlaps the RIGHT photo only: 0px on the left one.
+
+     That zero is the point, and it is why the photos swap. A 205px badge cannot
+     straddle a 30px gap without covering both photos, and `about-img2.jpg` — the
+     technician in the blue cap — has his FACE at the right edge of his frame. On
+     the left, the badge would have gone straight through it. `about-img1.jpg`'s
+     left edge is wall, cabinet and a hand, so that photo takes the badge and
+     `about-img2.jpg` moves left, where nothing covers it.
+
+     Only the position lives here; the 205x301 size, the 104px lozenge radius
+     (exempt from the radius tightening — see the Radii note above) and the
+     centring utilities stay in the markup. The `top: 0; bottom: 0; margin: auto`
+     vertical centring is the template's own `.years-experience-con`.
+     -------------------------------------------------------------------------- */
+  .years-badge {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    bottom: 0;
+    /* ONLY the vertical margins. `margin: auto` would also set margin-left and
+       margin-right to auto, and with `right` left at its default `auto` the
+       abspos over-constraint solver spends the leftover space on those two
+       margins — which flings the badge to the right of the wrapper instead of
+       holding it at `left: -30px`. The shorthand is a trap here. */
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+
   /* Photo-backed slabs: the template paints the photo as the section's own
      background-image and then a ::before carrying the same 50px radius. */
   .slab-photo {
@@ -683,11 +727,66 @@
      every `right`/`top` offset is gone — they only ever applied to
      `position: absolute`. `flex: 0 0 auto` holds it at its content width while
      the arch takes the slack; `align-self: center` centres it vertically in the
-     row and horizontally in the stacked column. The padding is larger so the
-     card reads as the emergency action rather than as a caption. */
-  .navy-box { flex: 0 0 auto; align-self: center; min-width: 190px; padding: 22px 28px; }
-  @media (max-width: 1440px) { .navy-box { min-width: 178px; padding: 18px 22px; } }
-  @media (max-width: 1199px) { .navy-box { min-width: 160px; padding: 15px 18px; } }
+     row and horizontally in the stacked column.
+
+     CLIENT 2026-09-26 — three changes at once, and the padding is now a variable
+     because a second rule has to read it (see `.emergency-disc`):
+
+       · the inner padding comes down one step at every breakpoint (22/28 →
+         19/25, 18/22 → 16/19, 15/18 → 13/16), so the disc's new size is not paid
+         for with a bigger box;
+       · the card is RED — `#b5534a`, a muted brick red, painted by a utility in
+         the markup;
+       · the disc protrudes HALFWAY out of the card's top edge.
+
+     `--emergency-pad-y` is the vertical padding and nothing else, so the disc's
+     pull-back can be derived from it rather than guessed. */
+  .navy-box {
+    --emergency-disc: 58px;
+    --emergency-pad-y: 19px;
+    flex: 0 0 auto;
+    align-self: center;
+    min-width: 190px;
+    padding: var(--emergency-pad-y) 25px;
+  }
+  @media (max-width: 1440px) { .navy-box { --emergency-pad-y: 16px; min-width: 178px; padding: var(--emergency-pad-y) 19px; } }
+  @media (max-width: 1199px) { .navy-box { --emergency-pad-y: 13px; min-width: 160px; padding: var(--emergency-pad-y) 16px; } }
+
+  /* --------------------------------------------------------------------------
+     The Emergency disc — half in, half out of the card.
+
+     Sized here rather than with `p-*` utilities on purpose: the margin below is
+     derived from the disc's real height, so "halfway out" is arithmetic and not
+     an estimate that drifts when someone retunes the glyph.
+
+     The pull-back is half the disc PLUS the card's top padding, not half the
+     disc. Half the disc has to clear the card's BORDER box, and the card's
+     padding pushes its content down from that border box — so a `-29px` margin
+     would only lift the disc 11px clear at the base breakpoint, not 29px. Both
+     numbers live in variables because the padding changes at every breakpoint
+     and the margin has to follow it.
+
+     A negative margin rather than `position: absolute`: the disc stays a flex
+     item, so the card still sizes itself to its content and the centring is
+     flexbox's problem rather than a hand-tuned `top`.
+
+     COLOUR, and why it is computed. The card's sub-line ("Typical arrival
+     30–60 min") is 15px/500, so it needs 4.5:1, and a red that is merely
+     DARKER than the old `#d92d20` disc fails that: white on `#96453c` is 6.54:1
+     but white on `#c26a5e` is 3.81:1. `#b5534a` is hsl(5 41% 50%) — the same hue
+     as `#d92d20` at 73% saturation, i.e. genuinely "a muted same-tone red" — and
+     measures 4.88:1 with white, so it is muted AND passes AA for the small line.
+     The disc is `#6f150e`, that same hue at 24% lightness ("a dark red"), where
+     white measures 11.74:1. Disc against card is 2.4:1 — a visible step, not a
+     hard edge. The disc is `aria-hidden` decoration and the phone GLYPH is the
+     mark, so WCAG 1.4.11 is answered by the glyph's own 11.74:1 against the disc,
+     not by the disc's edge against the card.
+     -------------------------------------------------------------------------- */
+  .emergency-disc {
+    width: var(--emergency-disc);
+    height: var(--emergency-disc);
+    margin-top: calc(-1 * (var(--emergency-disc) / 2 + var(--emergency-pad-y)));
+  }
 
   /* `.banner-con .dot-img { bottom: 0 }` base, 15px at ≤1440, and the IMG is
      54px (its natural size) above 1440, 40px at ≤1440 (responsive.css:797),
@@ -785,7 +884,13 @@
        sit beside the arch here — the row becomes a centred column and the card
        drops under the arch. Measured after the change: no width in 320-1920
        overflows its viewport. */
-    .banner-img-con  { flex-direction: column; gap: 20px; align-items: stretch; }
+    /* CLIENT 2026-09-26 — `gap: 20px` → `49px`. The 20px was the daylight
+       between the arch's bottom edge and the CARD's top edge. The Emergency
+       disc now protrudes 29px above that top edge (half of `--emergency-disc`),
+       so a 20px gap would have driven the disc 9px INTO the photograph. Growing
+       the gap by exactly the protrusion keeps the original 20px of daylight
+       between the disc and the arch: 20 + 29 = 49. */
+    .banner-img-con  { flex-direction: column; gap: 49px; align-items: stretch; }
     .banner-img1     { flex: 0 0 auto; width: 100%; }
     .banner-img1 img { width: 406px; }
     .scrol-outer  { display: none; }

@@ -352,14 +352,24 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
                the padding are all larger so it reads as the emergency action
                rather than as a caption. -->
           <a href="tel:+15126084999"
-             class="navy-box flex flex-col items-center justify-center rounded-[12px] bg-topbar text-center text-white shadow-[16px_2px_13px_rgb(0_0_0/11%)] transition hover:bg-[#1c2c4e]">
-            <!-- CLIENT: a red round brand mark here, not the template's siren
+             class="navy-box flex flex-col items-center justify-center rounded-[12px] bg-[#b5534a] text-center text-white shadow-[16px_2px_13px_rgb(0_0_0/11%)] transition hover:bg-[#9d4238]">
+            <!-- CLIENT 2026-09-26: the card is RED now, not navy. \`#b5534a\` is
+                 the muted tone and \`#6f150e\` below is the dark one; both are the
+                 same hue as the old \`#d92d20\` disc, one desaturated and one
+                 darkened. The pair is computed, not eyeballed — white on the
+                 card is 4.88:1, which the 15px sub-line needs, and a red merely
+                 darker than \`#d92d20\` would have failed it. Full arithmetic in
+                 \`src/index.css\` under \`.emergency-disc\`. -->
+            <!-- CLIENT: a round brand mark here, not the template's siren
                  raster. Same disc-and-glyph lockup as the header - a rounded-full
-                 disc holding a lucide phone - recoloured red. Enlarged 2026-09-25
-                 from p-1.5/20px to p-2.5/24px, i.e. a 44px disc: 10+24+10. White
-                 on #d92d20 measures 4.83:1, over the 3:1 bar for a non-text mark;
-                 the card's own text still says "Emergency". -->
-            <div class="mb-[10px] shrink-0 rounded-full bg-[#d92d20] p-2.5" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
+                 disc holding a lucide phone. Enlarged 2026-09-25 from
+                 p-1.5/20px to p-2.5/24px (a 44px disc); CLIENT 2026-09-26 takes
+                 it to 58px with a 30px glyph, and \`.emergency-disc\` in
+                 \`src/index.css\` sizes it and pulls it up so exactly half of it
+                 sits outside the card's top edge. The size lives there, not in a
+                 \`p-*\` utility, because the margin that produces the protrusion
+                 is derived from it. -->
+            <div class="emergency-disc mb-[10px] grid shrink-0 place-items-center rounded-full bg-[#6f150e]" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div>
             <b class="mb-[6px] block text-[26px] font-bold leading-[30px]">Emergency</b>
             <span class="mb-1.5 block text-[15px] font-medium leading-[21px] text-white">Typical arrival<br>30–60 min</span>
             <span class="inline-block h-[28px] leading-[28px]"><img src="/assets/images/white-up-right-arrow.png" alt="" aria-hidden="true" class="inline h-[11px] w-[12px] align-middle object-contain"></span>
@@ -413,17 +423,29 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
              column started at x 772.3 — a 19.3px overlap (195px at 1024) that
              \`body { overflow-x: hidden }\` hid from every overflow check, because
              the spill never reached the viewport edge. -->
-        <figure class="m-0 min-w-0 flex-[372] max-w-[372px] max-lg:w-[280px] max-lg:flex-none max-lg:max-w-none max-md:w-1/2 max-md:pr-[8px]">
-          <img src="/assets/images/about-img1.jpg" alt="Call Indigo technician at work" class="w-full rounded-[18px]">
+        <!-- CLIENT 2026-09-26 — the two photos SWAP slots. The widths travel
+             with them: \`flex-[…]\`/\`max-w-[…]\` are each file's own natural width
+             (372 for about-img1, 347 for about-img2), so leaving them behind
+             would upscale the 347px source into a 372px box and squeeze the
+             other. \`about-img2.jpg\` takes the LEFT slot because the badge now
+             sits at the seam between the two — see \`.years-badge\` in
+             src/index.css for why that is the safe way round. -->
+        <figure class="m-0 min-w-0 flex-[347] max-w-[347px] max-lg:w-[260px] max-lg:flex-none max-lg:max-w-none max-md:w-1/2 max-md:pr-[8px]">
+          <img src="/assets/images/about-img2.jpg" alt="Property inspection" class="w-full rounded-[18px]">
         </figure>
-        <div class="relative min-w-0 flex-[347] max-w-[347px] max-lg:w-[260px] max-lg:flex-none max-lg:max-w-none max-md:w-1/2 max-md:pl-[8px]">
+        <div class="relative min-w-0 flex-[372] max-w-[372px] max-lg:w-[280px] max-lg:flex-none max-lg:max-w-none max-md:w-1/2 max-md:pl-[8px]">
           <figure class="m-0">
-            <img src="/assets/images/about-img2.jpg" alt="Property inspection" class="w-full rounded-[18px]">
+            <img src="/assets/images/about-img1.jpg" alt="Call Indigo technician at work" class="w-full rounded-[18px]">
           </figure>
           <!-- .years-experience-con — 205 x 301, \`border-radius: 104px\`,
-               \`right: -29%\` of the photo-2 wrapper, \`top:0;bottom:0\` centred.
-               Reference measured: badge x 724..929, i.e. 826 + 29% x 347 = 927. -->
-          <div class="absolute -right-[29%] top-0 bottom-0 my-auto grid h-[301px] w-[205px] place-content-center rounded-[104px] bg-white text-center shadow-lift max-md:hidden">
+               \`top:0;bottom:0\` centred. Reference measured: badge x 724..929.
+               CLIENT 2026-09-26: the template's \`right: -29%\` is gone — it hung
+               the badge off the photo row's right end, 104px of it on the right
+               photo and 100px past the row entirely. \`.years-badge\` in
+               src/index.css now pins it to the seam between the two photos. The
+               104px lozenge radius stays: it is exempt from the radius
+               tightening, because shrinking it changes what the element IS. -->
+          <div class="years-badge grid h-[301px] w-[205px] place-content-center rounded-[104px] bg-white text-center shadow-lift max-md:hidden">
             <span class="mx-auto mb-[10px] grid size-[106px] place-items-center rounded-full bg-topbar">
               <img src="/assets/images/about-icon.png" alt="" aria-hidden="true" class="w-[54px]">
             </span>
