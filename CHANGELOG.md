@@ -10,6 +10,62 @@ with pre-release tags for release candidates.
 
 ## [Unreleased] — working dashboard, public inquiry page, copy pass, client punch list
 
+### Client feedback round 3, follow-up — the "15+ Years" badge goes horizontal, 2026-09-26
+
+The client's follow-up to the badge work: make it a **horizontal icon box — blue
+icon left, "15+…" text right — centred at the bottom between the two photos.**
+Home page only. Suite: **107 → 109 checks**. Shipped as **`07c5fbd`** —
+`feat(marketing): horizontal, bottom-centred "15+ Years" badge, every dimension
+stepped at 1440` — with the instrument fix in **`2eeadaa`**. Measurements, the
+source-pixel face check and the judgement call: **`docs/plan-client-feedback-2026-09-26.md`
+§ 2, revision 2**.
+
+**The anchor became two parts, and both matter.** `left: -15px` is *half* the
+row's 30px gap, which lands the badge's left edge on the seam's midpoint;
+`translateX(-50%)` then moves its **centre** there. `left` alone leaves the badge
+entirely to the *right* of the seam — which is precisely what the previous round
+shipped — so the test asserts the transform explicitly rather than settling for
+"a negative `left`".
+
+| width | badge | centre vs seam | overlap left | overlap right |
+|---|---|---|---|---|
+| 1920 | 264×100 | **0px** | 117px | 117px |
+| 1440 / 1199 / 991 / 768 | 222.8×84 | **0px** | 96.4px | 96.4px |
+| 390 | hidden | — | — | — |
+
+**Q1 is closed by the same change.** Every dimension the badge renders — box
+padding, disc, glyph, figure, label, gap — now reads from a `--yb-*` variable with
+a ≤1440 step, so the whole lockup shrinks with the photos. Coverage at 1440 falls
+from the **62%** Q1 flagged to **37%**, and the single-digit clearance from the
+technician's hair goes with it. The radius is 18px rather than the old 104px
+lozenge: the lozenge was exempt from the radius tightening as "a shape rather than
+a corner", and a horizontal icon *box* is a corner.
+
+**Faces re-checked, because the covered strip moved.** `_face_extent.cjs` had the
+band hardcoded as vertically centred — correct for the old lozenge, wrong for a
+bottom-anchored badge — so it now takes the band's top explicitly, and says so
+when you omit it. With the real band, **both photos' faces sit above it**: the
+badge covers apron and sleeve on the left, worktop and forearms on the right.
+⚠️ The tool's `skin` predicate also matches warm wood, so the right photo's
+worktop reads as 47–100% "skin" — recorded in its header rather than left as a
+trap.
+
+**One judgement call, flagged rather than tuned silently.** The row is
+`items-center` and the two photos differ in height (at 1920, 559.2 against 669),
+so the shorter left photo has ~55px of dead space above and below it. A badge
+anchored 22px above the **row's** bottom therefore hangs **32.9px below the left
+photo's** bottom edge, its lower-left corner on the white slab with only its
+shadow for an edge. That is the literal reading of "bottom middle between the two
+photos" and it is what shipped; anchoring to the shorter photo's bottom instead
+would put the badge mid-way up the right photo.
+
+**Q2 and Q3 closed by the client.** Q2 (the mobile carousel) was **user-specific**
+— no action, and the round-2 finding stands: the probe still sees four distinct
+words and four distinct arch photographs at 390px with motion on. Q3 (ToS and
+Privacy) — **"proceed with pages as is, this is a prototype"**; the placeholder
+copy still carries its own warning, so a *public* launch would still need the real
+text. **Q4 (punch list T2, T5–T7) remains open.**
+
 ### Client feedback round 3 — two revisions, 2026-09-26
 
 Measured **before** and after with `scripts/_probe_hero_about_refine.cjs` (new),
