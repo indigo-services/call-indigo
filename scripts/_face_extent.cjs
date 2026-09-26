@@ -31,8 +31,17 @@
  *      `skin OR dark` also finds hair and dark clothing, which is what you want
  *      for "is a person there" but NOT for "is a face there". Read both.
  *
- * Usage: _face_extent.cjs <img> <renderedWidth> [badgeHeight]
- *   e.g. _face_extent.cjs public/assets/images/about-img2.jpg 347
+ * Usage: _face_extent.cjs <img> <renderedWidth> [bandHeight] [bandTop]
+ *   e.g. _face_extent.cjs public/assets/images/about-img2.jpg 347 100 547
+ *
+ * `bandTop` is the overlay's top edge in RENDERED px, measured from the top of
+ * the photo — read it off the layout probe as `badge.y - photo.y`. It matters,
+ * and omitting it is now a trap: this script used to assume the band was
+ * vertically CENTRED, which was true of the 301px vertical lozenge it was
+ * written for. The badge is a bottom-anchored horizontal lockup since the
+ * 2026-09-26 revision, so a centred band measures the wrong rows and will report
+ * a clearance for a strip the overlay never touches. With no `bandTop` the
+ * script still centres the band, but it says so on every run.
  */
 
 const path = require("path")
@@ -48,6 +57,7 @@ async function main() {
   const file = process.argv[2]
   const renderedW = Number(process.argv[3])
   const badgeH = Number(process.argv[4] || 301)
+  const bandTopArg = process.argv[5] === undefined ? null : Number(process.argv[5])
 
   const img = sharp(file)
   const meta = await img.metadata()
@@ -58,13 +68,16 @@ async function main() {
 
   const scale = renderedW / W // image px -> rendered px
   const renderedH = H * scale
-  const bandTopR = (renderedH - badgeH) / 2
+  const bandTopR = bandTopArg === null ? (renderedH - badgeH) / 2 : bandTopArg
   const bandBotR = bandTopR + badgeH
   const y0 = Math.max(0, Math.round(bandTopR / scale))
   const y1 = Math.min(H - 1, Math.round(bandBotR / scale))
   const rows = y1 - y0 + 1
 
   console.log(`\n${path.basename(file)}  ${W}x${H}  rendered ${renderedW}x${Math.round(renderedH)}`)
+  if (bandTopArg === null) {
+    console.log("  note: no bandTop given — assuming the overlay is vertically CENTRED in the photo")
+  }
   console.log(`  badge is ${badgeH}px tall -> covers image rows ${y0}..${y1} = ${Math.round((y0 / H) * 100)}-${Math.round((y1 / H) * 100)}% of the height`)
 
   const dens = new Array(W).fill(0)
