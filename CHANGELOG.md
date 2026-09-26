@@ -10,6 +10,66 @@ with pre-release tags for release candidates.
 
 ## [Unreleased] — working dashboard, public inquiry page, copy pass, client punch list
 
+### Dashboard sign-in gate — a salted client-side credential, 2026-09-26
+
+The client asked for a username and password on `/admin`, with a **secure
+implementation** rather than a literal comparison. Shipped as **`e622315`** —
+`feat(admin): gate the dashboard behind a salted, client-side credential`. Suite:
+**109 → 127 checks** (18 of them in the new `tests/auth.mjs`); the behaviour was
+measured in a real browser at **8/8**. Threat model, rotation and risk register:
+**`docs/admin-gate.md`**.
+
+**The credential is a digest, not a literal.** The password is a salted
+PBKDF2-HMAC-SHA-256 digest at **210,000 iterations**; the username is a salted
+SHA-256. Both halves are derived and compared on **every** attempt, so a wrong
+username is not measurably faster than a wrong password and a failure does not say
+which field was wrong. **Neither credential is in the bundle** — checked directly
+(`username in bundle: 0`, `password in bundle: 0`) and by a repo-wide grep. For
+that reason **the credentials are deliberately not reproduced in this file**:
+writing them here would falsify the property the tests assert.
+
+**Where the gate sits, and why it renders rather than redirects.** `RequireAuth`
+wraps `AdminLayout` — the **layout**, so a stranger never sees the sidebar — and
+renders `LoginPage` in place of its children. There is no `/admin/login` route and
+no redirect, so there is nothing to loop. The session is in `sessionStorage` under
+a key deliberately **outside** the `call-indigo:v1:` namespace, so "Reset demo
+data" cannot sign the operator out; 12-hour expiry; sign out in the sidebar
+footer.
+
+**Verified behaviourally, because the suite structurally cannot.** A sign-in is a
+store subscription plus an async KDF, and `renderToStaticMarkup` runs no effects
+and has no layout — so `scripts/_probe_admin_gate.cjs` measures it in a browser:
+wrong credentials rejected in **173ms** with the dashboard still closed, right
+credentials open it in **250ms**, a reload keeps the session, **a new tab does
+not**, and Sign out ends it. The credential-dependent steps report **SKIPPED**,
+never passed, when `ADMIN_USER` / `ADMIN_PASS` are unset.
+
+**Four things the tests caught, three of them stale claims.**
+
+| Stale claim | What it said | Now |
+|---|---|---|
+| `tests/policy.mjs` | *required* the **absence** of auth — `useAuth`, `signIn`, `sessionStorage`, all rejected by regex | inverted to pin the **boundary**: no server session, no token, no `/admin/login`, and the digests in exactly one module |
+| Profile, Security, change-password, Design System publish note | "there is no authentication" / "anyone who reaches `/admin` has full access" | all four describe the gate; `tests/auth.mjs` scans `src/` for the old sentences and fails, with a control |
+| `docs/dashboard-scope.md` §6 + its §9.1 row, `docs/README.md` release gate | "Auth negative — expect zero" | superseded / rewritten |
+
+**What it is not, said plainly.** Client-side. With no server there is nowhere for
+a secret to hide from the browser, so anyone who can open devtools can set the
+session flag. It keeps the dashboard off the public internet, which is the actual
+requirement while the client is showing this around — it is **not access
+control**, and the Security page now says so. `PRD.md` §9.1 still reads "No
+authentication"; the client overrode that scope, and by convention the PRD is left
+as the scope of record while the reconciliation lives in `docs/admin-gate.md`.
+
+**Also.** `scripts/_gen-admin-credential.cjs` prints fresh constants for rotation
+and refuses a password under 12 characters, never echoing it back. `tests/auth.mjs`
+fails if the stored digest is one of seven obvious guesses, and fails if the
+unreferenced `nav-user.tsx` registry code — with its inert "Log out" — is ever
+rendered, so it cannot be mistaken for the real sign-out. Two checks matched text
+**inside comments** (`localStorage` in a doc block explaining why the session is
+*not* in `localStorage`, and `/admin/login` in two comments explaining why no such
+route exists); comments are now stripped before every identifier scan. **That is
+the fifth and sixth time this trap has produced a false result in this repo.**
+
 ### Client feedback round 3, follow-up — the "15+ Years" badge goes horizontal, 2026-09-26
 
 The client's follow-up to the badge work: make it a **horizontal icon box — blue
