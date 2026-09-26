@@ -132,8 +132,9 @@ export default function ProfilePage() {
         <CardHeader>
           <CardTitle>Account</CardTitle>
           <CardDescription>
-            This dashboard has no authentication — PRD §9.1 scopes it out, and §16.2 F1
-            schedules it before any real data exists. Nothing here is a credential.
+            Sign-in is a client-side prototype gate — one shared operator login, no accounts
+            and no per-user data. Nothing here is a credential, and nothing here can change
+            the password the gate checks.
           </CardDescription>
         </CardHeader>
       </Card>

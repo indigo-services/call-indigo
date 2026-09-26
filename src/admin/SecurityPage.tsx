@@ -1,12 +1,13 @@
 /**
  * Security page — /admin/security.
  *
- * Honest about what it is: there is no authentication in this build (PRD §9.1
- * scopes it out), so nothing here protects anything. The controls are wired to
- * real state so the page behaves like the product it is standing in for, and
- * the password form validates and records a rotation — but it is storing a
- * timestamp, not a credential, and the page says so rather than implying
- * otherwise.
+ * Honest about what it is. There IS a sign-in gate now (`src/admin/auth.ts`),
+ * but it runs in the browser and cannot protect anything on its own, and
+ * **nothing on this page can change it**: the credential is a build-time hash, so
+ * the password form below records a rotation date and stores no credential. The
+ * controls are wired to real state so the page behaves like the product it is
+ * standing in for, and the copy says which parts are decoration rather than
+ * implying otherwise.
  */
 import { useState, type FormEvent } from "react"
 import { toast } from "sonner"
@@ -103,11 +104,13 @@ export default function SecurityPage() {
         <CardHeader className="flex-row items-start gap-3 space-y-0">
           <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600" />
           <div>
-            <CardTitle className="text-base">There is no authentication yet</CardTitle>
+            <CardTitle className="text-base">The sign-in gate is a prototype</CardTitle>
             <CardDescription>
-              Anyone who reaches <code className="text-xs">/admin</code> has full access. PRD
-              §16.2 F1 schedules auth, and it should land before this dashboard is pointed
-              at anything real.
+              <code className="text-xs">/admin</code> is behind a username and password, but the
+              check runs in the browser: there is no server, so anyone who can open devtools can
+              set the session flag directly. It keeps the dashboard off the public internet — it
+              is not access control. A real backend, and a server-issued session, is what PRD
+              §16.2 F1 still owes before this is pointed at anything real.
             </CardDescription>
           </div>
         </CardHeader>
@@ -188,8 +191,9 @@ export default function SecurityPage() {
             Change password
           </CardTitle>
           <CardDescription>
-            Demo only — the form validates and records the date, but no password is stored
-            and none is checked.
+            Demo only — the form validates and records the date. It cannot change the sign-in
+            credential: that is a build-time hash in{" "}
+            <code className="text-xs">src/admin/auth.ts</code>, so rotating it means rebuilding.
           </CardDescription>
         </CardHeader>
         <CardContent>

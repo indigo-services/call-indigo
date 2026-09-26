@@ -27,6 +27,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { ADMIN_NAV } from "@/admin/routes"
+import { signOut } from "@/admin/auth"
 import { api } from "@/lib/data/api"
 import { useApiData } from "@/lib/data/hooks"
 
@@ -110,13 +111,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </p>
           <p className="truncate">{profile.data?.email ?? "…"}</p>
         </div>
-        <div className="px-3 pb-2">
+        <div className="flex items-center justify-between gap-2 px-3 pb-2">
           <Link
             to="/"
             className="text-xs text-sidebar-foreground/60 underline-offset-2 hover:text-sidebar-foreground hover:underline"
           >
             ← Back to the site
           </Link>
+          {/* No navigation on click: `signOut` clears the session and the store
+              notifies `RequireAuth`, which swaps the whole shell for the sign-in
+              page. A `navigate()` here would fight that render. */}
+          <button
+            type="button"
+            onClick={signOut}
+            className="text-xs text-sidebar-foreground/60 underline-offset-2 hover:text-sidebar-foreground hover:underline"
+          >
+            Sign out
+          </button>
         </div>
       </SidebarFooter>
       <SidebarRail />

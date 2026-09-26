@@ -11,6 +11,7 @@ import ContactPage from "@/marketing/pages/ContactPage"
 
 // Admin dashboard (registry-only — PRD §7)
 import AdminLayout from "@/admin/AdminLayout"
+import RequireAuth from "@/admin/RequireAuth"
 import InquiriesPage from "@/admin/InquiriesPage"
 import SettingsPage from "@/admin/SettingsPage"
 import ProfilePage from "@/admin/ProfilePage"
@@ -37,8 +38,21 @@ export default function App() {
         <Route path="/contact" element={<ContactPage />} />
 
         {/* Admin routes. The sidebar's source of truth is `src/admin/routes.ts`;
-            this table must stay in step with it. */}
-        <Route path="/admin" element={<AdminLayout />}>
+            this table must stay in step with it.
+
+            The whole shell is behind `RequireAuth`, which is why the guard wraps
+            `AdminLayout` here rather than living inside it: an unauthenticated
+            visitor must not see the sidebar at all. `RequireAuth` renders the
+            sign-in page in place of its children, so no `/admin/login` route
+            exists and no redirect can loop. */}
+        <Route
+          path="/admin"
+          element={
+            <RequireAuth>
+              <AdminLayout />
+            </RequireAuth>
+          }
+        >
           <Route index element={<Navigate to="/admin/inquiries" replace />} />
           <Route path="inquiries" element={<InquiriesPage />} />
           <Route path="settings" element={<SettingsPage />} />

@@ -11,16 +11,17 @@
  * marketing pages, which are raw HTML strings rather than React components. The
  * preview is therefore real, and it is instant.
  *
- * What is *not* real is the reach. `/admin` has no auth and this build has no
- * backend, so a saved value goes to `localStorage` and applies to **this browser
- * only**. Visitors keep seeing the shipped defaults until the copied token block
- * is committed to `src/index.css` and deployed. The card says so in as many
- * words, because a colour picker that looks like it published a change to the
- * live site — and did not — is worse than no picker.
+ * What is *not* real is the reach. The `/admin` gate is client-side and this
+ * build has no backend, so a saved value goes to `localStorage` and applies to
+ * **this browser only**. Visitors keep seeing the shipped defaults until the
+ * copied token block is committed to `src/index.css` and deployed. The card says
+ * so in as many words, because a colour picker that looks like it published a
+ * change to the live site — and did not — is worse than no picker.
  *
  * That last step is deliberately a copy-paste rather than a button: publishing
- * would need either a stored credential on an unauthenticated page, or a real
- * backend. See `src/lib/theme.ts` and PRD §16.2 F2/F4.
+ * means writing to the deployed stylesheet, which needs a real backend — a
+ * signed-in operator is not enough, and the gate in `src/admin/auth.ts` cannot
+ * publish anything. See `src/lib/theme.ts` and PRD §16.2 F2/F4.
  */
 import { useEffect, useState } from "react"
 import { Copy, Check, RotateCcw } from "lucide-react"
@@ -265,9 +266,9 @@ export default function DesignSystemPage() {
               Saving here changes this browser, not the live site.
             </p>
             <p className="mt-1 text-muted-foreground">
-              There is no backend and <span className="font-mono text-xs">/admin</span> has no
-              auth, so a saved theme lives in this browser&rsquo;s local storage — visitors keep
-              seeing the shipped colours. To publish, use{" "}
+              There is no backend — the <span className="font-mono text-xs">/admin</span> gate
+              is client-side — so a saved theme lives in this browser&rsquo;s local storage and
+              visitors keep seeing the shipped colours. To publish, use{" "}
               <span className="font-semibold text-foreground">Copy token block</span> and paste
               the result into <span className="font-mono text-xs">src/index.css</span>, then
               commit. That is PRD §16.2 F2/F4: a real backend, and auth on this page, is what a

@@ -237,8 +237,8 @@ Components are not hand-written, not copied from a blog, not re-implemented.
 | **Import discipline** | No `src/admin/**` file may import from `src/marketing/**` | Pre-merge grep |
 | **Route count** | `/admin` routes match `src/admin/routes.ts` exactly, and `/admin/*` has no catch-all page — unknown paths redirect (§5.2, `docs/dashboard-scope.md`) | Pre-merge assertion |
 | **Nav model** | Every `/admin` page is listed in `src/admin/routes.ts` — a page cannot exist without a sidebar entry and a breadcrumb | Pre-merge review |
-| **Auth negative** | Grep build for login/session/token/auth route or provider code; expect zero | Pre-merge grep |
-| **Storage containment** | Only `src/lib/data/backend.ts` may reference `localStorage`; every other file goes through `src/lib/data/api.ts` | Pre-merge grep |
+| **Auth boundary** | No server session, token or `/admin/login` route may appear, and the credential digests live in `src/admin/auth.ts` alone (§6, `docs/admin-gate.md`) | Pre-merge assertion |
+| **Storage containment** | Only `src/lib/data/backend.ts` may reference `localStorage`, and only `src/admin/auth.ts` may reference `sessionStorage`; every other file goes through `src/lib/data/api.ts` | Pre-merge grep |
 | **Design-system coverage** | Every component class used in the marketing markup is defined in `src/index.css` — the count of missing classes must be zero | Pre-merge script |
 
 ### Custom-component exceptions
@@ -313,6 +313,7 @@ likely cause of a parity failure (PRD §13.3). Measure landmark boxes, not scree
 | Sidebar block files | `src/components/` (root — they are block, not ui) |
 | Bespoke marketing components | `src/marketing/` |
 | Admin pages | `src/admin/` |
+| Dashboard gate (client-side, prototype) | `src/admin/auth.ts` — see `docs/admin-gate.md` |
 | Mock fixtures (design-token display only) | `src/admin/mock/` |
 | Dashboard data layer | `src/lib/data/` — see `docs/dashboard-scope.md` |
 | Shared utilities | `src/lib/` |

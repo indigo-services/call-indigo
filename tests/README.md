@@ -14,22 +14,33 @@ npm run test:only # run the suites against the last build
 
 ## What runs
 
-| Module | Suite | Checks | What it proves |
-|---|---|---|---|
-| `harness.mjs` | — | — | Assertions, the report, the TS loader, and the HTML helpers |
-| `policy.mjs` | Component policy (PRD §7) | 6 | The registry rules hold in the source tree |
-| | Routing (PRD §5) | 3 | The sidebar, the router and the "no catch-all" rule agree |
-| | Stack (PRD §4, §14) | 5 | Tailwind v4 is wired as specified and the tokens live in one file |
-| `service-area.mjs` | Service area (ZIP check) | 7 | The ZIP decision has boundaries |
-| `verify.mjs` | Rendered markup | 16 | Each public route renders, and its links, ids, images and form hold up |
-| | Stylesheet coverage | 2 | Every class in the markup is actually emitted by the compiled CSS |
-| | Copy hygiene | 7 | No scaffolding language, no doubled words, no contradictory facts, and the shared-chrome seams still applied |
-| | Punch list (v1.0.1) | 8 | The client-confirmed changes cannot silently regress |
-| | Brand lockup | 8 | All four copies of the chrome carry the client's icon + wordmark, and the favicons match |
-| | Legal copy matches the build | 5 | The policy describes *this* build — coupled to the code in both directions |
-| `run.mjs` | — | — | Entry point; orders the suites and turns the tally into an exit code |
+| Module | Suite | What it proves |
+|---|---|---|
+| `harness.mjs` | — | Assertions, the report, the TS loader, and the HTML helpers |
+| `policy.mjs` | Component policy (PRD §7) | The registry rules hold in the source tree |
+| | Routing (PRD §5) | The sidebar, the router, the "no catch-all" rule and the **auth boundary** all agree |
+| | Stack (PRD §4, §14) | Tailwind v4 is wired as specified and the tokens live in one file |
+| `service-area.mjs` | Service area (ZIP check) | The ZIP decision has boundaries |
+| `hero-rotation.mjs` | Hero rotation | The rotating word and the arch photograph cannot drift apart |
+| `verify.mjs` | Rendered markup | Each public route renders, and its links, ids, images and form hold up |
+| | Stylesheet coverage | Every class in the markup is actually emitted by the compiled CSS |
+| | Copy hygiene | No scaffolding language, no doubled words, no contradictory facts, and the shared-chrome seams still applied |
+| | Punch list (v1.0.1) | The client-confirmed changes cannot silently regress |
+| | Hero Emergency card and About row | The derived disc protrusion, the photo swap, and the badge's two-part centring |
+| | Brand lockup | All four copies of the chrome carry the client's icon + wordmark, and the favicons match |
+| | Legal copy matches the build | The policy describes *this* build — coupled to the code in both directions |
+| | Credentials, not placeholder brands | The band is real, and it is the only one |
+| | Service heroes and page primaries | Each service page scopes its own scrim, and the header agrees |
+| | CTA bands carry the client's mark | No floating badge, one phone glyph everywhere |
+| | Theme tokens are authorable | The picker's defaults, validation and contrast bars |
+| `auth.mjs` | Dashboard gate | The KDF cost, the digest encodings, the guard's placement, and that no page still claims there is no sign-in |
+| `run.mjs` | — | Entry point; orders the suites and turns the tally into an exit code |
 
-**67 checks.** All pass on the current build.
+**Check counts are deliberately not listed here.** They grow with every round, and
+the copy of this file that read "67 checks" was wrong within a day of being written.
+The run prints the authoritative total — read it from there, never from a document.
+(A suite that returns `[]` for everything also "passes", which is why the runner
+prints the count rather than just the failures.)
 
 ---
 
@@ -57,7 +68,7 @@ Each of these produced a real false result before it was handled:
 
 | Trap | Symptom | Fix |
 |---|---|---|
-| Scanning comments | 3 phantom dead `#terms` anchors, matched from inside comments that *document* those anchors | `stripComments()` runs before every structural scan |
+| Scanning comments | 3 phantom dead `#terms` anchors, matched from inside comments that *document* those anchors. **The same trap has since produced four more false results**: a CSS rule matched inside a comment, `localStorage` matched in a doc block explaining why the session is deliberately *not* in `localStorage`, and `/admin/login` matched in two comments explaining why no such route exists | Comments are stripped before every scan — `stripComments()` for HTML, `stripJsComments()` for TypeScript and CSS |
 | Unanchored attribute match | `aria-invalid="false"` read as `id="false"` — 6 phantom duplicate ids on `/contact` | `attr()` uses a `(?<![\w-])` lookbehind |
 | Lazy element match | `element()` stopped at the first nested `</div>`, hiding everything inside the legal dialogs | Depth-aware tag scanner |
 | Nested `<footer>` | `<footer>` is legal inside `<blockquote>`, and the home page uses it under each testimonial. Greedy matching ran from a testimonial to the end of the document; lazy stopped at that testimonial. Both read as "the footers differ between pages" when they are identical | `siteFooter()` takes the **last** `<footer>` |

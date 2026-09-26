@@ -10,12 +10,12 @@
  * React — they carry the class, the class reads the variable.
  *
  * ⚠️ WHAT "SAVE" CANNOT MEAN HERE
- * `/admin` has no auth and this build has no backend, so a saved value lives in
- * `localStorage` and is therefore **per-browser**. A visitor keeps seeing the
- * shipped defaults until the token block from `cssTokenBlock()` is committed to
- * `src/index.css` and deployed. That is a deliberate limitation, not a bug to
- * discover later — say it out loud on the page rather than implying the site
- * has changed for everyone.
+ * This build has no backend, and the `/admin` gate is client-side, so a saved
+ * value lives in `localStorage` and is therefore **per-browser**. A visitor keeps
+ * seeing the shipped defaults until the token block from `cssTokenBlock()` is
+ * committed to `src/index.css` and deployed. That is a deliberate limitation, not
+ * a bug to discover later — say it out loud on the page rather than implying the
+ * site has changed for everyone.
  *
  * WHY `default` IS DUPLICATED WITH `index.css`
  * The stylesheet needs a value for first paint, before any JS runs; the picker

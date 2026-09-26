@@ -8,6 +8,7 @@
  * and turns the harness's tally into an exit code.
  */
 import { finish } from "./harness.mjs"
+import { run as auth } from "./auth.mjs"
 import { run as heroRotation } from "./hero-rotation.mjs"
 import { run as policy } from "./policy.mjs"
 import { run as serviceArea } from "./service-area.mjs"
@@ -19,5 +20,6 @@ await policy()
 await serviceArea()
 await heroRotation()
 await verify()
+await auth()
 
 process.exit(finish())
