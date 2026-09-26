@@ -93,7 +93,7 @@ Confirmed by eye at 991, 768 and 390.
 
 ---
 
-## 2. The "15+ Years" badge — between the photos, with the photos swapped
+## 2. The "15+ Years" badge — two revisions, and the photos swap
 
 > *"the icon box 15+ Years Experience need to be between the two photos to the
 > left, but with the images swapped so the icon box doesn't overlap the left image
@@ -106,7 +106,7 @@ x744.6 — **360px to the right of the seam** between the photos, 104px of it ON
 right photo, and its last **100px hanging past the photo row entirely**, out over
 the white slab.
 
-### Where it is now
+### Revision 1 — the badge's left edge on the seam
 
 `.years-badge { position: absolute; left: -30px; top: 0; bottom: 0; margin: auto }`
 
@@ -167,13 +167,80 @@ covers part of the right photo — 175px of 372px at 1920, and 175px of **282px*
 upper corner is the tightest point in the layout: **single-digit pixels, no
 overlap.** Nothing is covered, but there is not much air. See open question Q1.
 
+### Revision 2 (same day) — horizontal, and centred at the bottom
+
+> *"update the 15+ Years of Service to make it a horizontal icon box, blue icon on
+> left, '15+…' text on right. and be centered bottom middle between the two
+> photos."*
+
+The first revision put the badge's **left edge** on the seam. "Centred" is a
+different anchor, so it became a **two-part** mechanism:
+
+`.years-badge { position: absolute; left: -15px; transform: translateX(-50%); bottom: 22px }`
+
+`-15px` is **half** the row's 30px gap, which lands the badge's left edge on the
+seam's midpoint; `translateX(-50%)` then shifts its **centre** onto it. Both halves
+are load-bearing — `left` alone leaves the badge entirely to the *right* of the
+seam. That is exactly why the test asserts the transform explicitly instead of
+just "a negative `left`": the previous anchor satisfies the weaker claim.
+
+| width | badge | centre vs seam | overlap left | overlap right | bottom vs row |
+|---|---|---|---|---|---|
+| 1920 | 264×100 | **0px** | 117px | 117px | −22px |
+| 1440 | 222.8×84 | **0px** | 96.4px | 96.4px | −16px |
+| 1199 | 222.8×84 | **0px** | 96.4px | 96.4px | −16px |
+| 991 | 222.8×84 | **0px** | 96.4px | 96.4px | −16px |
+| 768 | 222.8×84 | **0px** | 96.4px | 96.4px | −16px |
+| 390 | hidden | — | — | — | — |
+
+The overlaps are now **symmetric** — the badge straddles the seam rather than
+sitting inside the right photo — and every dimension moved into a `--yb-*`
+variable with a ≤1440 step, so **the whole lockup shrinks with the photos**
+(264×100 → 222.8×84). That step *is* the Q1 fix: the 62% coverage Q1 flagged
+becomes 96.4 of 263.5 = **37%** at 1440, and the single-digit clearance from the
+technician's hair disappears because the badge no longer reaches that corner.
+
+**Faces re-checked for the new band, not the old one.** `_face_extent.cjs` had the
+band's vertical position hardcoded as *centred* — correct for the 301px vertical
+lozenge it was written for, wrong for a bottom-anchored lockup. It now takes the
+band's top explicitly, and says so when you omit it. Re-measured with the real
+band:
+
+- **left photo**, rows **617–700** (88–100% of the frame): the man's overalls and a
+  pale surface. His **face is at the top of the frame — outside the band.**
+- **right photo**, rows **1094–1294** (82–97%): the wooden counter and both men's
+  forearms. **Faces at the top — outside the band.**
+
+⚠️ A caveat about that instrument: its `skin` predicate
+(`r>140 && r>g>b && r−b>25`) **matches warm wood**, so the right photo reports
+47–100% "skin" across every column — that is the worktop, not skin. Read the
+profile as *"where is the top of this frame"* and confirm faces by eye.
+
+**Verified by eye at 1920** with a 2× crop: white card, `rounded-[18px]`, a navy
+disc holding the family glyph at the left, "15+" over "Years of Experience" at the
+right. No face under it.
+
+**One judgement call worth naming.** The row is `items-center` and the two photos
+have different heights (at 1920, 559.2 against 669), so the shorter left photo has
+~55px of dead space above and below it. A badge anchored 22px above the **row's**
+bottom therefore hangs **32.9px below the left photo's** bottom edge, and its
+lower-left corner sits on the white slab with only its shadow for an edge. That is
+the literal reading of "bottom middle between the two photos" and it is what
+shipped; the alternative — anchoring to the shorter photo's bottom — would put the
+badge mid-way up the right photo instead. Flagged, not changed unilaterally.
+
 ---
 
 ## Open questions — answers needed to finish
 
-### Q1. The badge is 205px in a 30px gutter. Shrink it at ≤1440? *(recommend: yes, one step)*
+### Q1. The badge is 205px in a 30px gutter. Shrink it at ≤1440? — **CLOSED**
 
-At 1920 the badge covers 47% of the right photo and the clearance is comfortable.
+**Answer: yes — the recommendation, implemented in revision 2 above.** Every
+dimension is now a `--yb-*` variable with a ≤1440 step, so the lockup scales with
+the photos (264×100 → 222.8×84) and coverage at 1440 falls from 62% to 37%. The
+tight corner from the technician's hair is gone with it.
+
+*The question as it was asked, kept for the record:* at 1920 the badge covers 47% of the right photo and the clearance is comfortable.
 At 1440 and below the photos shrink (372 → 282) while the badge does not, so it
 covers **62%** and the clearance drops to a few pixels. The badge is at the
 reference template's size (205×301) and the client did not ask for it to change.
@@ -185,20 +252,19 @@ reference template's size (205×301) and the client did not ask for it to change
 - Alternative: reduce the row's gap so the gutter is narrower and the badge tucks
   in further — **not recommended**, it changes the photo rhythm.
 
-### Q2. F4 — "on mobile the carousel does not move" *(needs the client's device)*
+### Q2. F4 — "on mobile the carousel does not move" — **CLOSED, no action**
 
-Raised in round 2 and **not reproduced**, locally or on the live site: at 390px
-with motion on, the probe sees **4 distinct words and 4 distinct arch photographs**
-across 12 samples. Only `prefers-reduced-motion: reduce` stops it — and that is
-respected on purpose. To close this I need: **device, browser, and whether
-"Reduce Motion" is switched on** in the OS or browser accessibility settings. If
-it is on, the hero is behaving correctly and the fix is a copy/UX one, not a bug
-fix.
+The client confirmed this was **user-specific** (their own device/browser), not a
+site defect. Nothing changed. The original finding stands: locally and on the live
+site at 390px with motion on, the probe sees **4 distinct words and 4 distinct arch
+photographs** across 12 samples; only `prefers-reduced-motion: reduce` stops it,
+and that is respected on purpose.
 
-### Q3. T4 — the Terms of Service and Privacy text *(release blocker)*
+### Q3. T4 — the Terms of Service and Privacy text — **CLOSED for the prototype**
 
-Still the only item blocking a public release. The current copy is placeholder
-sample language carrying its own warning. The client must supply the real text.
+The client's answer: **treat it as done for now — this is a prototype.** The pages
+ship as they are. The release-blocker status moves with it: the placeholder copy
+still carries its own warning, so a *public* launch would still need the real text.
 Facts a rewrite must not break, all verified against the build: **no cookie is
 set**, **no analytics exists**, the form collects **no postal address**, and the
 **captcha is local arithmetic** with no third-party service.
@@ -216,7 +282,8 @@ closed**.
 |---|---|
 | Round 1 — hero imagery, headline wrap, legal notice | shipped `ca91664` |
 | Round 2 — nine requests | shipped `788913f`, live and verified byte-identical |
-| Round 3 — these two revisions | **implemented, 107 checks green, not yet pushed** |
-| F4 (mobile carousel) | not reproduced — needs Q2 |
-| T4 (ToS/Privacy) | **release blocker** — needs Q3 |
+| Round 3, revision 1 — Emergency card + badge at the seam | shipped `67d11f9` |
+| Round 3, revision 2 — horizontal badge, bottom-centred | **implemented, 109 checks green, not yet pushed** |
+| F4 (mobile carousel) | closed — user-specific, no action |
+| T4 (ToS/Privacy) | closed for the prototype; a public launch still needs the real text |
 | Punch list T2, T5–T7 | open — needs Q4 |

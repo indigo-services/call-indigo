@@ -796,9 +796,28 @@ export async function run() {
     return out
   })
 
-  /* The badge's anchor as one predicate, so the positive control below runs the
-     SAME logic against the markup and rule this replaced. */
-  const badgeAnchorProblems = (cls, rule) => {
+  /* Pull one `@media (max-width: …px)` block that mentions `selector`. There are
+     several at 1440 (the Emergency card has one too), so the selector is part of
+     the search rather than the block being found by position. */
+  const stepBlock = (selector, width) => {
+    const re = new RegExp(`@media \\(max-width: ${width}px\\) \\{([\\s\\S]*?)\\n  \\}`, "g")
+    for (const m of indexCss.matchAll(re)) if (m[1].includes(selector)) return m[1]
+    return null
+  }
+  const flat = (s) => s.replace(/\s+/g, " ").trim().slice(0, 110)
+
+  /* The badge's anchor as one predicate, so the positive controls below run the
+     SAME logic against the markup and rules this replaced.
+
+     The centring is a TWO-part mechanism and the predicate has to test both
+     halves. `left` alone puts the badge's LEFT EDGE on the seam; the `-50%`
+     translate is what moves its CENTRE there. An earlier version of this check
+     only looked for a negative `left` — and the badge it was written for, the
+     one that is anchored to the seam but NOT centred, still satisfies that. It
+     would have passed this round's regression with the badge sitting 132px to
+     the right of centre. So the transform is asserted explicitly, and `left` is
+     tied to the row's own gap rather than to a number copied in here. */
+  const badgeAnchorProblems = (cls, rule, rowGap) => {
     const out = []
     if (/(?:^|\s)-right-/.test(cls)) out.push(`the badge is still right-anchored: ${cls}`)
     if (/\babsolute\b/.test(cls)) {
@@ -806,37 +825,157 @@ export async function run() {
     }
     if (rule === null) {
       out.push("no .years-badge rule in src/index.css")
-    } else {
-      if (!/position:\s*absolute/.test(rule)) out.push(".years-badge is not position: absolute")
-      if (!/left:\s*-\d/.test(rule)) {
-        out.push(`.years-badge has no negative pixel \`left\`: ${rule.replace(/\s+/g, " ").slice(0, 100)}`)
-      }
-      if (/right:\s*-/.test(rule)) {
-        out.push(".years-badge sets a negative right, which is the anchor the client asked to move")
-      }
+      return out
+    }
+    if (!/position:\s*absolute/.test(rule)) out.push(".years-badge is not position: absolute")
+    if (/right:\s*-/.test(rule)) {
+      out.push(".years-badge sets a negative right, which is the anchor the client asked to move")
+    }
+    // Half the row's gap puts the badge's left edge on the seam's midpoint.
+    const left = /left:\s*(-?\d+(?:\.\d+)?)px/.exec(rule)
+    if (!left) out.push(`.years-badge has no pixel \`left\`: ${flat(rule)}`)
+    else if (rowGap != null && Math.abs(parseFloat(left[1])) !== rowGap / 2) {
+      out.push(`.years-badge is offset ${left[1]}px, but half the photo row's ${rowGap}px gap is ${rowGap / 2}px`)
+    }
+    // …and the translate is what centres it on that seam.
+    if (!/translateX\(\s*-50%\s*\)/.test(rule)) {
+      out.push(`.years-badge has no translateX(-50%), so the badge's edge — not its centre — sits on the seam: ${flat(rule)}`)
+    }
+    if (!/bottom:\s*\d/.test(rule)) out.push(".years-badge is not anchored to the bottom of the row")
+    if (/(?:^|;)\s*top:\s*-?\d/.test(rule) || /margin:\s*auto/.test(rule)) {
+      out.push(".years-badge is still vertically centred by `top`/`margin: auto`, not anchored to the bottom")
     }
     return out
   }
 
-  check("the years badge is anchored to the seam between the photos", () => {
+  check("the years badge is centred on the seam and anchored to the row's bottom", () => {
     // It used to be `right: -29%` of the RIGHT photo's wrapper: measured at 1920
-    // it sat 360px to the right of the seam, 104px of it on the right photo and
-    // its last 100px hanging past the photo row entirely. The client asked for it
-    // "between the two photos". The rendered result was checked in a browser;
-    // what this pins is the anchor, which is the part that can silently revert.
+    // it sat 360px right of the seam, 104px of it on the right photo and its
+    // last 100px past the photo row entirely. The client then asked for it
+    // HORIZONTAL, centred at the BOTTOM between the two photos. The rendered
+    // result was measured in a browser at 0px off the seam from 1920 down to
+    // 768; what this pins is the mechanism, which is the part that can silently
+    // revert while a screenshot still looks plausible.
     const tag = /<div class="([^"]*\byears-badge\b[^"]*)"/.exec(home.clean)
     if (!tag) return ["the home page has no .years-badge element"]
-    return badgeAnchorProblems(tag[1], ruleBody("\\.years-badge"))
+    // The row's own gap, read from the markup rather than copied here — the seam
+    // is its midpoint, so the badge's offset is half of whatever the row says.
+    const before = home.clean.slice(0, home.clean.indexOf("about-img2"))
+    const gaps = [...before.matchAll(/gap-\[(\d+)px\]/g)]
+    const rowGap = gaps.length ? Number(gaps[gaps.length - 1][1]) : null
+    return badgeAnchorProblems(tag[1], ruleBody("\\.years-badge"), rowGap)
   })
 
-  check("the badge-anchor detector would catch the old right: -29%", () => {
-    // The exact markup and rule the badge shipped with before this round.
+  check("the badge-anchor detector would catch an anchored-but-uncentred badge", () => {
+    const out = []
+    // Derived from the LIVE rule so the control cannot go stale: strip the one
+    // declaration that does the centring and require a complaint. That is the
+    // near-miss that matters — `left: -15px` with no transform is exactly the
+    // state the previous round shipped, and the state a careless edit restores.
+    const live = ruleBody("\\.years-badge")
+    if (!live) return ["no .years-badge rule to derive the control from"]
+    const uncentred = live.replace(/transform:\s*translateX\([^)]*\)\s*;?/, "")
+    if (uncentred === live) {
+      return ["the live rule has no centring translate to strip — which is the regression the check above is already reporting"]
+    }
+    // The complaint must be the missing translate and NOTHING else. If the
+    // fixture were also malformed, the control would pass on an incidental
+    // complaint and prove nothing about the centring assertion specifically.
+    const problems = badgeAnchorProblems("years-badge rounded-[18px] bg-white shadow-lift max-md:hidden", uncentred, 30)
+    const others = problems.filter((p) => !/translateX/.test(p))
+    if (!problems.some((p) => /translateX/.test(p))) {
+      out.push("the detector accepts the live rule with its centring translate removed")
+    }
+    if (others.length) {
+      out.push(`the control fixture is malformed, so its complaint is not the centring one: ${others.join("; ")}`)
+    }
+    // And the markup + rule the badge shipped with before this round.
     const oldCls =
       "absolute -right-[29%] top-0 bottom-0 my-auto grid h-[301px] w-[205px] place-content-center rounded-[104px] bg-white text-center shadow-lift max-md:hidden"
     const oldRule = " position: absolute; right: -29%; top: 0; bottom: 0; margin: auto; "
-    return badgeAnchorProblems(oldCls, oldRule).length > 0
-      ? []
-      : ["the detector passes the markup and rule the badge shipped with, so the check above proves nothing"]
+    if (badgeAnchorProblems(oldCls, oldRule, 30).length === 0) {
+      out.push("the detector passes the markup and rule the badge shipped with, so the check above proves nothing")
+    }
+    return out
+  })
+
+  /* The badge's SHAPE as one predicate: a horizontal icon-left / text-right
+     lockup whose every dimension comes from a `--yb-*` variable, so the ≤1440
+     step reaches all of it. */
+  const badgeShapeProblems = (cls, rule, step) => {
+    const out = []
+    if (rule === null) {
+      out.push("no .years-badge rule in src/index.css")
+      return out
+    }
+    if (!/display:\s*flex/.test(rule)) out.push(`.years-badge is not a flex row: ${flat(rule)}`)
+    if (!/align-items:\s*center/.test(rule)) out.push(".years-badge does not align its icon and text on a shared centre line")
+    if (/\bh-\[/.test(cls) || /\bw-\[/.test(cls)) {
+      out.push(`the badge's markup still fixes its own height/width, so it is not sized by the lockup: ${cls}`)
+    }
+    const DIMS = ["--yb-icon", "--yb-glyph", "--yb-num", "--yb-label", "--yb-pad-x", "--yb-pad-y", "--yb-gap"]
+    for (const v of DIMS) {
+      if (!new RegExp(`${v}\\s*:`).test(rule)) out.push(`.years-badge does not declare ${v}`)
+      // The ≤1440 step is the whole reason the set exists: every dimension has
+      // to step down with the photos, or the badge outgrows them.
+      if (step === null) out.push("no ≤1440 .years-badge step in src/index.css")
+      else if (!new RegExp(`${v}\\s*:`).test(step)) out.push(`the ≤1440 step does not redefine ${v}, so it is left at its desktop size`)
+    }
+    // The three children must READ the variables, not carry sizes of their own.
+    const child = (sel, prop, variable) => {
+      const body = ruleBody(sel)
+      if (body === null) return `no ${sel.replace(/\\/g, "")} rule in src/index.css`
+      return new RegExp(`${prop}:\\s*var\\(${variable}\\)`).test(body)
+        ? null
+        : `${sel.replace(/\\/g, "")} does not take its ${prop} from ${variable}`
+    }
+    for (const p of ["width", "height"]) {
+      const problem = child("\\.years-badge-icon", p, "--yb-icon")
+      if (problem) out.push(problem)
+    }
+    for (const [sel, prop, variable] of [
+      ["\\.years-badge-icon img", "width", "--yb-glyph"],
+      ["\\.years-badge-num", "font-size", "--yb-num"],
+      ["\\.years-badge-label", "font-size", "--yb-label"],
+    ]) {
+      const problem = child(sel, prop, variable)
+      if (problem) out.push(problem)
+    }
+    return out
+  }
+
+  check("the years badge is a horizontal lockup that steps down at 1440", () => {
+    const tag = /<div class="([^"]*\byears-badge\b[^"]*)"/.exec(home.clean)
+    if (!tag) return ["the home page has no .years-badge element"]
+    const out = badgeShapeProblems(tag[1], ruleBody("\\.years-badge"), stepBlock(".years-badge", 1440))
+    for (const c of ["years-badge-icon", "years-badge-num", "years-badge-label"]) {
+      if (!new RegExp(`\\b${c}\\b`).test(home.clean)) out.push(`the markup does not use .${c}`)
+    }
+    return out
+  })
+
+  check("the lockup-shape detector would catch the vertical lozenge", () => {
+    const out = []
+    // The markup the badge shipped with: a fixed 205x301 box, 104px radius, the
+    // label split by a <br>. Vertical by construction, so it must fail on its own
+    // sizing — the predicate is not merely testing that a rule exists.
+    const oldCls =
+      "years-badge grid h-[301px] w-[205px] place-content-center rounded-[104px] bg-white text-center shadow-lift max-md:hidden"
+    if (badgeShapeProblems(oldCls, ruleBody("\\.years-badge"), stepBlock(".years-badge", 1440)).length === 0) {
+      out.push("the detector accepts the vertical lozenge markup")
+    }
+    // And the near-miss that matters: drop ONE dimension from the ≤1440 step and
+    // that part is left at its desktop size while the photos shrink.
+    const step = stepBlock(".years-badge", 1440)
+    if (!step) out.push("no ≤1440 .years-badge step to derive the control from")
+    else {
+      const crippled = step.replace(/--yb-glyph:[^;]*;/, "")
+      if (crippled === step) out.push("the ≤1440 step has no --yb-glyph to strip, so the control cannot run")
+      else if (badgeShapeProblems("years-badge rounded-[18px] bg-white shadow-lift max-md:hidden", ruleBody("\\.years-badge"), crippled).length === 0) {
+        out.push("the detector accepts a ≤1440 step that drops --yb-glyph")
+      }
+    }
+    return out
   })
 
   /* ── Brand lockup — the client-supplied icon + wordmark ───────────────────

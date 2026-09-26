@@ -76,6 +76,7 @@ function collect() {
     return { box: rect(f), src: img ? (img.getAttribute("src") || "").split("/").pop() : null }
   }
   const [fa, fb] = figs.map(photo)
+  const rowBox = rect(row)
 
   /* The seam is the midpoint of the horizontal gap between the two photos, i.e.
      where a badge "between the two photos" belongs. */
@@ -84,6 +85,11 @@ function collect() {
 
   const overlap = (a, b) =>
     a && b ? px(Math.max(0, Math.min(a.right, b.right) - Math.max(a.x, b.x))) : null
+  /* Positive = the badge hangs BELOW that photo's bottom edge. The two photos are
+     different heights (their own aspect ratios at their own widths), so the badge
+     cannot be flush with both; this says which one it clears and which it
+     overhangs. */
+  const below = (a, b) => (a && b ? px(a.bottom - b.bottom) : null)
 
   return {
     navy: {
@@ -116,10 +122,15 @@ function collect() {
       seam,
       badge: { present: !!badge, box: badgeBox, shown: badge ? getComputedStyle(badge).display !== "none" : false },
       badgeCentre: badgeBox ? px(badgeBox.x + badgeBox.w / 2) : null,
-      /* Positive = the badge centre is right of the seam. */
+      /* Positive = the badge centre is right of the seam. Zero means centred ON
+         it, which is what the horizontal lockup asks for. */
       offSeam: badgeBox && seam !== null ? px(badgeBox.x + badgeBox.w / 2 - seam) : null,
       overlapA: overlap(badgeBox, fa?.box),
       overlapB: overlap(badgeBox, fb?.box),
+      rowBox,
+      belowRow: below(badgeBox, rowBox),
+      belowA: below(badgeBox, fa?.box),
+      belowB: below(badgeBox, fb?.box),
     },
     viewport: { w: window.innerWidth, docW: document.documentElement.scrollWidth },
     pageH: document.body.scrollHeight,
@@ -217,6 +228,10 @@ async function main() {
       console.log(
         `     badge vs seam    : ${a.offSeam}px right of the seam   ` +
           `overlap A=${a.overlapA}px  B=${a.overlapB}px`,
+      )
+      console.log(
+        `     badge vs bottoms : ${a.belowRow}px below the row   ` +
+          `A=${a.belowA}px  B=${a.belowB}px  (positive = hangs past that photo's bottom edge)`,
       )
     }
 

@@ -437,20 +437,35 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <figure class="m-0">
             <img src="/assets/images/about-img1.jpg" alt="Call Indigo technician at work" class="w-full rounded-[18px]">
           </figure>
-          <!-- .years-experience-con — 205 x 301, \`border-radius: 104px\`,
-               \`top:0;bottom:0\` centred. Reference measured: badge x 724..929.
-               CLIENT 2026-09-26: the template's \`right: -29%\` is gone — it hung
-               the badge off the photo row's right end, 104px of it on the right
-               photo and 100px past the row entirely. \`.years-badge\` in
-               src/index.css now pins it to the seam between the two photos. The
-               104px lozenge radius stays: it is exempt from the radius
-               tightening, because shrinking it changes what the element IS. -->
-          <div class="years-badge grid h-[301px] w-[205px] place-content-center rounded-[104px] bg-white text-center shadow-lift max-md:hidden">
-            <span class="mx-auto mb-[10px] grid size-[106px] place-items-center rounded-full bg-topbar">
-              <img src="/assets/images/about-icon.png" alt="" aria-hidden="true" class="w-[54px]">
+          <!-- .years-experience-con — the template's 205 x 301 vertical lozenge,
+               \`border-radius: 104px\`, badge x 724..929.
+
+               CLIENT 2026-09-26, twice over. First: "between the two photos to
+               the left, but with the images swapped so it doesn't overlap the
+               left image person's photo" — the template's \`right: -29%\` hung it
+               off the photo row's right end, 104px of it on the right photo and
+               100px past the row entirely. Then: make it HORIZONTAL, icon left
+               and text right, centred at the BOTTOM between the two photos.
+
+               So the geometry moved into \`.years-badge\` in src/index.css, which
+               now owns the position, the padding, the gap and — through the
+               \`--yb-*\` variables — every dimension below. That is deliberate:
+               the photos shrink at <=1440 and the badge has to shrink with them,
+               and one variable set is the only way to be sure nothing is left
+               behind at the old size. Only the shape and colour utilities stay
+               here.
+
+               The radius is 18px now, not 104px: the lozenge was exempt from the
+               radius tightening as "a shape rather than a corner", and a
+               horizontal icon BOX is a corner. -->
+          <div class="years-badge rounded-[18px] bg-white shadow-lift max-md:hidden">
+            <span class="years-badge-icon grid shrink-0 place-items-center rounded-full bg-topbar">
+              <img src="/assets/images/about-icon.png" alt="" aria-hidden="true">
             </span>
-            <strong class="block text-[56px] font-extrabold leading-[56px] text-sky">15<sup>+</sup></strong>
-            <span class="text-[15px] leading-[1.35] text-ink">Years of<br>Experience</span>
+            <span class="block text-left">
+              <strong class="years-badge-num block font-extrabold text-sky">15<sup>+</sup></strong>
+              <span class="years-badge-label text-ink">Years of Experience</span>
+            </span>
           </div>
         </div>
       </div>
