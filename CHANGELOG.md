@@ -10,6 +10,69 @@ with pre-release tags for release candidates.
 
 ## [Unreleased] — working dashboard, public inquiry page, copy pass, client punch list
 
+### Client feedback round 3 — two revisions, 2026-09-26
+
+Measured **before** and after with `scripts/_probe_hero_about_refine.cjs` (new),
+at the same six widths the round-2 probe uses. Suite: **100 → 107 checks**. Both
+items are Home-page only — `.navy-box` is written once, in `HomePage.tsx`, and the
+About badge exists on no other route — so this round touches one page, not three.
+Shipped as **`67d11f9`** — `feat(marketing): red Emergency card with a
+half-protruding disc, and the About badge moved to the photo seam`. Full
+measurements, the source-pixel analysis behind the photo swap, and the open
+questions: **`docs/plan-client-feedback-2026-09-26.md`**.
+
+**1. The Emergency card is red, and its disc is half out of the box**
+
+- Inner padding down one step at every breakpoint: **22/28 → 19/25**, 18/22 →
+  16/19, 15/18 → 13/16.
+- Disc **44px → 58px** with a 30px glyph, and it now protrudes **29px above the
+  card's top edge — exactly half of it**, at every width. The probe prints both
+  numbers side by side (`protrusion: 29px … half the disc = 29px`), so "halfway"
+  is measured rather than asserted.
+- The red pair is **computed, not chosen**: card `#b5534a` (white measures
+  **4.88:1**), disc `#6f150e` (white **11.74:1**). Both are the same hue as the
+  old `#d92d20` disc — one desaturated, one darkened — so it reads as a muted red
+  box with a dark red icon. A red merely *darker* than `#d92d20` would have
+  failed: white on `#c26a5e` is **3.81:1**, under the 4.5:1 the card's own 15px
+  sub-line needs. That arithmetic is now a test.
+- The protrusion is a **derived** negative margin — `calc(-1 * (half the disc +
+  the card's top padding))` — not a literal `-29px`. Half the disc has to clear
+  the card's *border* box, and the padding pushes the content down from it, so a
+  literal `-29px` would lift the disc only 11px clear at the base breakpoint; and
+  the padding changes at every breakpoint, so the margin has to follow it. Two
+  positive-control tests pin the derivation.
+- At ≤991 the hero column stacks, so the 20px arch-to-card gap became **49px**.
+  The disc protrudes 29px into that gap, and growing it by exactly the protrusion
+  keeps the original 20px of daylight. Verified at 991, 768 and 390 — no
+  collision with the arch.
+
+**2. The "15+ Years" badge sits between the two photos, and the photos swap**
+
+- The badge was `right: -29%` of the right photo's wrapper. Measured at 1920 it
+  sat at x744.6 — **360px to the right of the seam** between the photos, 104px of
+  it on the right photo, and its last 100px hanging **past the photo row
+  entirely**. It is now `left: -30px` via `.years-badge`, so its left edge lands
+  exactly on the left photo's right edge — because 30px *is* the row's own gap.
+  It bridges the gutter and overlaps the right photo only: **overlap A = 0px,
+  overlap B = 175px, at every width from 1920 down to 768.**
+- The photos swap as asked, and **their width allocations travel with them**:
+  `flex-[347]` now sits on `about-img2.jpg` and `flex-[372]` on `about-img1.jpg`.
+  Those are each file's own natural width, so leaving them behind would upscale
+  one source into a bigger box and squeeze the other.
+- Why the swap is the safe way round, read off the source pixels rather than
+  guessed: `about-img2.jpg` (the technician in the blue cap) has his **face at
+  the right edge of his frame**, so on the left a badge at the seam would go
+  straight through it. `about-img1.jpg`'s left edge is wall, cabinet and a hand.
+
+**Verified by eye, because a badge can satisfy arithmetic and still land on a
+face.** A 4× crop of the badge's right edge at its widest point shows the older
+man's polo shirt and forearm — no face. The badge is 205px wide in a 30px gutter,
+so it necessarily covers part of the right photo: 175px of 372px at 1920, and
+175px of 282px at 1440. At 1440 the clearance from the technician's hair at the
+badge's upper corner is the tightest point in the whole layout — single-digit
+pixels, no overlap. Flagged to the client with options rather than tuned
+silently. The badge is still hidden at ≤767, as before.
+
 ### Client feedback round 2 — nine requests, 2026-09-25
 
 Every claim below was measured **before** anything was changed, with
