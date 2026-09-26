@@ -138,9 +138,10 @@ The photos swap as asked, and **the width allocations travel with them**:
 
 The instruction has an ambiguity worth recording, because the two readings give
 different layouts. A 205px badge cannot straddle a 30px gutter without covering
-both photos, so something has to be covered. Which side is safe was measured by
-scanning the source images inside the exact strip the badge occupies (the badge is
-301px tall, centred, so the strip is a known band of each file):
+both photos, so something has to be covered. Which side is safe was measured with
+**`scripts/_face_extent.cjs`** — it scans the source images inside the exact strip
+the badge occupies (the badge is 301px tall and centred, so the strip is a known
+band of each file), and prints a density profile of person-coloured columns:
 
 - **`about-img2.jpg`** (blue cap, property inspection): skin-coloured columns run
   from **50% to 97%** of the frame. His **face is at the right edge**, so on the
@@ -157,8 +158,8 @@ edge covered).
 ### Verified by eye — and the one thing that is tight
 
 A badge can satisfy every geometric check and still land on a face, so a **4× crop
-of the badge's right edge at its widest point** was inspected: it shows the older
-man's **polo shirt and forearm. No face.**
+of the badge's right edge at its widest point** (`scripts/_crop.cjs`) was
+inspected: it shows the older man's **polo shirt and forearm. No face.**
 
 **The honest caveat.** The badge is 205px wide in a 30px gutter, so it necessarily
 covers part of the right photo — 175px of 372px at 1920, and 175px of **282px** at
