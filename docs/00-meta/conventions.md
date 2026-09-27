@@ -43,7 +43,7 @@ safe.
 
 ## 3. A number carries its producer
 
-> **127 checks** — `npm run test:only`, 2026-09-27, at `2f009a2`.
+> **`<value>` checks** — `npm run test:only`, `<date>`, at `<sha>`.
 
 Never a bare number. Three components, all required:
 
@@ -57,10 +57,17 @@ A reader can re-run the command. A reviewer can see when the claim was last true
 This is `standards.md` §1 applied to a count, and it is the only form of the claim
 that survives a release.
 
-**Corollary — the fix for a stale number is not to write the new number.** Writing
-`127` dates the defect; the next round makes it wrong again. The fix is to attach the
-producer so the claim is self-invalidating, and — where the value is load-bearing — to
-assert it ([`claims.json`](./claims.json), `tests/docs.mjs`).
+**Corollary 1 — the fix for a stale number is not to write the new number.** Writing
+the current value dates the defect; the next round makes it wrong again. The fix is to
+attach the producer so the claim is self-invalidating, and — where the value is
+load-bearing — to assert it ([`claims.json`](./claims.json), `tests/docs.mjs`).
+
+**Corollary 2 — a *living* document states no value at all.** It has no date to expire
+it, so a count in it is a claim about *now* that nothing can catch — and **naming a
+producer does not save it**, it only makes it look verified. Measured 2026-09-27: this
+file and [`patterns.md`](../20-development/patterns.md) both asserted a count beside
+`npm run test:only` for a milestone after it had stopped being true. `tests/docs.mjs`
+check 8 now rejects a count in a living document outright. Point at the command instead.
 
 ## 4. Keep one copy
 

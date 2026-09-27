@@ -24,11 +24,11 @@ Every claim in a document must be checkable. This is the repo's founding rule.
 If you write a number in a doc or a comment, you must have measured it. "Looks
 about 200px" is not a measurement.
 
-**A number also carries its producer.** Write *"127 checks — `npm run test:only`,
-2026-09-27, at `2f009a2`"*, never a bare `127`. A claim with a producer can be
+**A number also carries its producer.** Write *"`<value>` checks — `npm run test:only`,
+`<date>`, at `<sha>`"*, never a bare number. A claim with a producer can be
 re-run; a claim without one can only be believed. Two documents in this repo stated
 `67 checks` long after the suite had passed 100, and neither had a command attached
-to it.
+to it. **And a living document states no value at all** — run the command.
 
 ---
 
@@ -152,7 +152,7 @@ intended.
 | G1 — Type check | TypeScript compiles | `npm run typecheck` | Active |
 | G2 — Lint | ESLint, zero errors | `npm run lint` | Active |
 | G3 — Build | Vite production build succeeds | `npm run build` | Active |
-| G4 — Verification suite | 127+ checks against rendered output | `npm test` | Active |
+| G4 — Verification suite | every check in `tests/` against rendered output | `npm test` | Active |
 | G5 — Parity (marketing routes only) | React renders match static prototype | `npm run test:parity` | **Not implemented** — see §5 |
 
 A PR is not mergeable until all applicable gates pass. G5 is not yet a gate because

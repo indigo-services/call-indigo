@@ -36,7 +36,7 @@ half-restructured tree gets generated twice.
 | **1** | **Done** | The index exists; the README is the front door; F1–F5 corrected |
 | **2** | **Done** | `.github/` with CI, PR/issue templates, Dependabot; `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `.editorconfig`, `.nvmrc`, `package.json` metadata |
 | **3** | **Done** | The seven numbered domains, populated |
-| **4** | **Done** | The wiki is enabled and published — 14 pages, stamped with source path and commit |
+| **4** | **Done** | The wiki is enabled and published — a page per document plus a sidebar, each stamped with its source path and commit |
 | **5** | **In progress** | `tests/docs.mjs` asserts the index, the links and the claim registry. The deploy log is **not** built |
 
 ## 2. The product roadmap

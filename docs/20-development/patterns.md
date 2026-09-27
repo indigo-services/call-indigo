@@ -59,10 +59,15 @@ selector.** When that happens, **tighten the old check; never loosen the new one
 
 **Kills:** the bare number.
 
-> **127 checks** — `npm run test:only`, 2026-09-27, at `2f009a2`.
+> **`<value>` checks** — `npm run test:only`, `<date>`, at `<sha>`.
 
 Value, command, date, commit. A reader can re-run it; a reviewer can watch it expire.
 See [`../00-meta/conventions.md` §3](../00-meta/conventions.md#3-a-number-carries-its-producer).
+
+**A living document states no value at all** — it has no date to expire it, and naming a
+producer beside the number does not save it, it only makes it look verified. This file
+carried one for a milestone after it had stopped being true; `tests/docs.mjs` check 8 now
+rejects the form outright.
 
 **Paid for it:** two documents stated `67 checks` for 60 checks' worth of releases,
 because the number had no producer attached and nothing failed when it drifted.

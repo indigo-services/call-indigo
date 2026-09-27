@@ -300,48 +300,67 @@ export function run() {
     return problems
   })
 
-  /* 8 ── no LIVING document asserts a current check count ---------------- */
+  /* 8 ── no LIVING document asserts a check count ------------------------ */
 
-  check("no living document asserts a current check count without naming its producer", () => {
+  check("no living document asserts a check count", () => {
     const problems = []
-    // SCOPE: living documents only, plus the root README (which is living by role).
+    // SCOPE, and why it changed on 2026-09-27.
+    //
+    // This check used to permit a count as long as it named a producer, and it scanned
+    // the root README alongside the living documents. Both halves were wrong in the
+    // same way. Measured: `docs/00-meta/conventions.md` and
+    // `docs/20-development/patterns.md` — one of them the canonical EXAMPLE of this
+    // very rule — both stated a count beside `npm run test:only` for a milestone after
+    // the suite had moved on. They passed, because a producer beside a number is not
+    // evidence; it is a promise that nothing re-derives. That is the same sub-shape as
+    // the README's own count, which is why the README is now handled by
+    // `tests/run.mjs` instead — it is the ONE document whose count is compared against
+    // the run, so it is the one document allowed to state one.
+    //
+    // A LIVING document has no date, so a count in it is a claim about *now* that
+    // nothing can expire. It must state no value at all: point at the command.
     //
     // A DATED document may state the count as of its date — that is what the date is
-    // for, and the round-2/3 plan documents legitimately record "100 checks" and "107
-    // checks" as history. A LIVING document has no date, so a count in it is a claim
-    // about *now* with nothing to expire it. That is precisely the defect F2 was.
+    // for, and the plan and PRD documents legitimately record "100 checks" and
+    // "107 checks" as history.
     //
-    // Rule A — a bolded count asserts a current value.
-    // Rule B — "N checks passed / green / are passing" asserts a current value.
-    const RULES = [/\*\*\d+\s+checks\*\*/, /\b\d+\s+checks?\s+(?:pass|passed|green|are passing)\b/]
-    const PRODUCER = /npm (?:run )?test/
+    // THE SIGNAL IS THE BOLD. `stripCode` blanks backticked spans, so the legitimate
+    // historical quotations ("`67 checks` for 60 checks' worth of releases") are gone
+    // before the scan, while an assertion is written bold.
+    // ⚠️ LIMIT, stated so it is not mistaken for coverage: an UNBOLDED count in a
+    // living document — a bare table cell, say — is not caught. Tightening it means
+    // separating an assertion from narrative prose, and the narrative uses the same
+    // words ("stayed wrong for 60 checks"). Two such cells were found by hand on
+    // 2026-09-27 and fixed; the bold form is the one that recurs.
+    // A COMPLETE bold span — BOTH delimiters required.
+    //
+    // The first draft matched a bare `**` followed by digits anywhere on the line, which
+    // reads the CLOSING delimiter of a bold run as an opening one. It flagged
+    // `**Paid for it:** two documents stated `67 checks` for 60 checks' worth …` — the
+    // closing `**` after "it:" is indistinguishable from an opener, and "60 checks"
+    // follows later on the same line. Measured on the first run of this check.
+    const ASSERT = /\*\*[^*\n]*\d+\+?\s+checks[^*\n]*\*\*/i
     const targets = rels.filter(
       (r) => !isIndex(r) && !isTemplate(r) && declaredKind(sources.get(r)) === "living",
     )
-    const scan = [
-      ...targets.map((r) => [r, sources.get(r)]),
-      ["README.md", read(path.join(ROOT, "README.md"))],
-    ]
 
     let lines = 0
-    for (const [r, src] of scan) {
-      // Scan the STRIPPED text (so a fenced example cannot match) but test the producer
-      // against the RAW line — the producer is itself inside a code span, and stripping
-      // it is what produced the first draft's 13 false positives.
-      const rawLines = src.split("\n")
-      const bareLines = stripCode(src).split("\n")
+    for (const r of targets) {
+      const rawLines = sources.get(r).split("\n")
+      const bareLines = stripCode(sources.get(r)).split("\n")
       for (let i = 0; i < bareLines.length; i += 1) {
         lines += 1
-        if (!RULES.some((re) => re.test(bareLines[i]))) continue
-        if (PRODUCER.test(rawLines[i] ?? "")) continue
-        problems.push(`${r}: asserts a check count with no producer — "${rawLines[i].trim().slice(0, 90)}"`)
+        if (!ASSERT.test(bareLines[i])) continue
+        problems.push(
+          `${r}: a living document asserts a check count — "${rawLines[i].trim().slice(0, 90)}" (point at \`npm run test:only\` instead)`,
+        )
       }
     }
     // POSITIVE CONTROLS: prove the scan reached living documents, and enough of them.
     if (targets.length < 5) {
       problems.push(`only ${targets.length} living documents scanned — expected at least 5`)
     }
-    if (lines < 500) problems.push(`only ${lines} lines scanned — expected at least 500`)
+    if (lines < 400) problems.push(`only ${lines} lines scanned — expected at least 400`)
     return problems
   })
 
