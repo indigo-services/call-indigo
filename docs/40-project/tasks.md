@@ -83,12 +83,14 @@ The alternative reading: *eyebrow* = the name, and *h2* = "BECOME A MEMBER".
 | **E6** | **The wiki drift check.** | The wiki is generated manually; nothing fails when it is stale. Phase 5. | `scripts/_wiki_sync.cjs` |
 | **E7** | **A dependency-vulnerability gate in CI.** | Dependabot opens PRs; nothing fails a build on an advisory. | `.github/workflows/ci.yml` |
 | **E10** | **Machine-check the README's build figures.** | Found while closing E8: the count is guarded now, but the build row is not. A one-line edit to `ComponentsPage.tsx` moved the JS figure **810.79 → 810.81 kB** and nothing failed. ⚠️ **The blocker is real:** `test:only` does **not** rebuild, so a check reading `dist/` would compare against a stale bundle and fail spuriously. Solve that first — do not ship the check without it. | `README.md`, `tests/` |
+| **E12** | **Re-sync the wiki — it is one page stale.** | `docs/40-project/tasks.md` changed in `f9bfc97` and `4e9d3fa`, and its wiki page has not been regenerated. The sync **cannot run** from a sandbox that refuses child processes [M: `node scripts/_wiki_sync.cjs` → `git could not be started (EBUSY)`] — a limit of that environment, not of the script. Run it from a machine that can spawn git. | `scripts/_wiki_sync.cjs` |
+| **E13** | **The "how many times" count disagrees across three files.** | Each place that counts this defect counts it differently: `CONTRIBUTING.md:39` says **three**, `tests/docs.mjs:4–13` lists **four**, and `CHANGELOG.md` calls E8 the **fifth**. Nothing maintains any of them. Either drop the number and point at `docs/20-development/patterns.md`, or give it a producer — but a bare count here is the very defect it counts. | `CONTRIBUTING.md`, `tests/docs.mjs`, `CHANGELOG.md` |
 
 ### Closed — 2026-09-27
 
 **E1 and E2 were the first two items this milestone found, and they are now closed
-along with two more that surfaced while closing them.** All four are recorded in
-[`../../CHANGELOG.md`](../../CHANGELOG.md) with the commit that closed them.
+along with three more that surfaced while closing them.** Each is recorded in
+[`../../CHANGELOG.md`](../../CHANGELOG.md) with the commit that closed it.
 
 | # | Task | What closed it |
 |---|---|---|
@@ -96,6 +98,7 @@ along with two more that surfaced while closing them.** All four are recorded in
 | **E2** | The stale `/admin` comment | `src/admin/routes.ts` says *redirects to the inbox*, which is what `App.tsx:69` does. The old text said *falls through to the home page*. |
 | **E8** | *(found closing E1/E2)* **The README's check count.** | It stated **127** beside its own producer for the whole of a milestone that took the suite to **139**. `tests/docs.mjs` check 8 fires only when a producer is **missing**, so a number that *named* one was trusted and never compared — **the fifth instance of the defect shape.** Now correct, and **machine-checked** by `tests/run.mjs`. |
 | **E9** | *(found closing E1/E2)* **Six stale `docs/` paths in `src/` and `scripts/`.** | The restructure moved four documents into numbered domains and left six references behind — including one that `src/admin/ComponentsPage.tsx` **renders to the operator in the dashboard UI**. Repaired; `tests/docs.mjs` check 13 now asserts every such reference resolves. |
+| **E11** | *(found publishing the wiki)* **The wiki generator's preflight.** | It caught every exception and reported one cause — *"the wiki repository does not exist yet"* — so a failure to **run git** was reported as a missing wiki. The wiki exists [M: `git ls-remote … HEAD` → `c315c9d`; the page returns HTTP 200]. A spawn failure has no exit status, so `e.status === null` now separates it from a git error. |
 
 ## 4. PRD §16.2 — deferred product work
 

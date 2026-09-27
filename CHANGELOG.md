@@ -10,6 +10,41 @@ with pre-release tags for release candidates.
 
 ## [Unreleased] — working dashboard, public inquiry page, copy pass, client punch list
 
+### The wiki generator reported a spawn failure as a missing wiki, 2026-09-27
+
+**Shipped as `4e9d3fa`** — `fix(wiki): stop reporting a spawn failure as a missing wiki`.
+
+`scripts/_wiki_sync.cjs` caught **every** exception in its preflight and reported one
+cause: *"The wiki repository does not exist yet"*, with instructions to go and create a
+first page by hand. Measured, the wiki exists and is reachable:
+
+| Probe | Result |
+|---|---|
+| `git ls-remote https://github.com/indigo-services/call-indigo.wiki.git HEAD` | `c315c9d` on `refs/heads/master` |
+| `https://github.com/indigo-services/call-indigo/wiki` | **HTTP 200** |
+
+The real failure was that **git could not be started at all** [M: `execFileSync("git",
+["ls-remote", URL, "HEAD"])` → `e.code "EBUSY"`, `e.status null`, `e.stderr ""`]. The
+script could not tell a spawn failure from a missing repository — the same defect shape as
+everything else in this release: *an assertion that cannot see the thing it claims to
+check*.
+
+**The discriminator, and why it is reliable.** A spawn failure has **no exit status**,
+because no process ever ran — `e.status === null`. git failing exits non-zero, so
+`e.status` is a number and `stderr` carries the reason. The preflight now prints the real
+error first, names the spawn failure for what it is, and offers the manual web step only
+when git itself says the repository is missing.
+
+**Verified** against the failure that misfired: the script now reports *"git could not be
+started (EBUSY) … NOT a missing wiki"* and exits 1 as designed. The three-way
+classification was probed with synthetic errors for all three shapes. **Limit:** the
+repository-not-found branch cannot be produced in this sandbox, so it is read-verified
+rather than run.
+
+**Consequence — the wiki is one page stale.** The sync cannot be re-run from a sandbox
+that refuses child processes, so `docs/40-project/tasks.md` is newer than its wiki page.
+Recorded as **E12**; run `node scripts/_wiki_sync.cjs` from a machine that can spawn git.
+
 ### Guards — the rules the repo promised, and the numbers it drifted, 2026-09-27
 
 **Closes E1 and E2, plus three defects they exposed.** Shipped as **`abf89cf`** —
