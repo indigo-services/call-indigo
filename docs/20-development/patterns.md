@@ -1,6 +1,6 @@
 # Patterns
 
-**Kind:** living · **Owner:** the repo · **Last verified:** 2026-09-27 at `2f009a2`
+**Kind:** living · **Owner:** the repo · **Last verified:** 2026-09-27 at `ff46132`
 
 Each pattern below exists because the repo has **already paid** for its absence. The
 `Kills` column names the anti-pattern; the `Paid for it` column says where.

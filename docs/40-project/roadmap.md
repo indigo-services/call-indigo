@@ -1,6 +1,6 @@
 # Roadmap
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `2f009a2`
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `ff46132`
 
 Two roadmaps, deliberately separate: **the product** and **the documentation**. They
 ship on their own clocks, and the documentation one exists because the product one had

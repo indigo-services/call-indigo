@@ -10,6 +10,48 @@ with pre-release tags for release candidates.
 
 ## [Unreleased] — working dashboard, public inquiry page, copy pass, client punch list
 
+### A living document may not state a check count, 2026-09-27
+
+**Shipped as `ff46132`** — `fix(docs): stop a living document asserting a check count`.
+
+**The E8 fix was incomplete, and this is the correction.** `tests/run.mjs` compares the
+root README's count against the live tally. But `tests/docs.mjs` check 8 still permitted
+any **living** document to state a count as long as it named a producer — and three did:
+
+| Document | What it is |
+|---|---|
+| `docs/00-meta/conventions.md` §3 | the canonical **example** of the rule it breaks |
+| `docs/20-development/patterns.md` P3 | the pattern entry for that same rule |
+| `docs/20-development/standards.md` | the gate table, plus a second example |
+
+All three stated a count beside `npm run test:only` for a milestone after it had stopped
+being true. **A producer beside a number is not evidence** — it is a promise that nothing
+re-derives. Same sub-shape as the README's count, one level out: the instance was fixed,
+the class was left.
+
+**The documents now state the shape, not the value**, which is what `conventions.md` §3
+already told a reader to do. A new corollary records why: a living document has no date to
+expire a value, so a count in it is a claim about *now* that nothing can catch.
+
+**Check 8 is now strict** — a bolded count in a living document is an error, producer or
+not. The README is excluded from it, because that is the one document whose count is
+compared against the run.
+
+**Negative-controlled:** restoring a bolded count to `patterns.md` fails the check with
+the exact line; removing it restores green.
+
+**A false positive worth recording.** The first draft of the regex matched a bare `**`
+followed by digits, which reads the **closing** delimiter of a bold run as an opening one —
+it flagged `**Paid for it:** … for 60 checks' worth …`. Both delimiters are now required.
+
+⚠️ **LIMIT**, stated in the check itself: an **unbolded** count in a living document is not
+caught. Separating an assertion from narrative prose means distinguishing text that uses
+the same words; two such cells were found by hand here and fixed.
+
+Also corrected `roadmap.md`, which said the wiki held **14 pages** when it holds a page per
+document plus a sidebar, and removed the number from the standards gate table rather than
+writing a new one that would date itself the same way.
+
 ### The wiki generator reported a spawn failure as a missing wiki, 2026-09-27
 
 **Shipped as `4e9d3fa`** — `fix(wiki): stop reporting a spawn failure as a missing wiki`.
