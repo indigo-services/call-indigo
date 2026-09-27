@@ -10,6 +10,56 @@ with pre-release tags for release candidates.
 
 ## [Unreleased] — working dashboard, public inquiry page, copy pass, client punch list
 
+### The client full-disclosure deliverable, 2026-09-27
+
+**Shipped as `991262a`** — `docs(project): add the client full-disclosure deliverable`.
+
+**One document, written for the client rather than for this repository.**
+`docs/40-project/client-disclosure.md` synthesises the changelog, the work-product
+register and every artifact bearing on a disclosure: what was built, what the site does
+with visitor data, the third-party rights position, the `/admin` gate's real limits, the
+known limitations, and every decision that is the client's rather than ours.
+
+**It is a deliberate, bounded exception to "keep one copy".**
+[`conventions.md` §4](docs/00-meta/conventions.md) says a fact stated twice should be
+stated once and linked. This document quotes figures, because a client will not read the
+internal library — and the exception is bounded by a **provenance table that names the
+source of record for every section**. The document states outright that it is not the
+source of record for anything: **the repo wins and the document is the bug.**
+`THIRD-PARTY-NOTICES.md` has the same relationship to `third-party-assets.md`.
+
+**Kind: dated**, so it may state a count as of its date — which is the distinction the
+*living-document count* entry below turns on. It carries `Last verified: 2026-09-27 at
+322d842`, the tree its claims were checked against.
+
+**Two stale claims found while writing it, and fixed in the same commit:**
+
+| Where | What it said | Now |
+|---|---|---|
+| `docs/README.md` §5 | *"The backend-import assertion … nothing checks it"* — tracked as **E1** | The row is gone. **E1 closed in `abf89cf`**; `tests/policy.mjs` asserts it, with a positive control |
+| `docs/40-project/tasks.md` **E12** | *"Re-sync the wiki — it is one page stale"* | States the condition and points at the generator. **A page count there is the very defect it tracks** — `conventions.md` §3 Corollary 1 |
+
+`tasks.md`'s `Last verified` pin also read `abf89cf` while the file had last changed in
+`22c960a`; it now reads the tree it was verified against.
+
+**Negative-controlled.** All three checks the change exercises were run against a
+perturbed tree and confirmed to fail, then restored:
+
+| Perturbation | Message |
+|---|---|
+| The index row duplicated | *`docs/40-project/client-disclosure.md: listed 2 times in the index (expected once)`* |
+| The doc-map row's kind `dated` → `living` | *`doc-map.md says 40-project/client-disclosure.md is 'living'; the document declares 'dated'`* |
+| A link inside the new document broken | *`docs/40-project/client-disclosure.md → ./roadmap-NOPE.md (does not exist)`* |
+
+**No product behaviour changed.** No file under `src/` was touched, and the build is
+byte-identical — 1755 modules, 810.81 kB JS / 126.55 kB CSS, the same figures the README's
+row already stated. That the row is *unchanged* is itself the point of **E10**: nothing
+asserts it, so only a rebuild can tell you.
+
+**Consequence — the wiki is now further behind.** Two documents changed and one was added,
+and the sync cannot run from a sandbox that refuses child processes. **E12** covers the
+re-sync, and it no longer asserts a page count, for the reason above.
+
 ### A living document may not state a check count, 2026-09-27
 
 **Shipped as `ff46132`** — `fix(docs): stop a living document asserting a check count`.
