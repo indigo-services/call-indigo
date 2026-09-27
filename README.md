@@ -90,12 +90,15 @@ producer attached to it and nothing failed when it drifted.
 |---|---|---|
 | Type check | `npm run typecheck` | **0 errors** |
 | Lint | `npm run lint` | **0 errors, 4 warnings** — `react-refresh/only-export-components` in `src/components/ui/{badge,button,sidebar,tabs}.tsx` (registry files, pre-existing) |
-| Build | `npm run build` | **1755 modules** — 810.79 kB JS (239.08 kB gzip) / 126.55 kB CSS (22.40 kB gzip) / 1.46 kB HTML. The >500 kB chunk warning is pre-existing; code-splitting is the fix |
-| Verification | `npm run test:only` | **127 checks passed** |
+| Build | `npm run build` | **1755 modules** — 810.81 kB JS (239.08 kB gzip) / 126.55 kB CSS (22.40 kB gzip) / 1.46 kB HTML. The >500 kB chunk warning is pre-existing; code-splitting is the fix |
+| Verification | `npm run test:only` | **142 checks passed** |
 
-*Measured 2026-09-27 at `2f009a2`, vite v7.3.6.* **The check count grows with every
-round — read the authoritative total from the run, never from a document.** The claim
-registry that names each of these producers is
+*Measured 2026-09-27 at `ee119be`, vite v7.3.6.* **One row here is machine-checked
+and three are a snapshot.** The check count cannot drift: `tests/run.mjs` compares it
+against the run that just happened and fails when the two disagree. The build figures
+are a snapshot — **editing any `src/` file moves the JS byte count** (this row read
+810.79 kB until a one-line change to `ComponentsPage.tsx` moved it), and nothing
+asserts them yet (task **E10**). The claim registry that names each producer is
 [docs/00-meta/claims.json](./docs/00-meta/claims.json).
 
 ### CI

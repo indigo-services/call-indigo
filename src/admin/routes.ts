@@ -5,9 +5,12 @@
  * SCOPE NOTE. PRD §5.2 said rc1 contains exactly three `/admin` entries and
  * called any fourth a scope violation. This build deliberately goes further:
  * every sidebar item is now a real page and the inbox is new. The reasoning is
- * recorded in `docs/dashboard-scope.md`, and §5.2's "no catch-all" rule is still
- * honoured — an unknown `/admin/*` path still falls through to the home page
- * rather than rendering a fourth page by accident.
+ * recorded in `docs/60-reference/dashboard-scope.md`, and §5.2's "no catch-all"
+ * rule is still honoured — an unknown `/admin/*` path still redirects to the
+ * inbox rather than rendering a fourth page by accident. The redirect is
+ * `<Route path="*">` inside the `/admin` block of `src/App.tsx`; this comment
+ * said "falls through to the home page" until 2026-09-27, which was wrong, and
+ * nothing could see it because the suite asserts the behaviour, not this line.
  */
 import {
   Bell,

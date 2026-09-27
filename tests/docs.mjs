@@ -435,4 +435,39 @@ export function run() {
     }
     return problems
   })
+
+  /* 13 ── source references to documents resolve -------------------------- */
+
+  check("every docs/ path referenced from src/ or scripts/ resolves", () => {
+    const problems = []
+    // SCOPE: `src/` and `scripts/` only.
+    //
+    // `tests/` is excluded deliberately. The header of this very file quotes the OLD
+    // flat path when it explains why the restructure was safe, and that quotation is
+    // history rather than a reference. A scan that cannot tell the two apart has to
+    // be loosened until it sees nothing, which is how a guard stops being one.
+    //
+    // Why it exists: the restructure moved four documents into numbered domains and
+    // left six references behind — `docs/component-exceptions.md` among them, which
+    // `src/admin/ComponentsPage.tsx` renders to the operator in the dashboard UI. All
+    // six were found by hand, and a hand is not a guard.
+    const PATH_RE = /docs\/[A-Za-z0-9_./-]*\.(?:md|json)/g
+    let scanned = 0
+    for (const root of ["src", "scripts"]) {
+      for (const f of walk(path.join(ROOT, root))) {
+        if (!/\.(?:tsx?|jsx?|cjs|mjs|py|sh)$/.test(f)) continue
+        for (const m of read(f).matchAll(PATH_RE)) {
+          scanned += 1
+          if (!existsSync(path.join(ROOT, m[0]))) {
+            problems.push(`${rel(f)} → ${m[0]} (does not exist)`)
+          }
+        }
+      }
+    }
+    // POSITIVE CONTROL: a regex that matched nothing would pass vacuously.
+    if (scanned < 10) {
+      problems.push(`only ${scanned} docs/ references scanned — expected at least 10`)
+    }
+    return problems
+  })
 }

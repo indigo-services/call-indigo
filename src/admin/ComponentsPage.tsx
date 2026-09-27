@@ -154,7 +154,8 @@ export default function ComponentsPage() {
             <code className="text-xs">npx shadcn@latest add --all --overwrite</code> in a
             scratch worktree and asserting the diff is empty. A bespoke component needed
             under <code className="text-xs">/admin</code> goes through the five-field
-            exception in <code className="text-xs">docs/component-exceptions.md</code>.
+            exception in{" "}
+            <code className="text-xs">docs/60-reference/component-exceptions.md</code>.
           </CardDescription>
         </CardHeader>
       </Card>

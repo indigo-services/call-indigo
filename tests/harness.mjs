@@ -53,6 +53,17 @@ export function check(text, fn) {
   }
 }
 
+/**
+ * The number of checks registered so far, including the one calling this.
+ *
+ * Exported for `tests/run.mjs` alone, which asserts a document's stated count
+ * against the run that just happened. No suite can make that comparison from the
+ * inside: a suite cannot see the checks that have not run yet.
+ */
+export function tally() {
+  return state.checks
+}
+
 /* ── Module loading ──────────────────────────────────────────────────────── */
 
 const loaded = new Map()

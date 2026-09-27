@@ -8,15 +8,15 @@
  * wiki would be a second copy of the documentation, outside the repo, where no
  * test can reach it — and this repo's founding rule is "where the repo and a
  * document disagree, the repo wins and the document is the bug".
- * See docs/plan-docs-refactor-2026-09-27.md §4 P4 and
- * docs/prd/phase-4-wiki-publication.md.
+ * See docs/40-project/plans/plan-docs-refactor-2026-09-27.md §4 P4 and
+ * docs/40-project/prd/phase-4-wiki-publication.md.
  *
  * ── STATUS: NOT YET RUN END-TO-END ────────────────────────────────────────────
  * GitHub does not create the `<repo>.wiki.git` repository until a first page
  * exists, and there is no API to create one. Until that page is created in the
  * web UI this script exits 1 at the preflight below, by design. It has therefore
  * NOT been executed against a live wiki. Do not treat a green run as verified
- * until it has been (docs/development/standards.md §1).
+ * until it has been (docs/20-development/standards.md §1).
  *
  * Usage:
  *   node scripts/_wiki_sync.cjs            # generate, commit and push
@@ -76,7 +76,7 @@ function collect() {
   return out.sort()
 }
 
-// docs/development/standards.md -> "development-standards"
+// docs/20-development/standards.md -> "development-standards"
 // docs/README.md               -> "Home"
 function pageName(abs) {
   const rel = path.relative(DOCS, abs).split(path.sep).join("/")

@@ -67,6 +67,40 @@ export function run() {
       .map((f) => rel(f)),
   )
 
+  // The THIRD import boundary, and until now the only one with no test.
+  //
+  // `CONTRIBUTING.md` lists it under "What we will not merge": *"A page importing
+  // `@/lib/data/backend` directly instead of going through `@/lib/data/api`."* A
+  // promise in a contributing guide that no check can see is the exact defect this
+  // suite exists to close — and it is the shape of the rule, not an accident: the
+  // two boundaries above were asserted, so this one read as asserted too.
+  //
+  // `backend.ts` is the storage engine; `api.ts` is the only facade onto it. A page
+  // that reaches past the facade to the engine is what PRD §16.2 F2 is about.
+  const BACKEND_OWNER = "src/lib/data/api.ts"
+  const BACKEND_IMPORT = /from\s+["']@\/lib\/data\/backend["']/
+
+  check("only the data-layer facade imports the backend (CONTRIBUTING.md, PRD §16.2 F2)", () => {
+    const out = []
+    if (!existsSync(path.join(ROOT, BACKEND_OWNER))) {
+      return [`${BACKEND_OWNER} is missing — the facade this rule names does not exist`]
+    }
+    for (const f of srcFiles) {
+      if (rel(f) === BACKEND_OWNER) continue
+      if (BACKEND_IMPORT.test(stripJsComments(read(f)))) {
+        out.push(`${rel(f)} imports @/lib/data/backend directly; go through @/lib/data/api`)
+      }
+    }
+    // POSITIVE CONTROL. Every file above could pass while the data layer was
+    // disconnected — if the facade stopped importing the engine, the scan would find
+    // no offenders because there would be no edge left to offend. Assert the ONE
+    // allowed edge, so a broken facade fails here instead of reading as compliance.
+    if (!BACKEND_IMPORT.test(stripJsComments(read(path.join(ROOT, BACKEND_OWNER))))) {
+      out.push(`${BACKEND_OWNER} no longer imports the backend — the allowed edge is gone, so this check is measuring nothing`)
+    }
+    return out
+  })
+
   // The registry surface PRD §7.2 enumerates. A file here that is not on the
   // list was hand-written, which §7.1 forbids.
   const REGISTRY = new Set([
