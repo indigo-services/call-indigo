@@ -1,0 +1,106 @@
+# Tasks — the live punch list
+
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `2f009a2`
+
+> ⚠️ **Two `T`-numbering schemes collide in this repo.** The ones below are the
+> **client punch list**. A phase PRD's `T2` is a different thing entirely — see
+> [`README.md` §1](./README.md#1-the-two-numbering-schemes--read-this-first).
+
+---
+
+## 1. Client punch list — needs a decision, not code
+
+Each of these is **blocked on the client**, not on engineering. The symptom is clear in
+every case; the remedy is not. Source: `CHANGELOG.md` §"Client punch list v1.0.1 —
+pending, needs clarity (TBD)".
+
+### T2 — "Each service icon has a stack issue with the color" *(home + residential)*
+
+**Open. The remedy is ambiguous, and the measurement says why.**
+
+All six `services-icon*.png` are **pure-white glyphs** (`#ffffff`, alpha) inside a chip
+that is:
+- `bg-sky` (`#30c3eb`),
+- a **3px** white ring,
+- **14px** padding.
+
+So the glyph renders at roughly **28px inside a 62px chip**. **Any of those three
+surfaces could be the "stack issue".**
+
+**Needs:** is it the chip colour, the white ring, or the padding?
+
+### T5 — Does "drop management" also cover the descriptive uses? *(commercial)*
+
+**Open.** The product names are renamed. Two *descriptive* uses of the word remain on
+the commercial page:
+- the hero chip **"National facility management"**,
+- **"…without a full management commitment"** in the services box.
+
+Those describe a service category rather than the membership product, so they were left.
+
+**Needs:** keep or reword.
+
+### T6 — The home membership eyebrow repeats its heading
+
+**Open.** The block reads:
+
+```
+MEMBERSHIP
+Indigo Home & Facility Membership
+```
+
+The eyebrow was not in the instruction, so it was left alone.
+
+**Needs:** drop the eyebrow, or keep it.
+
+### T7 — Which reading of "at the top level"? *(home membership block)*
+
+**Open.** Implemented as *heading* = "Indigo Home & Facility Membership", *CTA* =
+"BECOME A MEMBER", body under — **which matches the residential and commercial boxes.**
+
+The alternative reading: *eyebrow* = the name, and *h2* = "BECOME A MEMBER".
+
+**Needs:** confirm.
+
+## 2. Client punch list — closed
+
+| # | Item | State |
+|---|---|---|
+| **T3** | *(shipped)* | **Closed** |
+| **T4** | The Terms of Service and Privacy text | **Closed for the prototype.** The client's answer: treat it as done for now. **A *public* launch still needs the real text** — the placeholder copy still carries its own warning. |
+
+> **A rewrite must not break four facts, all verified against the build:** no cookie is
+> set; no analytics exists; the form collects **no postal address**; the captcha is
+> **local arithmetic** with no third-party service.
+
+## 3. Engineering tasks — ours, and unblocked
+
+| # | Task | Why | Where |
+|---|---|---|---|
+| **E1** | **Assert the backend-import rule.** | `CONTRIBUTING.md` says "we will not merge a page importing `@/lib/data/backend`" and **nothing checks it** [M: `grep -rn "data/backend" tests/` → only gitignored `tests/.tmp/` copies]. That is the recurring defect shape. | `tests/policy.mjs` |
+| **E2** | **Fix the stale comment in `src/admin/routes.ts:9`.** | It says an unknown `/admin/*` path "falls through to the home page". It **redirects to the inbox**. The suite asserts the *behaviour* (`tests/policy.mjs`), so the comment can stay wrong forever. | `src/admin/routes.ts` |
+| **E3** | **Re-measure PRD §13.2 parity.** | The marketing copy changed, so the thresholds have to be re-measured rather than inherited. **F10 is blocked on it.** | `archive/audit/v1-audit/v2check/` |
+| **E4** | **Build the deploy log.** | Release history is prose in `CHANGELOG.md`. Phase 5. | — |
+| **E5** | **Rename the phase PRDs' `T`-tasks** to `P<n>-T<n>`. | Two schemes collide. Deferred because renaming invalidates cross-references. | `40-project/prd/*` |
+| **E6** | **The wiki drift check.** | The wiki is generated manually; nothing fails when it is stale. Phase 5. | `scripts/_wiki_sync.cjs` |
+| **E7** | **A dependency-vulnerability gate in CI.** | Dependabot opens PRs; nothing fails a build on an advisory. | `.github/workflows/ci.yml` |
+
+## 4. PRD §16.2 — deferred product work
+
+The full table, with dependencies: [`roadmap.md` §2](./roadmap.md#2-the-product-roadmap).
+
+| Open | Landed | Closed |
+|---|---|---|
+| F1 (partly), F2, F3, F4, F5, F7, F8, F9, F10, F12 | **F6** | **F11** |
+
+**F2 is the roadmap** — the contact form currently writes to the submitter's own
+browser, so the business never receives a submission.
+
+## 5. The documentation milestone
+
+Phases 1–5, with their exit criteria:
+[`roadmap.md` §1](./roadmap.md#1-the-documentation-milestone--five-phases).
+
+---
+
+**Last verified:** 2026-09-27 at `2f009a2`

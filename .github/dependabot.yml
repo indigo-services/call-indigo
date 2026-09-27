@@ -1,0 +1,26 @@
+version: 2
+updates:
+  # Runtime and build dependencies.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # One PR for the minor/patch churn rather than a dozen. A small repository with
+      # a single maintainer drowns in individual bump PRs and then stops reading them.
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    commit-message:
+      prefix: "chore(deps)"
+
+  # The workflow itself. Pinned actions go stale silently, and a stale action is a
+  # supply-chain surface, not a convenience.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci(deps)"

@@ -4,6 +4,20 @@
   "private": true,
   "type": "module",
   "description": "Call Indigo marketing website and admin dashboard — React / Vite / Tailwind v4 / shadcn/ui",
+  "license": "UNLICENSED",
+  "author": "Indigo Home & Facility Services <support@call-indigo.com>",
+  "homepage": "https://call-indigo.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/indigo-services/call-indigo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/indigo-services/call-indigo/issues"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "packageManager": "npm@10.9.7",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

@@ -1,0 +1,12 @@
+# CODEOWNERS
+#
+# One catch-all rule, deliberately.
+#
+# `indigo-services` is a User account, not an organisation [M: repos/…/owner.type →
+# "User"], and it is the only collaborator on this repository. Per-path rules would
+# imply a team structure that does not exist — which is the same class of defect as a
+# document that overstates the project (see docs/20-development/standards.md §1).
+#
+# Add narrower rules only when there is a second person to route to.
+
+*       @indigo-services

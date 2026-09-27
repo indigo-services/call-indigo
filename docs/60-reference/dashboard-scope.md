@@ -1,5 +1,6 @@
 # Dashboard Scope Deviation (PRD §5.2, §9.1, §16.2)
 
+**Kind:** dated · **Last verified:** 2026-09-27 at `2f009a2`
 **Status:** accepted 2026-09-18 · **Release:** v2.0.rc1 (pre-release)
 
 The PRD describes rc1's `/admin` as a **mockup**: exactly three entries, `useState`
@@ -7,9 +8,9 @@ only, no authentication, no persistence, no API. This build is not that. Every
 `/admin` item is now a real page backed by a working data layer, and there is a
 new public route on top.
 
-This document records what changed and why, because `docs/README.md` §1 says the
-repo wins over a document and the document is the bug. Where the PRD and this build
-disagree, this file is the reconciliation.
+This document records what changed and why, because
+`docs/development/standards.md` §1 says the repo wins over a document and the document
+is the bug. Where the PRD and this build disagree, this file is the reconciliation.
 
 ---
 
@@ -163,5 +164,6 @@ Verified by exercising the running app, not by reading it:
 
 **Not verified:** the scroll-reveal animation. It cannot run in a headless preview
 (`IntersectionObserver` never fires there, and CSS transitions never advance). The
-cascade and the observer port were checked directly — see `docs/README.md` §5 — but
+cascade and the observer port were checked directly — see
+`docs/development/standards.md` §5 — but
 the animation needs a look in a real browser tab.

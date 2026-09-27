@@ -9,6 +9,7 @@
  */
 import { finish } from "./harness.mjs"
 import { run as auth } from "./auth.mjs"
+import { run as docs } from "./docs.mjs"
 import { run as heroRotation } from "./hero-rotation.mjs"
 import { run as policy } from "./policy.mjs"
 import { run as serviceArea } from "./service-area.mjs"
@@ -21,5 +22,6 @@ await serviceArea()
 await heroRotation()
 await verify()
 await auth()
+await docs()
 
 process.exit(finish())

@@ -1,5 +1,6 @@
 # The `/admin` gate — a client-side prototype credential
 
+**Kind:** dated · **Last verified:** 2026-09-27 at `2f009a2`
 **Status:** implemented 2026-09-26 · **Release:** v2.0.rc1 (pre-release)
 **Supersedes:** `docs/dashboard-scope.md` §9.1 ("No authentication")
 

@@ -1,5 +1,7 @@
 # Client feedback round 3 — plan and evidence, 2026-09-26
 
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `2f009a2`
+
 Two revisions the client raised after seeing round 2 live. Both are **Home-page
 only**: `.navy-box` is written once (in `HomePage.tsx`), and the "15+ Years" badge
 exists on no other route — so unlike round 2 this touches one page, not three, and

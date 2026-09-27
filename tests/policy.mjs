@@ -108,11 +108,16 @@ export function run() {
   })
 
   check("every custom component has an exception record (PRD §7.5)", () => {
-    const doc = read(path.join(ROOT, "docs", "component-exceptions.md"))
+    // Path updated 2026-09-27 when docs/ was restructured into numbered domains.
+    // This check is why the move was safe: it read a hard-coded path, and the suite
+    // failed the moment the file moved — which is the correct behaviour, and the
+    // reason the restructure was a separate phase rather than a corrections pass.
+    const RECORD = "docs/60-reference/component-exceptions.md"
+    const doc = read(path.join(ROOT, "docs", "60-reference", "component-exceptions.md"))
     // The Design System swatch grid is the one §7.5 example; it must be recorded.
     const REQUIRED = ["REGISTRY SEARCH", "CLOSEST CANDIDATES", "UNIQUE REQUIREMENT", "COST", "SIGN-OFF"]
     const missing = REQUIRED.filter((field) => !doc.includes(field))
-    return missing.map((f) => `docs/component-exceptions.md has no ${f} field`)
+    return missing.map((f) => `${RECORD} has no ${f} field`)
   })
 
   /* ── Routing (PRD §5.2) ────────────────────────────────────────────────── */

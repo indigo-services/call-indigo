@@ -1,0 +1,134 @@
+{
+  "$comment": [
+    "The claim registry. Every number this project asserts, with the COMMAND that produces it — not the value.",
+    "",
+    "WHY PRODUCERS AND NOT VALUES. Two documents in this repository stated '67 checks' for 60 checks' worth of releases, because the number had no producer attached to it and nothing failed when it drifted. Writing the new number would only date the defect: the next round makes it wrong again. A producer is a claim that can expire, and that a reader can re-run.",
+    "",
+    "`kind` values:",
+    "  derived  — produced by a script in this repo; the artefact is regenerated",
+    "  command  — produced by an npm/git command; re-run to check",
+    "  policy   — deliberately NOT asserted as a value; the entry records why",
+    "",
+    "`asserted_by` names the check that enforces it, or null when the producer is enough."
+  ],
+  "version": 1,
+  "updated": "2026-09-27",
+  "claims": [
+    {
+      "id": "check-count",
+      "claim": "The number of checks in the verification suite",
+      "kind": "policy",
+      "producer": "npm run test:only",
+      "asserted_by": null,
+      "note": "Deliberately NOT asserted as a value anywhere. It grows every round, and the run prints the authoritative total. The guard is that no document may state a current count without naming this command — see tests/docs.mjs, check 'no document asserts a current check count'."
+    },
+    {
+      "id": "doc-count",
+      "claim": "The number of documents under docs/",
+      "kind": "command",
+      "producer": "find docs -name '*.md' | wc -l",
+      "asserted_by": "tests/docs.mjs — 'the document count in the index matches the tree'",
+      "note": "The index states this number in its header. It is living: the check fails when it drifts."
+    },
+    {
+      "id": "routes-table",
+      "claim": "Every route the build serves, with its page file and line count",
+      "kind": "derived",
+      "producer": "node scripts/_routes_doc.cjs",
+      "asserted_by": "tests/docs.mjs — 'routes.md is current'",
+      "note": "Negative-controlled: perturbing a row makes `--check` exit 1."
+    },
+    {
+      "id": "doc-map",
+      "claim": "Every document under docs/, with the kind it declares",
+      "kind": "derived",
+      "producer": "node scripts/_doc_map.cjs",
+      "asserted_by": "tests/docs.mjs — 'doc-map.md is current and complete'",
+      "note": "Reads each document's own front matter, so it cannot disagree with them."
+    },
+    {
+      "id": "typecheck",
+      "claim": "Type errors",
+      "kind": "command",
+      "producer": "npm run typecheck",
+      "asserted_by": "CI gate G1"
+    },
+    {
+      "id": "lint",
+      "claim": "Lint errors and warnings",
+      "kind": "command",
+      "producer": "npm run lint",
+      "asserted_by": "CI gate G2, with the warning ceiling pinned at 4",
+      "note": "The ceiling is a floor to tighten, never a budget to spend. Raising it to make a build pass is the failure the gate exists to prevent."
+    },
+    {
+      "id": "build-modules",
+      "claim": "Modules bundled, and the JS/CSS/HTML byte sizes",
+      "kind": "command",
+      "producer": "npm run build",
+      "asserted_by": "CI gate G3",
+      "note": "The >500 kB chunk warning is pre-existing; code-splitting is the fix."
+    },
+    {
+      "id": "node-version",
+      "claim": "The Node version this project builds on",
+      "kind": "command",
+      "producer": "node -v",
+      "asserted_by": "tests/docs.mjs — 'the pinned Node version agrees across .nvmrc, .node-version and package.json engines'"
+    },
+    {
+      "id": "public-assets",
+      "claim": "Images in public/assets/images/",
+      "kind": "command",
+      "producer": "ls public/assets/images/ | wc -l",
+      "asserted_by": null
+    },
+    {
+      "id": "template-derived-files",
+      "claim": "Tracked files derived from the Valvoro template",
+      "kind": "command",
+      "producer": "documented in docs/60-reference/third-party-assets.md §2.1",
+      "asserted_by": null,
+      "note": "119 tracked files: 20 template source + 87 prototype + 59 byte-identical images (with overlap)."
+    },
+    {
+      "id": "byte-identical-images",
+      "claim": "Images in public/assets/images/ byte-identical to the template library",
+      "kind": "command",
+      "producer": "cmp -s <ours> <theirs>, over the template image library",
+      "asserted_by": null,
+      "note": "59 of 95. This is the number that makes 'we only took inspiration' false of the images and true of the code."
+    },
+    {
+      "id": "shared-classes",
+      "claim": "Unique CSS classes shared between the template demo and the prototype",
+      "kind": "command",
+      "producer": "documented in docs/60-reference/third-party-assets.md §2.2",
+      "asserted_by": null,
+      "note": "246 template vs 488 prototype, 29 shared (~12%)."
+    },
+    {
+      "id": "source-files",
+      "claim": "TypeScript files under src/",
+      "kind": "command",
+      "producer": "find src -name '*.tsx' | wc -l  ;  find src -name '*.ts' | wc -l",
+      "asserted_by": null
+    },
+    {
+      "id": "wiki-pages",
+      "claim": "Pages published to the GitHub wiki",
+      "kind": "command",
+      "producer": "node scripts/_wiki_sync.cjs  (then count the pushed pages)",
+      "asserted_by": null,
+      "note": "The wiki is a mirror of docs/. A page count is only meaningful immediately after a sync."
+    },
+    {
+      "id": "parity-thresholds",
+      "claim": "PRD §13.2 layout parity: ±1px per landmark box, ±0.5% page height, ≤0.5% of pixels differing by >8/255",
+      "kind": "policy",
+      "producer": "archive/audit/v1-audit/v2check/verify.py (a real browser at 1920 / 1440 / 390)",
+      "asserted_by": null,
+      "note": "NOT re-measured since the marketing copy changed. PRD §16.2 F10 is blocked on it. The thresholds are quoted from the PRD, not measured — and the documents say so."
+    }
+  ]
+}

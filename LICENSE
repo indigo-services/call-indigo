@@ -1,0 +1,87 @@
+Call Indigo Website — proprietary notice
+========================================
+
+Copyright (c) 2012–2026 Indigo Home & Facility Services. All rights reserved.
+
+<!--
+  ⚠️ THE COPYRIGHT HOLDER ABOVE MUST BE CONFIRMED BEFORE THIS FILE IS RELIED ON.
+
+  The repository states two names, and they are not interchangeable:
+
+    "Call Indigo LLC"                  appears 105 times — README.md, CHANGELOG.md,
+                                       and as `copyrightName` in the application
+    "Indigo Home & Facility Services"  appears  26 times — and PRD.md identifies it
+                                       explicitly as the LEGAL name, with "Call
+                                       Indigo" as the business/trading name
+
+  A copyright notice names the legal person that owns the work, so the legal name is
+  used above. If that is wrong, correct it here AND in `copyrightName`, because the
+  application currently renders "© Call Indigo LLC" in the site footer.
+
+  This is a question for the client, not a string to be chosen by frequency.
+  See docs/60-reference/third-party-assets.md §5.
+-->
+
+
+Scope
+-----
+
+This notice covers the original work in this repository: the React/Vite application,
+the admin dashboard, the marketing pages, the documentation, and the original imagery
+and copy created for Call Indigo.
+
+It does NOT cover third-party material, which remains under its own terms. See
+THIRD-PARTY-NOTICES.md for the full register.
+
+
+No licence is granted by publication
+------------------------------------
+
+This repository is published for reference, review and collaboration. Publication does
+not grant any licence, express or implied, to copy, modify, distribute, sublicense or
+use this work, in whole or in part, for any purpose.
+
+In particular, no permission is granted to:
+
+  - deploy, host or operate this application, or a derivative of it, for any third
+    party;
+  - reuse the Call Indigo brand assets — the name, wordmark, logo marks, colour
+    system, or the photography created for the business;
+  - present this work, or a derivative of it, as original work of another party.
+
+
+Third-party material
+--------------------
+
+This repository contains material owned by others and redistributed under their own
+terms. Nothing in this notice restricts rights you hold under those terms, and nothing
+in those terms grants you rights to the Call Indigo work.
+
+The register — component, source, licence, and the obligations each imposes — is
+THIRD-PARTY-NOTICES.md.
+
+Two entries there need particular attention:
+
+  1. The marketing design derives from a COMMERCIAL ThemeForest template (Valvoro,
+     item 62644376). The template's own source and image library are present in this
+     repository, and the licence covering them is held by the client. It does not
+     permit redistribution.
+
+  2. Two bundled MIT files have had their licence notices stripped and are pending
+     restoration.
+
+
+Contributions
+-------------
+
+By submitting a contribution to this repository you confirm that you have the right to
+do so, and you assign copyright in that contribution to Indigo Home & Facility
+Services. See CONTRIBUTING.md.
+
+
+Contact
+-------
+
+Licensing and permissions: support@call-indigo.com
+
+Indigo Home & Facility Services · 1005 Meredith Drive, Austin, TX 78748 · RMP 45574

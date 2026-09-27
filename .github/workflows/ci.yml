@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    name: Gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: G1 — Type check
+        run: npm run typecheck
+
+      # G2 — Lint.
+      #
+      # The ceiling is 4 because that is the MEASURED count on the tree that first
+      # passed CI [M: 2026-09-27 at 2f009a2 — 0 errors, 4 warnings, all
+      # react-refresh/only-export-components in src/components/ui/].
+      #
+      # It is a floor to tighten, never a budget to spend. Raising this number to
+      # make a build pass is the exact failure this gate exists to prevent — a gate
+      # disabled to unblock is worse than no gate, because the documentation still
+      # claims enforcement. See docs/40-project/prd/phase-2-repo-standards-and-ci.md §3.1.
+      - name: G2 — Lint
+        run: npm run lint -- --max-warnings 4
+
+      - name: G3 — Build
+        run: npm run build
+
+      # G4 — Verification suite.
+      #
+      # test:only, not test — the build above is reused rather than repeated. The
+      # suite asserts on rendered output and on the compiled CSS, so it needs dist/,
+      # and rebuilding it here would double the job's cost for no extra coverage.
+      - name: G4 — Verification suite
+        run: npm run test:only

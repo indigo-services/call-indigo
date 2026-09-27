@@ -1,0 +1,33 @@
+# https://editorconfig.org
+# Matches .gitattributes (`* text=auto eol=lf`). The repo is LF everywhere; this
+# file makes an editor agree before the file is ever written.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.md]
+# Two trailing spaces are a hard line break in Markdown. Do not strip them.
+trim_trailing_whitespace = false
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.py]
+indent_size = 4
+
+[*.{cjs,mjs,js,jsx}]
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+
+[*.{png,jpg,jpeg,gif,ico,bmp,woff,woff2,ttf,eot,otf,psd,webp}]
+# Binary — never normalise.
+insert_final_newline = false

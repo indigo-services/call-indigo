@@ -1,5 +1,7 @@
 # Plan — client feedback round, 2026-09-25
 
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `2f009a2`
+
 Nine requests from the client, received 2026-09-25. This document records **what each
 request actually measures today**, what will change, and what is deliberately left
 open. Every "measured now" figure comes from

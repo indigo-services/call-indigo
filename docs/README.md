@@ -1,393 +1,207 @@
-# Developer Flow Standards
+# Documentation — the index
 
-How we work on this project. Read this before your first PR.
+**Kind:** index · **Owner:** the repo · **Asserted by:** `tests/docs.mjs`
 
----
+**This is the front door.** If you are looking for a document and do not know its name,
+start here.
 
-## 1. Evidence-based development
+This repository's engineering culture is evidence-based (`20-development/standards.md`
+§1): every claim in a document must be checkable, and where the repo and a document
+disagree, **the repo wins and the document is the bug**. This index is the map of where
+those claims live.
 
-Every claim in a document must be checkable. This is the repo's founding rule.
-
-- Values marked **[M]** are **measured** — read out of a file in this workspace,
-  with the path given.
-- Values marked **[P]** are **proposed** by a document and have no prior existence
-  in the repo; they are always flagged and carry an open question.
-- Where the repo and a document disagree, the repo wins. The document is the bug.
-
-If you write a number in a doc or a comment, you must have measured it. "Looks
-about 200px" is not a measurement.
-
----
-
-## 2. Branch strategy
-
-| Branch | Purpose |
+| | |
 |---|---|
-| `main` | The release branch. Always buildable. Tagged at each release. |
-| `feat/<scope>` | Feature work. Branch from `main`, PR back to `main`. |
-| `fix/<scope>` | Bug fixes. Same flow as features. |
-| `docs/<scope>` | Documentation-only changes. Same flow. |
-
-**Scope names** use kebab-case and match the PRD section or component being worked
-on: `feat/admin-settings`, `feat/parity-harness`, `fix/footer-admin-link`.
-
-### Branch lifecycle
-
-1. Branch from `main`.
-2. Work in small commits. Each commit should compile.
-3. Push and open a PR when the work is reviewable.
-4. Delete the branch after merge.
+| **Library** | `docs/` — **54 documents**, in seven numbered domains |
+| **Front door** | this file |
+| **Start here instead if you are new** | [`../README.md`](../README.md) at the repo root |
+| **Read it as a website** | [**The project wiki**](https://github.com/indigo-services/call-indigo/wiki) — this directory, rendered. **A mirror: edit here, never there.** |
+| **Every document, by kind** | `00-meta/doc-map.md` — generated |
 
 ---
 
-## 3. Commit conventions
+## 0. Five ways in
 
-Use [Conventional Commits](https://www.conventionalcommits.org/) format:
+If you only read five things, these are the five, in order:
 
-```
-<type>(<scope>): <subject>
+1. `20-development/standards.md` §1 — the evidence rule, which governs everything else.
+2. `20-development/patterns.md` — ten traps this repo has already paid for.
+3. `20-development/architecture.md` — the four seams.
+4. `40-project/tasks.md` — what is actually open.
+5. `30-operations/deployment.md` — how it ships, and the author gate.
 
-<body — optional, for non-trivial changes>
-
-<footer — optional, for breaking changes or issue refs>
-```
-
-### Types
-
-| Type | Use for |
-|---|---|
-| `feat` | New feature or component |
-| `fix` | Bug fix |
-| `docs` | Documentation only |
-| `style` | Formatting, whitespace, no code change |
-| `refactor` | Code restructuring, no behaviour change |
-| `test` | Adding or updating tests |
-| `chore` | Build, deps, config, tooling |
-| `ci` | CI/CD pipeline changes |
-
-### Scope
-
-The scope is optional but recommended. Use the PRD section number, component name,
-or route: `feat(admin-settings)`, `fix(§12-footer)`, `docs(readme)`.
-
-### Subject
-
-- Imperative mood: "add", "fix", "update", not "added" or "fixes".
-- Lowercase, no trailing period.
-- Max 72 characters.
-
-### Examples
-
-```
-feat(admin): scaffold sidebar-08 block and admin layout
-
-fix(§12): use root-relative /admin path in footer link
-
-docs: add developer flow standards
-
-chore: configure @tailwindcss/vite in vite.config.ts
-```
+*(These are code spans, not links, on purpose: every document is linked **exactly once**
+in §1 below, and `tests/docs.mjs` fails if that stops being true.)*
 
 ---
 
-## 4. PR flow
+## 1. The library
 
-### Before opening a PR
+**Every document under `docs/`, by domain.** The *Kind* column is what the document
+declares for itself — see `00-meta/conventions.md` §2.
 
-1. **Rebase on `main`** — no merge commits into features. Keep history linear.
-2. **Run the type checker** — `npm run typecheck` must pass with zero errors.
-3. **Run the linter** — `npm run lint` must report zero errors. Warnings in
-   generated registry files are expected; anything else is not.
-4. **Run the build** — `npm run build` must succeed.
-5. **Exercise the change by hand** — see §5. There is no automated suite yet, so
-   "it type-checks" is not evidence that it works.
-6. **Check the acceptance criteria** — if your PR implements a PRD section,
-   verify every checkbox in §14 that your work covers.
-7. **Write a PR description** that links to the PRD section and lists what changed,
-   what was verified, and what remains.
+### 00 — Meta: how the documentation works
 
-### Gates
-
-| Gate | What it checks | Command | Status |
-|---|---|---|---|
-| G1 — Type check | TypeScript compiles | `npm run typecheck` | Active |
-| G2 — Lint | ESLint, zero errors | `npm run lint` | Active |
-| G3 — Build | Vite production build succeeds | `npm run build` | Active |
-| G4 — Parity (marketing routes only) | React renders match static prototype | `npm run test:parity` | **Not implemented** — see §5 |
-
-A PR is not mergeable until all applicable gates pass. G4 is not yet a gate
-because the harness has not been adapted; until it is, parity is verified by hand
-and the method recorded in the PR description.
-
-### After merge
-
-- Tag the merge commit if it's a release: `git tag -a v2.0.rc1 -m "rc1 release"`.
-- Delete the feature branch.
-- Update the CHANGELOG if the release was tagged.
-
----
-
-## 5. Testing & verification
-
-### What runs
-
-```bash
-npm test          # build, then run every suite
-npm run test:only # run the suites against the last build
-```
-
-Both exit non-zero on failure, so either works as a gate. `tests/README.md` is the
-authoritative description; this is the summary.
-
-| Module | Suite | Checks |
+| Document | Kind | Answers |
 |---|---|---|
-| `tests/policy.mjs` | Component policy (PRD §7) | 6 |
-| | Routing (PRD §5) | 3 |
-| | Stack (PRD §4, §14) | 5 |
-| `tests/service-area.mjs` | Service area (ZIP check) | 7 |
-| `tests/verify.mjs` | Rendered markup | 16 |
-| | Stylesheet coverage | 2 |
-| | Copy hygiene | 7 |
-| | Punch list (v1.0.1) | 8 |
+| [`00-meta/README.md`](./00-meta/README.md) | index | What this domain is, and the one rule it exists to serve |
+| [`00-meta/conventions.md`](./00-meta/conventions.md) | living | The evidence rule, the document kinds, naming, the freshness contract |
+| [`00-meta/doc-map.md`](./00-meta/doc-map.md) | derived | Every document with its kind — **generated** from each document's own front matter |
+| [`00-meta/claims.json`](./00-meta/claims.json) | derived | **The claim registry** — every asserted number, with the command that produces it |
+| [`00-meta/templates/plan.md`](./00-meta/templates/plan.md) | template | A plan: findings, phases, risks, open questions with recommendations |
+| [`00-meta/templates/prd.md`](./00-meta/templates/prd.md) | template | A release: problem, scope, requirements with acceptance criteria |
+| [`00-meta/templates/adr.md`](./00-meta/templates/adr.md) | template | A decision that is expensive to reverse |
+| [`00-meta/templates/runbook.md`](./00-meta/templates/runbook.md) | template | A procedure for a person under pressure |
+| [`00-meta/templates/devlog.md`](./00-meta/templates/devlog.md) | template | A session, including what was tried and abandoned |
 
-**67 checks.** `tests/harness.mjs` holds the assertions, the report and the
-loader; `tests/run.mjs` orders the suites.
+### 10 — Onboarding: day one to first merged change
 
-Each public route is rendered with `react-dom/server` and asserted against the
-real output, not against the source text. The loader uses the `esbuild` that
-already ships inside `vite`, so there is no new dependency and nothing to install
-before `npm test` works.
-
-### Parity thresholds (PRD §13.2)
-
-- **Layout:** every landmark box within ±1px at every viewport.
-- **Page height:** within ±0.5%.
-- **Pixels:** no more than 0.5% of pixels differing by more than 8/255 per channel.
-- **Hard zeros:** console errors, broken images, dead anchors, horizontal overflow.
-
-The hard zeros are covered by the suite — broken images, dead anchors and
-duplicate ids are all checked headlessly. The **pixel and landmark thresholds are
-not automated**: they need a real browser at 1920 / 1440 / 390, and a browser
-harness is the highest-value thing still missing from this repo.
-
-This matters more than it did before the Unreleased pass. The marketing copy was
-de-duplicated, so the three pages are no longer textual duplicates of the
-prototype and §13.2 has to be re-measured rather than inherited. Two things can
-move: the absolutely-positioned hero `.navy-box`, `.years-experience-con` badge
-and `.plumber-img` overlay, which sit against flow height the shortened sentences
-changed; and `/contact`, which shares the footer whose copy was edited. See the
-Unreleased changelog entry and PRD §15 Q5.
-
-### When to write a unit test
-
-Non-trivial logic gets a unit test. Presentational components verified by the
-rendered-markup suite do not need one. `src/marketing/service-area.ts` is the
-model to follow: the ZIP decision was pulled out of the hook into a pure function
-precisely so it could be asserted without a DOM, and `tests/service-area.mjs`
-covers its boundaries.
-
-
-### What is still verified by hand
-
-Anything the suite cannot reach. Measurements go in prose, with numbers, per §1.
-
-| Area | Method | In the suite? |
+| Document | Kind | Answers |
 |---|---|---|
-| Layout parity | Compare computed styles at a fixed viewport rather than screenshots | No — needs a browser |
-| Scroll-reveal animation | Confirm in a real tab; `IntersectionObserver` does not fire headlessly (see the caveat below) | No |
-| Console cleanliness | Visit every route and read the console | No — the suite never boots a browser |
-| Dashboard CRUD | Drive the real UI end to end, then read the storage key back and reload to confirm it survived | No |
-| Marketing markup | Diff generated markup against `valvoro-prototype/*.html` | Yes, behaviourally |
-| Design-system completeness | Assert every component class used in the markup exists in the compiled CSS | Yes |
-| Routes, anchors, images, ids | Visit every route and check each destination resolves | Yes |
+| [`10-onboarding/README.md`](./10-onboarding/README.md) | index | The product in one paragraph, and the four things a new reader assumes and should not |
+| [`10-onboarding/setup.md`](./10-onboarding/setup.md) | living | Clone → dev server → all four gates green. Includes the five most common failures |
+| [`10-onboarding/glossary.md`](./10-onboarding/glossary.md) | living | The product words, and the words that are local to this repo |
 
-### A caveat about headless previews
+### 20 — Development: how to build here
 
-**A headless preview is not a browser.** In this workspace's preview context,
-`IntersectionObserver` never fires (even for a fixed, in-viewport probe element)
-and CSS transitions never advance, because the page is not being painted. Content
-gated behind a scroll reveal therefore reads as `opacity: 0` and looks broken when
-it is not.
-
-Before reporting such a thing as a bug, check the cascade directly: suppress the
-transition (`el.style.transition = 'none'`), add the state class, force a reflow,
-and read the computed value. If it reaches the expected value, the cascade is
-correct and the animation clock — not the code — is the problem. Confirm the
-animation itself in a real browser tab.
-
----
-
-## 6. Component policy (PRD §7)
-
-### The rule
-
-**Every component rendered under `/admin` must come from the shadcn CLI.**
-
-```bash
-npx shadcn@latest add <component>
-```
-
-Components are not hand-written, not copied from a blog, not re-implemented.
-
-### Enforcement
-
-| Check | How | When |
+| Document | Kind | Answers |
 |---|---|---|
-| **Provenance** | Re-add with `npx shadcn@latest add --all --overwrite` in a scratch worktree; diff must be empty | Pre-merge gate |
-| **Import discipline** | No `src/admin/**` file may import from `src/marketing/**` | Pre-merge grep |
-| **Route count** | `/admin` routes match `src/admin/routes.ts` exactly, and `/admin/*` has no catch-all page — unknown paths redirect (§5.2, `docs/dashboard-scope.md`) | Pre-merge assertion |
-| **Nav model** | Every `/admin` page is listed in `src/admin/routes.ts` — a page cannot exist without a sidebar entry and a breadcrumb | Pre-merge review |
-| **Auth boundary** | No server session, token or `/admin/login` route may appear, and the credential digests live in `src/admin/auth.ts` alone (§6, `docs/admin-gate.md`) | Pre-merge assertion |
-| **Storage containment** | Only `src/lib/data/backend.ts` may reference `localStorage`, and only `src/admin/auth.ts` may reference `sessionStorage`; every other file goes through `src/lib/data/api.ts` | Pre-merge grep |
-| **Design-system coverage** | Every component class used in the marketing markup is defined in `src/index.css` — the count of missing classes must be zero | Pre-merge script |
+| [`20-development/README.md`](./20-development/README.md) | index | What this domain is, and the three things that break most often |
+| [`20-development/standards.md`](./20-development/standards.md) | living | **The rules.** Evidence, branches, commits, PR flow, gates, component policy, file layout, release process, pitfalls |
+| [`20-development/architecture.md`](./20-development/architecture.md) | living | The four seams: routing, the data layer, the chrome, the auth gate |
+| [`20-development/patterns.md`](./20-development/patterns.md) | living | The house patterns, and the anti-pattern each one kills |
+| [`20-development/testing.md`](./20-development/testing.md) | living | How the verification suite works, and **what it cannot see** |
+| [`20-development/design-tokens.md`](./20-development/design-tokens.md) | living | `src/index.css` in full: palette, scrims, per-page primaries, the contrast bars |
+| [`20-development/css-pipeline.md`](./20-development/css-pipeline.md) | living | Tailwind v4, the preflight drift, and why a parity failure is usually 1–2px |
 
-### Custom-component exceptions
+### 30 — Operations: DevOps
 
-If a dashboard requirement cannot be met by a registry component, open an
-exception in `docs/component-exceptions.md` with all five fields completed (PRD §7.5).
-A missing field is a rejection.
+| Document | Kind | Answers |
+|---|---|---|
+| [`30-operations/README.md`](./30-operations/README.md) | index | The short version of how this ships |
+| [`30-operations/deployment.md`](./30-operations/deployment.md) | dated | Vercel, the SPA rewrite, the **deploy-author gate**, and how to prove a deploy shipped |
+| [`30-operations/environments.md`](./30-operations/environments.md) | dated | Local / preview / production, and what genuinely differs |
+| [`30-operations/observability.md`](./30-operations/observability.md) | dated | What we can see, what we cannot, and why there is no analytics |
+| [`30-operations/runbook-incident.md`](./30-operations/runbook-incident.md) | dated | The site is wrong, down, or serving something unintended |
+| [`30-operations/security.md`](./30-operations/security.md) | dated | The posture index, and the six gaps ranked |
 
-### Marketing components
+### 40 — Project: management, roadmap, decisions
 
-The marketing front end (`/`, `/residential`, `/commercial`) remains bespoke. The
-registry-only rule applies to `/admin` and to `/admin` alone (PRD §8).
+| Document | Kind | Answers |
+|---|---|---|
+| [`40-project/README.md`](./40-project/README.md) | index | **The two `T`-numbering schemes that collide**, and what is live right now |
+| [`40-project/roadmap.md`](./40-project/roadmap.md) | dated | The five documentation phases, and PRD §16.2's F1–F12 |
+| [`40-project/tasks.md`](./40-project/tasks.md) | dated | **The live punch list** — client T2/T5–T7, plus the engineering tasks |
+| [`40-project/artifacts.md`](./40-project/artifacts.md) | dated | Where generated things live, and what may be deleted |
+| [`40-project/decisions/README.md`](./40-project/decisions/README.md) | index | The ADR index and its convention |
+| [`40-project/decisions/0001-evidence-based-documentation.md`](./40-project/decisions/0001-evidence-based-documentation.md) | dated | Why the repo wins over the document |
+| [`40-project/decisions/0002-client-side-admin-gate.md`](./40-project/decisions/0002-client-side-admin-gate.md) | dated | Why the gate is client-side, and what it is not |
+| [`40-project/decisions/0003-localstorage-behind-an-async-seam.md`](./40-project/decisions/0003-localstorage-behind-an-async-seam.md) | dated | Why `api.ts` is async over a synchronous backend |
+| [`40-project/decisions/0004-numbered-documentation-domains.md`](./40-project/decisions/0004-numbered-documentation-domains.md) | dated | Why this directory is numbered, and what it cost |
+| [`40-project/prd/phase-1-truth-and-index.md`](./40-project/prd/phase-1-truth-and-index.md) | dated | **v2.0.rc2** — make the docs true, give `docs/` a front door |
+| [`40-project/prd/phase-2-repo-standards-and-ci.md`](./40-project/prd/phase-2-repo-standards-and-ci.md) | dated | **v2.1.0** — `.github/`, hygiene files, the gates enforced on PR |
+| [`40-project/prd/phase-3-docs-library.md`](./40-project/prd/phase-3-docs-library.md) | dated | **v2.2.0** — the numbered-domain library, fully populated |
+| [`40-project/prd/phase-4-wiki-publication.md`](./40-project/prd/phase-4-wiki-publication.md) | dated | Continuous — the wiki, generated from this directory |
+| [`40-project/prd/phase-5-observability-and-automation.md`](./40-project/prd/phase-5-observability-and-automation.md) | dated | Continuous — freshness assertions, link checks, a deploy log |
+| [`40-project/plans/plan-docs-refactor-2026-09-27.md`](./40-project/plans/plan-docs-refactor-2026-09-27.md) | dated | The refactor: findings F1–F10, target structure, five phases |
+| [`40-project/plans/plan-client-feedback-2026-09-25.md`](./40-project/plans/plan-client-feedback-2026-09-25.md) | dated | Round-2 client feedback: plan, evidence, risks, outcome |
+| [`40-project/plans/plan-client-feedback-2026-09-26.md`](./40-project/plans/plan-client-feedback-2026-09-26.md) | dated | Round-3 client feedback: plan and evidence |
 
----
+### 50 — Sessions: the human/agent I/O protocol
 
-## 7. Design tokens (PRD §6)
+| Document | Kind | Answers |
+|---|---|---|
+| [`50-sessions/README.md`](./50-sessions/README.md) | index | Why the devlog exists, and what it is not |
+| [`50-sessions/protocol.md`](./50-sessions/protocol.md) | living | How a session starts, and **what it must leave behind** |
+| [`50-sessions/agent-io.md`](./50-sessions/agent-io.md) | living | The contract: inputs, outputs, artifact paths, and the four rules agents get wrong |
+| [`50-sessions/devlog/2026-09-27.md`](./50-sessions/devlog/2026-09-27.md) | dated | The documentation milestone — including what was tried and abandoned |
 
-### One source of truth
+### 60 — Reference: look-it-up material
 
-All brand tokens live in `src/index.css`. There is no other copy.
-
-- Do not duplicate tokens in component files.
-- Do not create a `tokens.ts` that shadows the CSS — the Design System page reads
-  from a fixture for display purposes only (PRD §11), and that fixture is clearly
-  labelled as a mock.
-- If you need a new token, add it to `@theme` in `src/index.css` and document why.
-
-### Colour encoding
-
-Keep hex values as-is. Do not "modernise" them to OKLCH. Mixing the two encodings
-is how a palette silently drifts (PRD §6.2).
-
-### shadcn semantic mapping
-
-shadcn components read `--primary`, `--foreground`, `--muted`, etc. — not brand
-tokens. These are mapped in `:root` and exposed via `@theme inline` (PRD §6.3).
-If you add a registry component that needs a token not yet mapped, add the mapping
-in `:root`, not in the component.
-
----
-
-## 8. CSS pipeline
-
-### Tailwind v4, not v3
-
-This project uses Tailwind CSS v4 via `@tailwindcss/vite`. There is:
-
-- No `tailwind.config.js`
-- No `postcss.config.js`
-- No `tailwindcss-animate` (use `tw-animate-css` if needed)
-- No `@tailwind` directives — use `@import "tailwindcss"`
-
-If a tool or guide references any of those, it is describing v3 and does not apply
-here.
-
-### Preflight
-
-The Vite plugin emits its own preflight. This can shift a box by 1–2px compared to
-the Tailwind browser build the static prototype used. That drift is the single most
-likely cause of a parity failure (PRD §13.3). Measure landmark boxes, not screenshots.
+| Document | Kind | Answers |
+|---|---|---|
+| [`60-reference/README.md`](./60-reference/README.md) | index | What this domain is, and why `routes.md` is the odd one out |
+| [`60-reference/routes.md`](./60-reference/routes.md) | derived | Every route, its page file and its line count — **generated** |
+| [`60-reference/data-layer.md`](./60-reference/data-layer.md) | dated | `api → backend → localStorage` in full: surface, namespace, seed, failure modes |
+| [`60-reference/admin-gate.md`](./60-reference/admin-gate.md) | dated | The gate: threat model, rotation, verification, risk register |
+| [`60-reference/dashboard-scope.md`](./60-reference/dashboard-scope.md) | dated | Where the build departs from `PRD.md` §5.2 / §9.1, and why |
+| [`60-reference/component-exceptions.md`](./60-reference/component-exceptions.md) | dated | The PRD §7.5 exception record for `ColourSwatch` |
+| [`60-reference/parity.md`](./60-reference/parity.md) | dated | PRD §13: what parity meant, what changed, the harness still missing |
+| [`60-reference/third-party-assets.md`](./60-reference/third-party-assets.md) | dated | **The rights register** — what this repo carries that belongs to someone else |
 
 ---
 
-## 9. File organisation
+## 2. Outside `docs/`
 
-### Where things go
+These live where convention puts them, not where the library does. They are listed here
+so this index is a complete map.
 
-| Content | Location |
+| Document | Location | Answers |
+|---|---|---|
+| [`README.md`](../README.md) | repo root | The starting point: what this is, how to run it, the index of project knowledge |
+| [`PRD.md`](../PRD.md) | repo root | The founding product requirements (v2.0.rc1). **Stays at the root** — §16.2's F-items are cited from across the tree |
+| [`CHANGELOG.md`](../CHANGELOG.md) | repo root | The release record, Keep a Changelog format. **Stays at the root** — the filename is the convention |
+| [`CONTRIBUTING.md`](../CONTRIBUTING.md) | repo root | Pointers into the rules, and what we will not merge |
+| [`SECURITY.md`](../SECURITY.md) | repo root | How to report, and why most of what looks like a vulnerability is documented behaviour |
+| [`LICENSE`](../LICENSE) | repo root | Proprietary — Indigo Home & Facility Services |
+| [`THIRD-PARTY-NOTICES.md`](../THIRD-PARTY-NOTICES.md) | repo root | The public attribution register, with the MIT appendix |
+| [`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md) | repo root | The short version, and the one house rule |
+| [`tests/README.md`](../tests/README.md) | `tests/` | A pointer into `20-development/testing.md`, plus the four things to know before trusting a green run |
+| [`archive/README.md`](../archive/README.md) | `archive/` | What is archived, and why it was archived rather than deleted |
+
+---
+
+## 3. How to write a document here
+
+Three rules, and they are the ones that have been broken. The full version is
+`00-meta/conventions.md`.
+
+- **Every claim is checkable**, and **every number carries its producer** — the value,
+  the command, and the date. Never a bare `127`.
+- **Declare the document's kind** — `derived`, `dated`, or `living`. A `living` claim
+  written as if it were `dated` is how this library got into trouble.
+- **Keep one copy.** If a fact is stated twice, one of them links to the other.
+
+Five templates live in `00-meta/templates/`. Use them; do not invent a shape.
+
+## 4. Section redirects
+
+**`docs/README.md` was the developer flow standards until 2026-09-27.** It is now this
+index, and the standards moved to `20-development/standards.md`. **The twelve section
+numbers are unchanged**, so a citation to `docs/README.md §n` written before the move
+still resolves by content:
+
+| Old citation | Now |
 |---|---|
-| Brand images, logos, favicons | `public/assets/images/` |
-| Registry components | `src/components/ui/` |
-| Sidebar block files | `src/components/` (root — they are block, not ui) |
-| Bespoke marketing components | `src/marketing/` |
-| Admin pages | `src/admin/` |
-| Dashboard gate (client-side, prototype) | `src/admin/auth.ts` — see `docs/admin-gate.md` |
-| Mock fixtures (design-token display only) | `src/admin/mock/` |
-| Dashboard data layer | `src/lib/data/` — see `docs/dashboard-scope.md` |
-| Shared utilities | `src/lib/` |
-| Shared React hooks | `src/hooks/` |
-| Verification scripts | `tests/` — see `tests/README.md` |
-| Documentation | `docs/` |
-| Past work / reference | `archive/` |
+| `docs/README.md` §1 | `20-development/standards.md` §1 — evidence-based development |
+| `docs/README.md` §2 | `20-development/standards.md` §2 — branch strategy |
+| `docs/README.md` §3 | `20-development/standards.md` §3 — commit conventions |
+| `docs/README.md` §4 | `20-development/standards.md` §4 — PR flow |
+| `docs/README.md` §5 | `20-development/standards.md` §5 — testing & verification |
+| `docs/README.md` §6 | `20-development/standards.md` §6 — component policy |
+| `docs/README.md` §7 | `20-development/standards.md` §7 — design tokens |
+| `docs/README.md` §8 | `20-development/standards.md` §8 — CSS pipeline |
+| `docs/README.md` §9 | `20-development/standards.md` §9 — file organisation |
+| `docs/README.md` §10 | `20-development/standards.md` §10 — release process |
+| `docs/README.md` §11 | `20-development/standards.md` §11 — working with the archive |
+| `docs/README.md` §12 | `20-development/standards.md` §12 — common pitfalls |
 
-### Import rules
+**Citations to `docs/README.md` inside `CHANGELOG.md` are left as written** — the
+changelog is a dated record and its links were correct on the day they were written.
+This table is how a reader following one of them arrives at the right content.
 
-- `@/*` resolves to `src/*`. Always use it.
-- `src/admin/**` may not import from `src/marketing/**` (PRD §7.4.2).
-- `src/marketing/**` may not import from `src/admin/**`.
-- Pages may not import `@/lib/data/backend` directly — they go through
-  `@/lib/data/api`, so the storage engine stays replaceable (§16.2 F2).
+**The documents that moved in Phase 3** are listed in
+`40-project/plans/plan-docs-refactor-2026-09-27.md` §3, with their new homes.
 
----
+## 5. What is missing
 
-## 10. Release process
+This library is now accurate **and** complete against the plan's target structure. What
+remains is automation, not documentation:
 
-1. **Verify acceptance criteria** — every checkbox in PRD §14 for the release scope.
-2. **Tag the merge commit** — `git tag -a vX.Y.Z -m "release message"`.
-   - Use `git mktag` if the sandbox's loose-ref bug is active (see user memory).
-   - Get the timestamp from `date +%s` / `date +%z`, never by hand.
-   - Push by SHA: `git push origin <tagsha>:refs/tags/vX.Y.Z`.
-   - Verify: `git ls-remote origin refs/tags/vX.Y.Z`.
-3. **Update CHANGELOG.md** — add the release entry with date and scope.
-4. **Deployment log** — record the SHA, tag, and what was deployed, in a separate
-   pass *after* the fact so it can cite real SHAs.
-
----
-
-## 11. Working with the archive
-
-The `archive/` directory holds all past work. It is reference material, not active
-code.
-
-- **Do not edit files in `archive/`** during normal development.
-- **The audit harness** (`archive/audit/v1-audit/v2check/`) still holds the only
-  browser-driving scripts (`verify.py`, `diag.py`, `mincontent.py`, `shots.py`).
-  `tests/` did not adapt them — it went headless with `react-dom/server` instead.
-  If the §13.2 pixel thresholds need measuring again, that harness is where the
-  code to do it lives.
-- If you need a script from the archive, copy it into `tests/` and adapt it — do
-  not run it in place.
-
-### The baseline prototype exists twice
-
-`valvoro-prototype/` at the repo root and
-`archive/v1-prototype/valvoro-prototype/` are the **same files** — the HTML, CSS,
-JS and ground-truth docs are byte-identical.
-
-**Use the root copy.** `.gitignore` excludes images under `archive/**`, so the
-archived copy ships without its 79 brand images and is not self-contained. The root
-copy is fully tracked. Before changing either, confirm which one your tooling
-resolved; a diff against the wrong copy is a five-minute detour at best.
-
-Note also that `css/tw.css` — described in `archive/README.md` as a "stale Tailwind
-mirror" — is in fact the source of the marketing design system that was ported into
-`src/index.css`. It is stale as a *build input*, not as a design reference.
-
----
-
-## 12. Common pitfalls
-
-Recorded from experience in this workspace and Jaden's broader conventions.
-
-| Pitfall | Mitigation |
-|---|---|
-| Using the workspace's `modern-web-app` scaffold | It ships Tailwind v3.4.19 + `tailwind.config.js`. Do not use it. Bootstrap per PRD §4.2. |
-| Assuming `git diff` against HEAD is accurate | On a stale checkout, diff against the intended base SHA: `git diff <base-sha> --stat`. |
-| Trusting `git status` on a stale checkout | Compare blob SHAs per path with `git ls-tree -r <base>` vs `git ls-files -s`. |
-| Batching parallel `Edit` calls on the same file | They race — the last writer wins, silently. Edit one file sequentially. |
-| Using `grep -c` in a `&&` chain | `grep -c` exits 1 when count is 0, breaking the chain. Use `\|\| true` or `;`. |
-| Hardcoding Unix timestamps | Use `date +%s` / `[DateTimeOffset]::Now.ToUnixTimeSeconds()`. |
-| Trusting a headless preview for animation or scroll behaviour | `IntersectionObserver` and CSS transitions do not run there. Verify the cascade directly, then confirm in a real tab — see §5. |
-| Adding an `@/admin/**` import of `@/lib/data/backend` | Pages import `@/lib/data/api`. `backend.ts` is the swappable storage engine (PRD §16.2 F2). |
+| Missing | Why it matters | Tracked |
+|---|---|---|
+| **The wiki drift check** | The sync is manual, so a stale wiki is silent | `40-project/tasks.md` **E6** |
+| **The deploy log** | Release history is prose in `CHANGELOG.md` | `40-project/tasks.md` **E4** |
+| **PRD §13.2 re-measured** | It is the only acceptance test §13 ever specified, and F10 is blocked on it | `40-project/tasks.md` **E3** |
+| **A dependency-vulnerability gate** | Dependabot opens PRs; nothing fails a build on an advisory | `40-project/tasks.md` **E7** |
+| **The backend-import assertion** | `CONTRIBUTING.md` states the rule; nothing checks it | `40-project/tasks.md` **E1** |

@@ -1,5 +1,7 @@
 # Component Exceptions (PRD §7.5)
 
+**Kind:** dated · **Last verified:** 2026-09-27 at `2f009a2`
+
 ## EXCEPTION-1: ColourSwatch (DesignSystemPage)
 
 1. REGISTRY SEARCH
