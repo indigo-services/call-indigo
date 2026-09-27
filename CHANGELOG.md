@@ -10,6 +10,51 @@ with pre-release tags for release candidates.
 
 ## [Unreleased] — working dashboard, public inquiry page, copy pass, client punch list
 
+### The documentation library, readable in the dashboard, 2026-09-27
+
+**Shipped as `22d1b5a`** — `feat(admin): mirror the documentation library read-only at
+/admin/docs`.
+
+**`/admin/docs` renders `docs/**` in place, read-only**: an index grouped by domain with a
+filter, and a document view. Nothing is generated and nothing is committed twice — Vite
+imports the markdown directly, so "keep one copy" holds by construction rather than by a
+regeneration step somebody has to remember.
+
+**Two mechanisms were proposed and both were ruled out by measurement, not by taste.** An
+iframe of the GitHub wiki is impossible: github.com sends `X-Frame-Options: deny` and
+`frame-ancestors 'none'`. A runtime fetch from `api.github.com` is a non-starter: the
+unauthenticated limit is 60 requests per hour per IP, and reading this library costs 56.
+
+**Three defects were found on the way, and two of them were already in the repository.**
+
+- `scripts/_routes_doc.cjs` read a **comment** as code. A comment in `App.tsx` that quotes a
+  route tag matched the generator's regex, so the public-route table came out **empty** and
+  its four rows were absorbed into the admin table. Comments are stripped before parsing now,
+  and the generator refuses to emit an obviously-wrong document rather than printing one
+  silently. Three guards, each negative-controlled; a fourth was written and deleted because
+  it could not fail.
+- `tests/docs.mjs` claimed `routes.md` was asserted by a check named *"routes.md is current"*.
+  **No such check existed** — the nearest asserted that the generator FILE mentions `--check`
+  and never ran it. `routes.md` had already drifted unnoticed: it said `ComponentsPage.tsx`
+  was 164 lines when the file had 165. That check now exists, and it asserts content, because
+  `--check` provably cannot catch a parser bug — it compares the document against the
+  generator's own output, and reported *"up to date"* on the empty table.
+- `slugify` did not match GitHub, which matters because the same markdown is published to the
+  wiki. It collapsed whitespace runs, so `§5.2 — deviations` slugged to `52-deviations` where
+  GitHub gives `52--deviations`, and it dropped underscores.
+
+**One document defect was found and fixed**: a table indented inside a `- [ ]` item in
+`phase-1-truth-and-index.md` rendered as literal pipes — in the mirror and on GitHub alike.
+Re-indented to the list item's content column.
+
+**What it costs the public site is measured**: +2.67 kB JS and +4.29 kB CSS on the entry chunk
+(810.81 → 813.48 kB JS). `tests/docs-mirror.mjs` asserts the glob stays lazy, because
+switching it to eager is a one-word change with no visible effect on the dashboard and roughly
++440 kB on the public site.
+
+Same shape as everything else in this release: *an assertion that cannot see the thing it
+claims to check.*
+
 ### The deploy status is often absent entirely, 2026-09-27
 
 **Shipped as `ece7d19`** — `docs(ops): record that the deploy status is often absent
