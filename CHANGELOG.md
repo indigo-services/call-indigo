@@ -57,8 +57,9 @@ a secret to hide from the browser, so anyone who can open devtools can set the
 session flag. It keeps the dashboard off the public internet, which is the actual
 requirement while the client is showing this around — it is **not access
 control**, and the Security page now says so. `PRD.md` §9.1 still reads "No
-authentication"; the client overrode that scope, and by convention the PRD is left
-as the scope of record while the reconciliation lives in `docs/admin-gate.md`.
+authentication" and is **annotated in place rather than rewritten** — the PRD stays
+the rc1 scope of record, with dated markers in §1, §2.1 (G7), §9.1, §16.1 and §16.2
+(F1) pointing at `docs/admin-gate.md` for the reconciliation.
 
 **Also.** `scripts/_gen-admin-credential.cjs` prints fresh constants for rotation
 and refuses a password under 12 characters, never echoing it back. `tests/auth.mjs`

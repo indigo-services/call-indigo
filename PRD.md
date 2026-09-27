@@ -37,7 +37,7 @@ v2.0.rc1 does three things and nothing else:
    test, not an aspiration.
 2. **Adds exactly one new footer link** across all three pages, pointing at `/admin`.
 3. **Adds a mocked-up dashboard at `/admin`** — two pages (Settings, Design System) on the shadcn/ui
-   two-menu sidebar shell. Mockup only: no authentication, no persistence, no API.
+   two-menu sidebar shell. Mockup only: no persistence, no API. **[Authentication was added 2026-09-26 — see the note in §9.1.]**
 
 The front end may keep its bespoke components. The dashboard may not — it is registry-only (§7).
 
@@ -55,7 +55,7 @@ The front end may keep its bespoke components. The dashboard may not — it is r
 | G4 | `/admin` contains exactly two pages: Settings, Design System | Route table contains exactly 3 `/admin` entries (§5.2) |
 | G5 | The Design System page shows logo, icon, colours, standard accents, and one accent shade each for Residential and Commercial | Content checklist, §11 |
 | G6 | Every dashboard component is registry-provenanced | Provenance gate, §7.4 |
-| G7 | No authentication anywhere | Negative assertion: no login route, no session code |
+| G7 | No authentication anywhere — **inverted 2026-09-26, see §9.1** | Negative assertion: no login route, no session code |
 
 ### 2.2 Non-goals (rc1)
 
@@ -501,6 +501,14 @@ There is no route guard and no auth provider in rc1. `/admin` is reachable by an
 That is intended for a prototype, and it is the reason §16 schedules auth before any real data exists.
 **[P]**
 
+> **Note added 2026-09-26 — the client overrode this scope.** A username/password
+> gate now guards `/admin` (`src/admin/auth.ts`), so the "No authentication"
+> statement above and the G7 goal in §2.1 no longer describe the build. The PRD is
+> kept as the rc1 **scope of record**; the reconciliation, the threat model and what
+> a real implementation would still need are in **`docs/admin-gate.md`**. The gate is
+> client-side: it keeps `/admin` off the public internet for anyone without the
+> credentials, and it is **not** access control. **F1 in §16.2 remains the real fix.**
+
 ### 9.2 The two-menu layout
 
 The brief's "shadcn/ui two-menu layout" is implemented as **one inset sidebar containing two menu
@@ -855,14 +863,14 @@ re-measured — see the Unreleased changelog entry.
 | `/admin/design` | Displays logo, icon, colours, accents, segment accents; read-only |
 | Sidebar | Two menus; four of seven items are `aria-disabled` mockups |
 | Data | Static fixtures in `src/admin/mock/`; no fetch, no API |
-| Access | None. No auth, no guard, no roles |
+| Access | **Superseded 2026-09-26** — a client-side sign-in gate now guards `/admin` (§9.1). No roles |
 | Marketing pages | Byte-for-byte duplicates of today's three pages, plus the one footer link |
 
 ### 16.2 Beyond rc1 — explicitly deferred
 
 | # | Future work | Depends on |
 |---|---|---|
-| F1 | **Authentication** — login, session, route guard | Must land before any real data exists |
+| F1 | **Authentication** — login, session, route guard | **Partly landed 2026-09-26** — a client-side prototype gate (§9.1); a server-issued session is still owed before any real data exists |
 | F2 | **Real persistence** — API + database for settings | F1 |
 | F3 | **Working design-token editor** — edit tokens, write back to CSS | F1, F2, and a token-source decision (§6.1) |
 | F4 | **Content management** — edit the marketing pages' copy and images | F1, F2 |
