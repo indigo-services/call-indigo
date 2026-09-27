@@ -27,10 +27,41 @@ const OUT = path.join(ROOT, "docs", "60-reference", "routes.md")
 const appSrc = fs.readFileSync(path.join(ROOT, "src", "App.tsx"), "utf8")
 const navSrc = fs.readFileSync(path.join(ROOT, "src", "admin", "routes.ts"), "utf8")
 
+/* ── comments are not code ──────────────────────────────────────────────────── */
+
+/**
+ * Blank out comments before parsing anything.
+ *
+ * WHY THIS EXISTS. This script reads the router with regexes, and a regex cannot
+ * tell code from a comment. `src/App.tsx` documents its own routing rules, and
+ * one of those comments quotes a route tag verbatim — so the search for the
+ * `/admin` block matched the PROSE, which sits ABOVE the public routes. The
+ * public table came out empty and its four rows were absorbed into the admin
+ * block, next to a phantom row for the comment itself.
+ *
+ * Blanked rather than deleted: every character becomes a space and newlines are
+ * kept, so a line number still points at the line a human would open.
+ *
+ * Order matters. Block comments go first: blanking line comments first would
+ * swallow the terminator that closes a block comment, leaving it unterminated.
+ */
+function stripComments(src) {
+  const blank = (m) => m.replace(/[^\n]/g, " ")
+  return (
+    src
+      .replace(/\/\*[\s\S]*?\*\//g, blank)
+      // A line comment, but not the `//` in a URL or in an alias path.
+      .replace(/(^|[^:"'`\\])\/\/[^\n]*/g, (m, pre) => pre + " ".repeat(m.length - pre.length))
+  )
+}
+
+const appCode = stripComments(appSrc)
+const navCode = stripComments(navSrc)
+
 /* ── the router ─────────────────────────────────────────────────────────────── */
 
 /** The `/admin` route block, so nested routes are not confused with public ones. */
-const adminBlock = /<Route\s+path="\/admin"[\s\S]*?<\/Route>/.exec(appSrc)
+const adminBlock = /<Route\s+path="\/admin"[\s\S]*?<\/Route>/.exec(appCode)
 if (!adminBlock) throw new Error("no /admin route block in src/App.tsx")
 
 /** Every `<Route path="…" element={…} />` in a block. */
@@ -64,10 +95,65 @@ function describeAdminParent(routes) {
   )
 }
 
-const adminStart = appSrc.search(/<Route\s+path="\/admin"/)
+const adminStart = appCode.search(/<Route\s+path="\/admin"/)
 if (adminStart === -1) throw new Error('no /admin route in src/App.tsx')
-const publicRoutes = routesIn(appSrc.slice(0, adminStart))
+const publicRoutes = routesIn(appCode.slice(0, adminStart))
 const adminRoutes = describeAdminParent(routesIn(adminBlock[0]))
+
+/* ── guards: refuse to print a document we cannot vouch for ─────────────────── */
+
+/**
+ * This script's job is to print the tree. When it cannot READ the tree it must
+ * fail loudly rather than print a plausible-looking table.
+ *
+ * WHY THIS IS NOT PARANOIA. This script already shipped a routes.md whose public
+ * table was empty, and `--check` reported "up to date" the whole time — because
+ * `--check` compares the file against this script's OWN output, so a script that
+ * misreads the tree agrees with itself perfectly. `--check` can catch drift; it
+ * can never catch a parser bug. The only guard that can is one that looks at the
+ * SHAPE of what was parsed, which is what these three do.
+ *
+ * Each was negative-controlled, but NOT by the same fixture — the first one
+ * throws before the others are reached, so claiming "all three fail on the
+ * original defect" would be a claim nothing here can check:
+ *   · empty public table      → reinstating the offending comment (throws #1)
+ *   · marketing route in /admin → disabling #1, then the same comment
+ *   · an unresolvable element  → `element={pickPage()}` on a real route
+ *
+ * A FOURTH guard was written and then deleted: "the /admin block must contain
+ * its own parent route". It cannot fail. `adminBlock` is found by matching the
+ * literal text `<Route\s+path="\/admin"`, so `path="/admin"` is always the first
+ * attribute, and `routesIn` always yields that route. The guard could never see
+ * the thing it claimed to check, which is the exact defect this file is about.
+ */
+if (!publicRoutes.length) {
+  throw new Error(
+    "parsed 0 public routes from src/App.tsx — the parser is reading a comment, or the " +
+      "router moved behind a wrapper this script does not understand",
+  )
+}
+// A marketing page inside the /admin block is the signature of a wrong block
+// boundary: that is exactly what the comment-matching bug produced, when the
+// four public routes were absorbed into the admin table.
+const leaked = adminRoutes.filter(
+  (r) =>
+    !r.target.includes("`") &&
+    !r.target.startsWith("redirect") &&
+    fs.existsSync(path.join(ROOT, "src", "marketing", "pages", `${r.target}.tsx`)),
+)
+if (leaked.length) {
+  throw new Error(
+    `the /admin block contains marketing routes: ${leaked.map((r) => r.path).join(", ")} — ` +
+      "the block boundary is wrong, so public and nested routes are being mixed",
+  )
+}
+const unresolved = [...publicRoutes, ...adminRoutes].filter((r) => r.target === "?")
+if (unresolved.length) {
+  throw new Error(
+    `could not resolve a component for: ${unresolved.map((r) => r.path).join(", ")} — ` +
+      "a `?` row means the parser gave up, and that must never reach the document",
+  )
+}
 
 /* ── the nav model ──────────────────────────────────────────────────────────── */
 
@@ -75,7 +161,7 @@ const navGroups = []
 {
   const groupRe = /label:\s*"([^"]+)",\s*items:\s*\[([\s\S]*?)\],\s*\}/g
   let g
-  while ((g = groupRe.exec(navSrc))) {
+  while ((g = groupRe.exec(navCode))) {
     const items = []
     const itemRe = /title:\s*"([^"]+)",\s*path:\s*"([^"]+)",[\s\S]*?description:\s*"([^"]+)"/g
     let i

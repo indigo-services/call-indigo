@@ -44,19 +44,41 @@ reverts. The full threat model, rotation procedure and risk register:
 **A server-issued session is PRD §16.2 F1** and lands before this dashboard is pointed
 at anything real.
 
-## 3. The one place raw HTML enters the DOM
+## 3. Where raw HTML enters the DOM — two seams
 
-`src/marketing/chrome.ts` composes the shared chrome out of `chrome-markup.ts` using
-string `.replace()` calls, and the three marketing pages inject their markup with
-`dangerouslySetInnerHTML`.
+**3.1 The marketing chrome.** `src/marketing/chrome.ts` composes the shared chrome out of
+`chrome-markup.ts` using string `.replace()` calls, and the three marketing pages inject
+their markup with `dangerouslySetInnerHTML`.
 
-**The content is all first-party** — there is no user input rendered as HTML, and no
-route echoes a query parameter into the DOM. So there is no XSS path *today*.
+**3.2 The documentation mirror.** `src/admin/DocsPage.tsx` renders each document under
+`docs/` with `dangerouslySetInnerHTML`, after `marked` converts it from markdown.
 
-**The risk is that this is the one seam where a future change could create one.** If a
-value ever reaches `BODY_HTML` or a `.replace()` needle from user input or from a URL,
-that is an XSS. The suite's `stripComments()` / `stripJsComments()` helpers exist
-because this seam has already produced false results in both directions.
+**The content is all first-party** — no user input is rendered as HTML. Note the precise
+form of that claim, because it is narrower than "no URL reaches the DOM": the mirror reads
+`?doc=…` from the query string, and in its not-found branch that value *is* rendered. It is
+rendered as an **escaped React text child**, never as HTML, and everywhere else it is only
+a **lookup key** into the fixed document set. It cannot reach `dangerouslySetInnerHTML`,
+which receives `marked`'s output for a first-party file and nothing else. So there is no XSS
+path *today*.
+
+**The risk is that these are the seams where a future change could create one.** If a value
+ever reaches `BODY_HTML`, a `.replace()` needle, or the mirror's `__html` from user input or
+from a URL, that is an XSS. The suite's `stripComments()` / `stripJsComments()` helpers exist
+because the first seam has already produced false results in both directions.
+
+**The mirror is the wider seam**, because its input is a *directory* rather than a fixed
+string: any `.md` added under `docs/` is rendered, so a document can introduce markup without
+anyone editing a component. Two things bound it:
+
+- **`marked` does not sanitise**, deliberately. The input is first-party and already
+  published to the public wiki, so the mirror inherits whatever the documents contain.
+- **`tests/docs-mirror.mjs` asserts the whole library renders with no `<script`, no inline
+  `on…=` handler, no `javascript:` URL and no `<iframe>`** — negative-controlled by adding a
+  document containing a `<script>` tag and confirming the suite fails.
+
+A document that must not be public does not belong under `docs/`: the repository is public
+and `docs/` is mirrored to the wiki, so the mirror adds no exposure the wiki does not already
+have. That is a property of the *current* content, not a guarantee.
 
 ## 4. The gaps, ranked
 

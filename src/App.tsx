@@ -20,6 +20,41 @@ import SecurityPage from "@/admin/SecurityPage"
 import DesignSystemPage from "@/admin/DesignSystemPage"
 import AssetsPage from "@/admin/AssetsPage"
 import ComponentsPage from "@/admin/ComponentsPage"
+import { lazy, Suspense } from "react"
+
+/**
+ * The docs mirror is the one lazily-loaded admin page, and the reason is measured.
+ *
+ * `DocsPage` reads `docs/00-meta/doc-map.md` eagerly to build its index, and it pulls in
+ * `marked` plus one chunk per document. Imported statically it moved the entry chunk from
+ * **810.81 kB to 835.18 kB** — a 24 kB tax on every marketing visitor, for a page only a
+ * signed-in operator ever opens. Lazily, the entry chunk is unchanged and the whole mirror
+ * moves behind the navigation.
+ *
+ * `tests/docs-mirror.mjs` asserts this stays lazy: making it static again is otherwise a
+ * silent regression that no other check would see.
+ */
+const DocsPage = lazy(() => import("@/admin/DocsPage"))
+
+/**
+ * The Suspense boundary for the lazy page, kept as its own component so the route itself
+ * stays a single self-closing tag.
+ *
+ * ⚠️ That is load-bearing, not cosmetic. `tests/policy.mjs` locates the `/admin` catch-all
+ * with a non-greedy match — from `<Route path="/admin"` to the FIRST closing tag after it.
+ * Every admin child route is self-closing, so today that first close is the parent's own.
+ * A child written with an explicit closing tag would end the match early, and the
+ * "unknown /admin paths redirect rather than render a page" check would then inspect a
+ * truncated block — passing while looking at the wrong thing. **Keep admin child routes
+ * self-closing, or tighten that check before adding one that is not.**
+ */
+function DocsRoute() {
+  return (
+    <Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Loading documentation…</p>}>
+      <DocsPage />
+    </Suspense>
+  )
+}
 
 export default function App() {
   // Publishes the saved per-page primaries onto :root. Here rather than on the
@@ -62,6 +97,7 @@ export default function App() {
           <Route path="design" element={<DesignSystemPage />} />
           <Route path="assets" element={<AssetsPage />} />
           <Route path="components" element={<ComponentsPage />} />
+          <Route path="docs" element={<DocsRoute />} />
 
           {/* An unknown /admin path redirects rather than rendering an empty
               shell. This is a redirect, not a page — so it does not reintroduce

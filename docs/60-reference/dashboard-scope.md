@@ -1,6 +1,6 @@
 # Dashboard Scope Deviation (PRD §5.2, §9.1, §16.2)
 
-**Kind:** dated · **Last verified:** 2026-09-27 at `2f009a2`
+**Kind:** dated · **Last verified:** 2026-09-27 at `899beff`
 **Status:** accepted 2026-09-18 · **Release:** v2.0.rc1 (pre-release)
 
 The PRD describes rc1's `/admin` as a **mockup**: exactly three entries, `useState`
@@ -18,7 +18,7 @@ is the bug. Where the PRD and this build disagree, this file is the reconciliati
 
 | Ref | Claim | Verdict |
 |---|---|---|
-| §5.2 | "`/admin` contains exactly two pages: Settings, Design System" | **Superseded** — 8 pages |
+| §5.2 | "`/admin` contains exactly two pages: Settings, Design System" | **Superseded** — 9 pages |
 | §5.2 | "**Three entries. No more.** Any additional `/admin` route in rc1 is a scope violation." | **Superseded** — see §3 |
 | §5.2 | "no catch-all" — an unknown `/admin/*` path must not silently become a page | **Honoured** — see §4 |
 | §9.1 | No authentication | **Superseded 2026-09-26** — a client-side gate; see §6 |
@@ -34,7 +34,7 @@ is the bug. Where the PRD and this build disagree, this file is the reconciliati
 `/`, `/residential`, `/commercial` (static-prototype parity) plus `/contact`, a new
 inquiry page carrying a validated form that writes a real record.
 
-**`/admin` routes — 8** [M: `src/admin/routes.ts`, `src/App.tsx`]
+**`/admin` routes — 9** [M: `src/admin/routes.ts`, `src/App.tsx`]
 
 | Path | Page |
 |---|---|
@@ -46,6 +46,7 @@ inquiry page carrying a validated form that writes a real record.
 | `/admin/design` | Design System — unchanged, read-only |
 | `/admin/assets` | The images the marketing pages serve, discovered from disk |
 | `/admin/components` | The registry primitives and their exports, discovered from disk |
+| `/admin/docs` | Documentation — `docs/**` rendered read-only; see §3.1 |
 
 **Data layer** [M: `src/lib/data/`]
 
@@ -86,6 +87,35 @@ accidental fourth page appearing out of a routing mistake. That is enforced
 structurally instead of by counting: `src/admin/routes.ts` is the single source of
 truth, and `src/App.tsx` routes only what that model declares. Adding a page means
 adding a nav entry, so a page cannot exist without a sidebar link and a breadcrumb.
+
+### 3.1 The documentation mirror — added 2026-09-27
+
+`/admin/docs` renders `docs/**` read-only inside the dashboard. It is the ninth page, and it
+was added **after** the client's sign-in request rather than alongside the eight in §2, so it
+is recorded here instead of being folded into that table silently.
+
+**It is not a speculative page**, by the same test §3 applies to the others: the thing it
+completes already exists. The project has 55 documents and a public wiki generated from them,
+and an operator reading the dashboard had no way to reach any of it without cloning the
+repository.
+
+**Three properties keep it from widening the deviation.**
+
+- **Read-only.** There is nothing to save. The only source of truth is `docs/` in the
+  repository, and the page is a rendering of it — the same relationship the wiki has to
+  `docs/`. It is not an editor and must not become one.
+- **It adds no route shape.** The selected document is a `?doc=…` query parameter, not a
+  splat, so §4's catch-all stays a redirect and `tests/policy.mjs`'s two-way parity between
+  `routes.ts` and `App.tsx` still holds. A splat would have entered that set as
+  `/admin/docs/*` and failed it in both directions.
+- **It is lazily loaded, and the check that keeps it lazy is the point.** `docs/` is roughly
+  440 KB of markdown. The glob is lazy, so it becomes one chunk per document, fetched only by
+  an operator who opens the page, and `marked` is a dynamic import in a chunk of its own.
+  Measured cost to the entry chunk: **+2.67 kB JS, +4.29 kB CSS** (810.81 → 813.48 kB JS;
+  the CSS moves because Tailwind v4 scans source files by glob rather than by import graph).
+  `tests/docs-mirror.mjs` asserts the glob stays lazy — switching it to eager is a one-word
+  change with no visible effect on the dashboard and roughly +440 KB on the public site, so
+  the check is what makes the decision stick.
 
 ## 4. The no-catch-all rule is still honoured
 

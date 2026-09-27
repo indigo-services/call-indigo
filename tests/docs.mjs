@@ -440,9 +440,30 @@ export function run() {
     return problems
   })
 
-  /* 12 ── the generators are present and can detect staleness ------------ */
+  /* 12 ── the generators exist and declare a check mode ------------------ */
 
-  check("the documentation generators are present and can detect staleness", () => {
+  /**
+   * ⚠️ THIS CHECK DOES NOT VERIFY THAT THE GENERATED DOCUMENTS ARE CURRENT, and
+   * the name says so. It asserts that each generator file exists and declares a
+   * `--check` mode. Currency is asserted IN-PROCESS elsewhere:
+   *
+   *   · `doc-map.md`      → check 6, against the tree and each document's own front matter
+   *   · `routes.md`       → check 14, against the page files on disk
+   *
+   * WHY IT DOES NOT JUST RUN THEM. It was written to — `spawnSync(process.execPath,
+   * [g, "--check"])` — and measured in this environment, where BOTH generators came
+   * back EBUSY: `status === null`, no child process. The spawn-failure branch below
+   * detected that correctly and reported "not a staleness result", but the check
+   * still FAILED, which is the same environmental noise that gets a real check
+   * ignored. It was reverted rather than shipped with a skip, because a check that
+   * cannot run where it is read is not a guard.
+   *
+   * ⚠️ And running it would not have caught the bug that prompted this work. Check
+   * mode compares the document against the generator's OWN output, so a generator
+   * that misreads the tree agrees with itself perfectly: measured, `--check` said
+   * "up to date" on a `routes.md` whose public-route table was EMPTY.
+   */
+  check("the documentation generators are present and declare a check mode", () => {
     const GENERATORS = ["scripts/_wiki_sync.cjs", "scripts/_routes_doc.cjs", "scripts/_doc_map.cjs"]
     const problems = []
     for (const g of GENERATORS) {
@@ -452,6 +473,8 @@ export function run() {
         problems.push(`${g}: no --check/--dry-run mode, so staleness cannot be detected`)
       }
     }
+    // POSITIVE CONTROL: an empty list would pass vacuously.
+    if (GENERATORS.length !== 3) problems.push(`expected 3 generators, listed ${GENERATORS.length}`)
     return problems
   })
 
@@ -487,6 +510,94 @@ export function run() {
     if (scanned < 10) {
       problems.push(`only ${scanned} docs/ references scanned — expected at least 10`)
     }
+    return problems
+  })
+
+  /* 14 ── routes.md says what the tree says ------------------------------- */
+
+  /**
+   * `claims.json` asserted this document was `asserted_by: "tests/docs.mjs —
+   * 'routes.md is current'"`. That check did not exist. The nearest one asserted
+   * that the GENERATOR FILE mentions `--check`, and never ran it — so the registry
+   * named a guard that could not see the document at all.
+   *
+   * WHY THIS IS NOT JUST `--check`. Check mode compares the document against the
+   * generator's own output, so a generator that MISREADS the tree agrees with
+   * itself perfectly. Measured: with the comment-matching bug live, `--check`
+   * reported "up to date" on a routes.md whose public table was EMPTY. `--check`
+   * catches drift; only a content assertion catches a degenerate document. Check 12
+   * is the first half, this is the second.
+   *
+   * The line counts are read from the PAGE FILES, which is what makes this
+   * independent of the router parser: the two halves of a row come from different
+   * sources, so they can disagree.
+   */
+  check("routes.md is current", () => {
+    const problems = []
+    const docPath = "docs/60-reference/routes.md"
+    const doc = sources.get(docPath)
+    if (!doc) return [`${docPath} does not exist`]
+
+    const table = (section) =>
+      section
+        .split("\n")
+        .filter((l) => /^\| `/.test(l))
+        .map((l) => {
+          const c = l.split("|").map((x) => x.trim())
+          return { path: c[1], renders: c[2], source: c[3], lines: c[4] }
+        })
+
+    const pub = table((doc.split(/^## 1\./m)[1] ?? "").split(/^## 2\./m)[0])
+    const adm = table((doc.split(/^## 2\./m)[1] ?? "").split(/^## 3\./m)[0])
+
+    // The public route set is a PRD §5.1 fact, not a moving target, so it is
+    // asserted exactly: a public route appearing or vanishing must be deliberate.
+    const EXPECTED_PUBLIC = ["`/`", "`/residential`", "`/commercial`", "`/contact`"]
+    const gotPublic = pub.map((r) => r.path)
+    if (gotPublic.join(", ") !== EXPECTED_PUBLIC.join(", ")) {
+      problems.push(
+        `public routes are [${gotPublic.join(", ")}], expected [${EXPECTED_PUBLIC.join(", ")}]`,
+      )
+    }
+    // POSITIVE CONTROL: a table parser that matched nothing would pass vacuously.
+    if (pub.length !== 4) problems.push(`public table lists ${pub.length} rows, expected 4`)
+    if (adm.length < 8) problems.push(`admin table lists ${adm.length} rows, expected at least 8`)
+
+    const checkRows = (rows, inAdmin) => {
+      for (const r of rows) {
+        if (r.renders === "`?`") {
+          problems.push(`${r.path}: renders is '?' — the generator gave up on a route`)
+        }
+        if (r.source === "—") continue
+        const srcRel = r.source.replace(/^`|`$/g, "")
+        if (inAdmin && /^src\/marketing\//.test(srcRel)) {
+          problems.push(`${r.path}: marketing page ${srcRel} appears in the ADMIN table`)
+        }
+        const abs = path.join(ROOT, srcRel)
+        if (!existsSync(abs)) {
+          problems.push(`${r.path}: source ${srcRel} does not exist`)
+          continue
+        }
+        // The generator counts `split("\n").length`, which is `wc -l` plus one for a
+        // file ending in a newline. Counted the same way here, so the two agree.
+        const real = read(abs).split("\n").length
+        if (Number(r.lines) !== real) {
+          problems.push(`${r.path}: says ${r.lines} lines, ${srcRel} has ${real} — regenerate`)
+        }
+      }
+    }
+    checkRows(pub, false)
+    checkRows(adm, true)
+
+    const dupes = (rows) =>
+      rows.map((r) => r.path).filter((p, i, a) => a.indexOf(p) !== i)
+    for (const d of [...dupes(pub), ...dupes(adm)]) problems.push(`${d}: listed twice in one table`)
+    for (const r of pub) {
+      if (r.path.startsWith("`/admin")) {
+        problems.push(`${r.path}: an /admin route appears in the public table`)
+      }
+    }
+
     return problems
   })
 }

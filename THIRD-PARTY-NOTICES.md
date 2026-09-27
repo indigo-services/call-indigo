@@ -103,6 +103,7 @@ completeness, with the licences read from each installed package [M: `node_modul
 | `radix-ui`, `class-variance-authority` | MIT · **Apache-2.0** |
 | `lucide-react` | **ISC** |
 | `sonner`, `next-themes`, `clsx`, `tailwind-merge`, `cn`, `tw-animate-css` | MIT |
+| `marked` | MIT |
 | `vite`, `tailwindcss`, `@tailwindcss/vite`, `@vitejs/plugin-react` | MIT |
 | `typescript`, `typescript-eslint` | **Apache-2.0** · MIT |
 | `eslint`, `@eslint/js`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `globals` | MIT |
@@ -112,6 +113,13 @@ completeness, with the licences read from each installed package [M: `node_modul
 Neither `class-variance-authority` nor `typescript` ships one [M: no `NOTICE` file in
 either package]. Nothing further is owed. Apache-2.0 is not a copyleft licence, so
 these dependencies do not affect the licensing of this work.
+
+`marked` (v18, MIT) renders the read-only documentation mirror at `/admin/docs`. It is
+**dynamically imported**, so it lands in its own chunk and is fetched only when a signed-in
+operator opens that page — a marketing visitor never downloads it. It is the only entry in
+this table added for a specific feature rather than as part of the UI stack, and the
+alternative was a hand-rolled markdown parser, which is the thing this repository has
+already paid twice for getting subtly wrong.
 
 ---
 

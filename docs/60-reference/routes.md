@@ -38,7 +38,8 @@ sidebar, and no `/admin/login` route exists to loop through.
 | `security` | `SecurityPage` | `src/admin/SecurityPage.tsx` | 263 |
 | `design` | `DesignSystemPage` | `src/admin/DesignSystemPage.tsx` | 405 |
 | `assets` | `AssetsPage` | `src/admin/AssetsPage.tsx` | 167 |
-| `components` | `ComponentsPage` | `src/admin/ComponentsPage.tsx` | 164 |
+| `components` | `ComponentsPage` | `src/admin/ComponentsPage.tsx` | 165 |
+| `docs` | `DocsRoute` | — | — |
 | `*` | redirect → /admin/inquiries | — | — |
 
 > ⚠️ **The `/admin` catch-all is a redirect, not a page.** PRD §5.2 forbids a
@@ -73,6 +74,12 @@ and each page's title. It is the file to edit when adding a page.
 | Assets | `/admin/assets` | The images the marketing pages serve. |
 | Components | `/admin/components` | The primitives available to dashboard pages. |
 
+### Reference
+
+| Title | Path | Description |
+|---|---|---|
+| Documentation | `/admin/docs` | The project's documentation library, read-only. |
+
 ## 4. Adding a route
 
 1. **Add the page component.**
@@ -86,4 +93,4 @@ and each page's title. It is the file to edit when adding a page.
 
 ---
 
-*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `2f009a2`.*
+*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `899beff`.*

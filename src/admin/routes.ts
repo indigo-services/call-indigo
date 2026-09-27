@@ -14,6 +14,7 @@
  */
 import {
   Bell,
+  BookOpen,
   Component,
   Image,
   Inbox,
@@ -100,6 +101,20 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
         path: "/admin/components",
         icon: Component,
         description: "The primitives available to dashboard pages.",
+      },
+    ],
+  },
+  {
+    // The docs mirror. Its own group rather than a fourth item under "Design",
+    // because it is reference material rather than something about the brand —
+    // and because `docs/60-reference/` is the domain it renders.
+    label: "Reference",
+    items: [
+      {
+        title: "Documentation",
+        path: "/admin/docs",
+        icon: BookOpen,
+        description: "The project's documentation library, read-only.",
       },
     ],
   },

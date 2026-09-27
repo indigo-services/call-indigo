@@ -12,6 +12,7 @@ import path from "node:path"
 import { ROOT, check, finish, suite, tally } from "./harness.mjs"
 import { run as auth } from "./auth.mjs"
 import { run as docs } from "./docs.mjs"
+import { run as docsMirror } from "./docs-mirror.mjs"
 import { run as heroRotation } from "./hero-rotation.mjs"
 import { run as policy } from "./policy.mjs"
 import { run as serviceArea } from "./service-area.mjs"
@@ -25,6 +26,7 @@ await heroRotation()
 await verify()
 await auth()
 await docs()
+await docsMirror()
 
 /* ── The front door's number, checked against the run that just happened ───── */
 

@@ -160,15 +160,16 @@ Phase 1 is complete when every line is true and demonstrable.
 - [ ] The **quotation allowlist is explicit**, and each entry was read and classified
       rather than pattern-matched. Measured at the time of writing, the only
       legitimate hits are:
-      | File | Why it is a quotation, not the claim |
-      |---|---|
-      | `CHANGELOG.md` | The dated record of what was wrong |
-      | `docs/plan-docs-refactor-2026-09-27.md` §2 | The findings |
-      | `docs/prd/phase-1-truth-and-index.md` §3 | This document's defect table |
-      | `docs/prd/phase-5-observability-and-automation.md` | The fixtures |
-      | `docs/development/standards.md` §1, §5 · `docs/README.md` §3.1 | The worked example |
-      | `docs/dashboard-scope.md:23` · `docs/admin-gate.md:4` | The PRD's own claim, quoted to mark it **Superseded** |
-      | `tests/README.md:40` | Its pre-existing policy note |
+
+  | File | Why it is a quotation, not the claim |
+  |---|---|
+  | `CHANGELOG.md` | The dated record of what was wrong |
+  | `docs/plan-docs-refactor-2026-09-27.md` §2 | The findings |
+  | `docs/prd/phase-1-truth-and-index.md` §3 | This document's defect table |
+  | `docs/prd/phase-5-observability-and-automation.md` | The fixtures |
+  | `docs/development/standards.md` §1, §5 · `docs/README.md` §3.1 | The worked example |
+  | `docs/dashboard-scope.md:23` · `docs/admin-gate.md:4` | The PRD's own claim, quoted to mark it **Superseded** |
+  | `tests/README.md:40` | Its pre-existing policy note |
 - [ ] The scan is **negative-controlled**: run against a fixture containing all three
       strings as *assertions*, it reports all three. *(A scanner that finds nothing
       for anything is the defect F1 already is.)*
