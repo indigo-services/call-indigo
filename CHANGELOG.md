@@ -10,6 +10,31 @@ with pre-release tags for release candidates.
 
 ## [Unreleased] — working dashboard, public inquiry page, copy pass, client punch list
 
+### The deploy status is often absent entirely, 2026-09-27
+
+**Shipped as `ece7d19`** — `docs(ops): record that the deploy status is often absent
+entirely`.
+
+**Measured while confirming the client-disclosure push**, using the method
+[`deployment.md` §3.1](docs/30-operations/deployment.md) prescribes:
+
+| Commit | `state` | `statuses[]` |
+|---|---|---|
+| `322d842` | `success` | `Vercel=success` |
+| `60be6dc` | `pending` | **none** |
+| `991262a` | `pending` | **none** |
+| `abf89cf` | `pending` | **none** |
+| `2da36b6` | `pending` | **none** |
+
+**One commit in five carries a status at all.** §3.1 told a reader to read the status and
+did not say it might not exist — so an empty `statuses[]` reads as *pending* and invites
+the conclusion that the deploy did not run. **An absent status is not evidence of that.**
+The two are now distinguished, and §5's bundle fingerprint is named as the fallback for a
+commit with no status.
+
+Same shape as everything else in this release: *an assertion that cannot see the thing it
+claims to check.*
+
 ### The client full-disclosure deliverable, 2026-09-27
 
 **Shipped as `991262a`** — `docs(project): add the client full-disclosure deliverable`.
