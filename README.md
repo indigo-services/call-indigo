@@ -93,7 +93,7 @@ producer attached to it and nothing failed when it drifted.
 | Build | `npm run build` | **1755 modules** — 810.81 kB JS (239.08 kB gzip) / 126.55 kB CSS (22.40 kB gzip) / 1.46 kB HTML. The >500 kB chunk warning is pre-existing; code-splitting is the fix |
 | Verification | `npm run test:only` | **142 checks passed** |
 
-*Measured 2026-09-27 at `ee119be`, vite v7.3.6.* **One row here is machine-checked
+*Measured 2026-09-27 at `abf89cf`, vite v7.3.6.* **One row here is machine-checked
 and three are a snapshot.** The check count cannot drift: `tests/run.mjs` compares it
 against the run that just happened and fails when the two disagree. The build figures
 are a snapshot — **editing any `src/` file moves the JS byte count** (this row read

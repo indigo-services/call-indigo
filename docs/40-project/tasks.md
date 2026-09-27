@@ -1,6 +1,6 @@
 # Tasks — the live punch list
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `2f009a2`
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `abf89cf`
 
 > ⚠️ **Two `T`-numbering schemes collide in this repo.** The ones below are the
 > **client punch list**. A phase PRD's `T2` is a different thing entirely — see
@@ -77,13 +77,25 @@ The alternative reading: *eyebrow* = the name, and *h2* = "BECOME A MEMBER".
 
 | # | Task | Why | Where |
 |---|---|---|---|
-| **E1** | **Assert the backend-import rule.** | `CONTRIBUTING.md` says "we will not merge a page importing `@/lib/data/backend`" and **nothing checks it** [M: `grep -rn "data/backend" tests/` → only gitignored `tests/.tmp/` copies]. That is the recurring defect shape. | `tests/policy.mjs` |
-| **E2** | **Fix the stale comment in `src/admin/routes.ts:9`.** | It says an unknown `/admin/*` path "falls through to the home page". It **redirects to the inbox**. The suite asserts the *behaviour* (`tests/policy.mjs`), so the comment can stay wrong forever. | `src/admin/routes.ts` |
 | **E3** | **Re-measure PRD §13.2 parity.** | The marketing copy changed, so the thresholds have to be re-measured rather than inherited. **F10 is blocked on it.** | `archive/audit/v1-audit/v2check/` |
 | **E4** | **Build the deploy log.** | Release history is prose in `CHANGELOG.md`. Phase 5. | — |
 | **E5** | **Rename the phase PRDs' `T`-tasks** to `P<n>-T<n>`. | Two schemes collide. Deferred because renaming invalidates cross-references. | `40-project/prd/*` |
 | **E6** | **The wiki drift check.** | The wiki is generated manually; nothing fails when it is stale. Phase 5. | `scripts/_wiki_sync.cjs` |
 | **E7** | **A dependency-vulnerability gate in CI.** | Dependabot opens PRs; nothing fails a build on an advisory. | `.github/workflows/ci.yml` |
+| **E10** | **Machine-check the README's build figures.** | Found while closing E8: the count is guarded now, but the build row is not. A one-line edit to `ComponentsPage.tsx` moved the JS figure **810.79 → 810.81 kB** and nothing failed. ⚠️ **The blocker is real:** `test:only` does **not** rebuild, so a check reading `dist/` would compare against a stale bundle and fail spuriously. Solve that first — do not ship the check without it. | `README.md`, `tests/` |
+
+### Closed — 2026-09-27
+
+**E1 and E2 were the first two items this milestone found, and they are now closed
+along with two more that surfaced while closing them.** All four are recorded in
+[`../../CHANGELOG.md`](../../CHANGELOG.md) with the commit that closed them.
+
+| # | Task | What closed it |
+|---|---|---|
+| **E1** | Assert the backend-import rule | `tests/policy.mjs` asserts it now, **with a positive control** — the one allowed edge (`api.ts` → `backend.ts`) must exist, so a disconnected facade fails instead of reading as compliance. Negative-controlled: a fixture importing `@/lib/data/backend` fails the suite. |
+| **E2** | The stale `/admin` comment | `src/admin/routes.ts` says *redirects to the inbox*, which is what `App.tsx:69` does. The old text said *falls through to the home page*. |
+| **E8** | *(found closing E1/E2)* **The README's check count.** | It stated **127** beside its own producer for the whole of a milestone that took the suite to **139**. `tests/docs.mjs` check 8 fires only when a producer is **missing**, so a number that *named* one was trusted and never compared — **the fifth instance of the defect shape.** Now correct, and **machine-checked** by `tests/run.mjs`. |
+| **E9** | *(found closing E1/E2)* **Six stale `docs/` paths in `src/` and `scripts/`.** | The restructure moved four documents into numbered domains and left six references behind — including one that `src/admin/ComponentsPage.tsx` **renders to the operator in the dashboard UI**. Repaired; `tests/docs.mjs` check 13 now asserts every such reference resolves. |
 
 ## 4. PRD §16.2 — deferred product work
 
@@ -103,4 +115,4 @@ Phases 1–5, with their exit criteria:
 
 ---
 
-**Last verified:** 2026-09-27 at `2f009a2`
+**Last verified:** 2026-09-27 at `abf89cf`

@@ -10,6 +10,74 @@ with pre-release tags for release candidates.
 
 ## [Unreleased] — working dashboard, public inquiry page, copy pass, client punch list
 
+### Guards — the rules the repo promised, and the numbers it drifted, 2026-09-27
+
+**Closes E1 and E2, plus three defects they exposed.** Shipped as **`abf89cf`** —
+`fix(guards): close E1, E2 and the three defects they exposed`.
+
+**One file under `src/` changed, and only its comments and one string.** No product
+behaviour changed. The suite went from **139 to 142 checks** [M: `npm run test:only`].
+
+**E1 — the rule the repo promised and nothing checked.** `CONTRIBUTING.md` lists the
+backend-import rule under *"What we will not merge"*:
+
+> A page importing `@/lib/data/backend` directly instead of going through
+> `@/lib/data/api` (PRD §16.2 F2).
+
+Nothing checked it [M: `grep -rn "data/backend" tests/` → only gitignored copies under
+`tests/.tmp/`]. The two **sibling** import boundaries — admin↔marketing, in both
+directions — *were* asserted, which is exactly why this one read as asserted too.
+`tests/policy.mjs` asserts it now, **with a positive control**: the single allowed edge
+(`api.ts` → `backend.ts`) must exist, so a facade that stopped importing the engine fails
+there instead of passing as compliance.
+
+**E2 — the stale comment.** `src/admin/routes.ts` said an unknown `/admin/*` path
+"falls through to the home page". `App.tsx:69` redirects it to the inbox. The suite
+asserts the *behaviour*, so the comment could stay wrong forever.
+
+**E8 — the README's check count, found while closing the two above.** This is the
+**fifth** occurrence of the repo's one recurring defect, and the first where the producer
+was **present** and the value was still wrong:
+
+| Claim | Where | Reality |
+|---|---|---|
+| *"127 checks passed"* — beside its own producer, `npm run test:only` | `README.md`, *"Verified clean on this commit"* | **139** |
+
+`tests/docs.mjs` check 8 fires only when a count has **no** producer, so a number that
+*named* one was trusted and never compared. `tests/run.mjs` now compares the README's
+count against the live tally — the **structurally last** check, in the runner rather than
+in a suite, because a suite cannot see the checks that have not run yet.
+
+**E9 — six stale `docs/` paths.** The restructure moved four documents into numbered
+domains and left six references behind:
+
+| File | Referenced | Now |
+|---|---|---|
+| `src/admin/ComponentsPage.tsx` | `docs/component-exceptions.md` | `docs/60-reference/…` — **rendered to the operator in the dashboard UI** |
+| `src/admin/routes.ts` | `docs/dashboard-scope.md` | `docs/60-reference/…` |
+| `scripts/_wiki_sync.cjs` | `docs/plan-docs-refactor-2026-09-27.md` | `docs/40-project/plans/…` |
+| `scripts/_wiki_sync.cjs` | `docs/prd/phase-4-wiki-publication.md` | `docs/40-project/prd/…` |
+| `scripts/_wiki_sync.cjs` ×2 | `docs/development/standards.md` | `docs/20-development/…` |
+
+`tests/docs.mjs` check 13 asserts every `docs/` path referenced from `src/` or `scripts/`
+resolves. `tests/` is excluded on purpose: `tests/docs.mjs` quotes the pre-restructure
+path when it explains why the move was safe, and that quotation is history rather than a
+reference.
+
+**Negative-controlled.** All three new guards were run against a fixture containing the
+defect and confirmed to fail:
+
+| Fixture | Message |
+|---|---|
+| `src/admin/__nc_backend_import.ts` | *imports `@/lib/data/backend` directly; go through `@/lib/data/api`* |
+| `scripts/__nc_stale_docs_ref.cjs` | *→ `docs/development/standards.md` (does not exist)* |
+| README count set to 999 | *README.md claims 999 checks; this run registered 142* |
+
+**Also re-measured the build row**, because this change touches `src/`: the JS figure
+moved **810.79 → 810.81 kB** on the one-line `ComponentsPage` edit. That row is **not**
+guarded, and a naive check cannot be added — `test:only` does not rebuild, so it would
+compare against a stale bundle. Recorded as **E10**.
+
 ### Documentation — `/docs` becomes a library, and the repo starts enforcing its own rules, 2026-09-27
 
 **The documentation milestone, phases 1–5.** Shipped as **`2da36b6`** —
