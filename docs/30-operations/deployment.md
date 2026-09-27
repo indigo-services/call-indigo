@@ -1,6 +1,6 @@
 # Deployment
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `2f009a2`
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `60be6dc`
 
 ---
 
@@ -71,6 +71,19 @@ curl -s -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+jso
 
 Read **all** of `state`, each `statuses[].context`, `.description`, and especially
 **`.target_url`**.
+
+> ⚠️ **Measured 2026-09-27: the status is often absent *entirely*, so this method only
+> works when one exists.** Of five consecutive commits on `main`, **one** carried a
+> Vercel status and **four** returned `"state": "pending"` with **no `statuses[]` at
+> all** — including commits that are not known to have failed to deploy.
+> [M: `curl …/commits/<sha>/status` → `322d842` `success | Vercel=success`;
+> `60be6dc`, `991262a`, `abf89cf` and `2da36b6` all `pending` with no statuses.]
+>
+> **So an absent status is not evidence that a deploy did not run.** When the array is
+> empty there is nothing to read, and the diagnosis has to come from §5's fingerprint
+> instead. Treat "no statuses" and "deploy failed" as different findings — the same
+> shape as everywhere else in this repository: *an assertion that cannot see the thing
+> it claims to check.*
 
 **Compare several commits.** The discriminating signal is a *difference* between
 commits — tabulate `author` against `state` for the last 6–8.
@@ -179,4 +192,4 @@ this pass:
 
 ---
 
-**Last verified:** 2026-09-27 at `2f009a2`
+**Last verified:** 2026-09-27 at `60be6dc`
