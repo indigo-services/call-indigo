@@ -8,6 +8,7 @@ intention at a moment, not a fact about the tree.
 | [`roadmap.md`](./roadmap.md) | dated | The five phases, their releases, and their exit criteria |
 | [`tasks.md`](./tasks.md) | dated | **The live punch list** — client items T2/T5–T7, and PRD §16.2's F1–F12 |
 | [`artifacts.md`](./artifacts.md) | dated | Where generated things live, and what may be deleted |
+| [`client-disclosure.md`](./client-disclosure.md) | dated | **The client-facing full disclosure** — the unabridged position, for an audience that will not read this library |
 | [`prd/`](./prd/) | dated | One PRD per phase — `phase-1` … `phase-5` |
 | [`plans/`](./plans/) | dated | Client-feedback plans and the documentation refactor plan |
 | [`decisions/`](./decisions/) | dated | ADRs — one file per decision that is expensive to reverse |

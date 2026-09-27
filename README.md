@@ -352,7 +352,7 @@ licence. Third-party assets are recorded in
 
 ## Documentation
 
-The full index is **[docs/README.md](./docs/README.md)** — 54 documents in seven domains,
+The full index is **[docs/README.md](./docs/README.md)** — 55 documents in seven domains,
 every one of them listed exactly once (asserted by `tests/docs.mjs`).
 
 | Domain | Covers |
@@ -361,7 +361,7 @@ every one of them listed exactly once (asserted by `tests/docs.mjs`).
 | [docs/10-onboarding/](./docs/10-onboarding/README.md) | Day one → first merged change |
 | [docs/20-development/](./docs/20-development/README.md) | The rules, the seams, the patterns, testing, tokens, CSS |
 | [docs/30-operations/](./docs/30-operations/README.md) | Deployment, environments, observability, incident runbook, security |
-| [docs/40-project/](./docs/40-project/README.md) | Roadmap, tasks, artifacts, PRDs, plans, ADRs |
+| [docs/40-project/](./docs/40-project/README.md) | Roadmap, tasks, artifacts, the client disclosure, PRDs, plans, ADRs |
 | [docs/50-sessions/](./docs/50-sessions/README.md) | The session protocol, the agent I/O contract, the devlog |
 | [docs/60-reference/](./docs/60-reference/README.md) | Routes, data layer, the gate, scope, parity, third-party rights |
 | [PRD.md](./PRD.md) | The founding product requirements |

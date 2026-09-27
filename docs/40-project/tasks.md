@@ -1,6 +1,6 @@
 # Tasks — the live punch list
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `abf89cf`
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `322d842`
 
 > ⚠️ **Two `T`-numbering schemes collide in this repo.** The ones below are the
 > **client punch list**. A phase PRD's `T2` is a different thing entirely — see
@@ -83,7 +83,7 @@ The alternative reading: *eyebrow* = the name, and *h2* = "BECOME A MEMBER".
 | **E6** | **The wiki drift check.** | The wiki is generated manually; nothing fails when it is stale. Phase 5. | `scripts/_wiki_sync.cjs` |
 | **E7** | **A dependency-vulnerability gate in CI.** | Dependabot opens PRs; nothing fails a build on an advisory. | `.github/workflows/ci.yml` |
 | **E10** | **Machine-check the README's build figures.** | Found while closing E8: the count is guarded now, but the build row is not. A one-line edit to `ComponentsPage.tsx` moved the JS figure **810.79 → 810.81 kB** and nothing failed. ⚠️ **The blocker is real:** `test:only` does **not** rebuild, so a check reading `dist/` would compare against a stale bundle and fail spuriously. Solve that first — do not ship the check without it. | `README.md`, `tests/` |
-| **E12** | **Re-sync the wiki — it is one page stale.** | `docs/40-project/tasks.md` changed in `f9bfc97` and `4e9d3fa`, and its wiki page has not been regenerated. The sync **cannot run** from a sandbox that refuses child processes [M: `node scripts/_wiki_sync.cjs` → `git could not be started (EBUSY)`] — a limit of that environment, not of the script. Run it from a machine that can spawn git. | `scripts/_wiki_sync.cjs` |
+| **E12** | **Re-sync the wiki — it lags `docs/`.** | The sync is manual, so any document added or changed since the last push is missing from the wiki. It **cannot run** from a sandbox that refuses child processes [M: `node scripts/_wiki_sync.cjs` → `git could not be started (EBUSY)`] — a limit of that environment, not of the script. Run it from a machine that can spawn git, then confirm the result against `docs/` rather than trusting a page count written down here. | `scripts/_wiki_sync.cjs` |
 | **E13** | **The "how many times" count disagrees across three files.** | Each place that counts this defect counts it differently: `CONTRIBUTING.md:39` says **three**, `tests/docs.mjs:4–13` lists **four**, and `CHANGELOG.md` calls E8 the **fifth**. Nothing maintains any of them. Either drop the number and point at `docs/20-development/patterns.md`, or give it a producer — but a bare count here is the very defect it counts. | `CONTRIBUTING.md`, `tests/docs.mjs`, `CHANGELOG.md` |
 
 ### Closed — 2026-09-27
@@ -118,4 +118,4 @@ Phases 1–5, with their exit criteria:
 
 ---
 
-**Last verified:** 2026-09-27 at `abf89cf`
+**Last verified:** 2026-09-27 at `322d842`

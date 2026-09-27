@@ -12,7 +12,7 @@ those claims live.
 
 | | |
 |---|---|
-| **Library** | `docs/` — **54 documents**, in seven numbered domains |
+| **Library** | `docs/` — **55 documents**, in seven numbered domains |
 | **Front door** | this file |
 | **Start here instead if you are new** | [`../README.md`](../README.md) at the repo root |
 | **Read it as a website** | [**The project wiki**](https://github.com/indigo-services/call-indigo/wiki) — this directory, rendered. **A mirror: edit here, never there.** |
@@ -93,6 +93,7 @@ declares for itself — see `00-meta/conventions.md` §2.
 | [`40-project/roadmap.md`](./40-project/roadmap.md) | dated | The five documentation phases, and PRD §16.2's F1–F12 |
 | [`40-project/tasks.md`](./40-project/tasks.md) | dated | **The live punch list** — client T2/T5–T7, plus the engineering tasks |
 | [`40-project/artifacts.md`](./40-project/artifacts.md) | dated | Where generated things live, and what may be deleted |
+| [`40-project/client-disclosure.md`](./40-project/client-disclosure.md) | dated | **The client-facing full disclosure** — what was built, what it does with visitor data, what is licensed from whom, and what is still open |
 | [`40-project/decisions/README.md`](./40-project/decisions/README.md) | index | The ADR index and its convention |
 | [`40-project/decisions/0001-evidence-based-documentation.md`](./40-project/decisions/0001-evidence-based-documentation.md) | dated | Why the repo wins over the document |
 | [`40-project/decisions/0002-client-side-admin-gate.md`](./40-project/decisions/0002-client-side-admin-gate.md) | dated | Why the gate is client-side, and what it is not |
@@ -204,4 +205,3 @@ remains is automation, not documentation:
 | **The deploy log** | Release history is prose in `CHANGELOG.md` | `40-project/tasks.md` **E4** |
 | **PRD §13.2 re-measured** | It is the only acceptance test §13 ever specified, and F10 is blocked on it | `40-project/tasks.md` **E3** |
 | **A dependency-vulnerability gate** | Dependabot opens PRs; nothing fails a build on an advisory | `40-project/tasks.md` **E7** |
-| **The backend-import assertion** | `CONTRIBUTING.md` states the rule; nothing checks it | `40-project/tasks.md` **E1** |
