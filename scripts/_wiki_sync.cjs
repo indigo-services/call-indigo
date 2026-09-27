@@ -11,12 +11,16 @@
  * See docs/40-project/plans/plan-docs-refactor-2026-09-27.md §4 P4 and
  * docs/40-project/prd/phase-4-wiki-publication.md.
  *
- * ── STATUS: NOT YET RUN END-TO-END ────────────────────────────────────────────
- * GitHub does not create the `<repo>.wiki.git` repository until a first page
- * exists, and there is no API to create one. Until that page is created in the
- * web UI this script exits 1 at the preflight below, by design. It has therefore
- * NOT been executed against a live wiki. Do not treat a green run as verified
- * until it has been (docs/20-development/standards.md §1).
+ * ── STATUS: RUN END-TO-END, 2026-09-27 ────────────────────────────────────────
+ * The one-time manual step below has been done — the wiki exists and carries the
+ * generated pages [M: `git ls-remote https://github.com/indigo-services/
+ * call-indigo.wiki.git HEAD` → c315c9d on refs/heads/master, and
+ * https://github.com/indigo-services/call-indigo/wiki returns HTTP 200].
+ *
+ * ⚠️ It CANNOT be re-run from a sandbox that refuses child processes: this script
+ * clones and pushes with git, so such a sandbox fails the preflight with EBUSY
+ * before any work starts. That is a sandbox limit, not a script defect — and the
+ * preflight now says so instead of claiming the wiki is missing.
  *
  * Usage:
  *   node scripts/_wiki_sync.cjs            # generate, commit and push
@@ -124,27 +128,66 @@ function rewriteLinks(src, fromAbs, pageOf, sha) {
 }
 
 // ── Preflight ────────────────────────────────────────────────────────────────
+//
+// TWO failures, and they need different advice. The first version caught every
+// exception and reported "the wiki repository does not exist yet" — so a failure to
+// RUN git was reported as a missing wiki, and the operator was sent to a manual web
+// step that could not have helped.
+//
+// Measured 2026-09-27 in a sandbox that refuses child processes:
+//     execFileSync("git", ["ls-remote", URL, "HEAD"])
+//   → e.code "EBUSY", e.status null, e.stderr ""
+// whereas git itself failing — a repository that really is missing — exits
+// non-zero, so e.status is a NUMBER and stderr carries the reason. That is the
+// discriminator, and it is the reliable one: a spawn failure has no exit status,
+// because no process ever ran.
 function preflight() {
+  let out
   try {
-    git(["ls-remote", WIKI_URL, "HEAD"])
-    return true
-  } catch {
-    console.error(
-      [
+    out = git(["ls-remote", WIKI_URL, "HEAD"])
+  } catch (err) {
+    const spawned = err && err.status !== null && err.status !== undefined
+    const stderr = String((err && err.stderr) || "").trim()
+    const lines = ["", "  ✖ Could not check " + WIKI_URL, ""]
+
+    if (!spawned) {
+      lines.push(
+        "    git could not be started (" + (err && err.code ? err.code : "unknown") + ").",
+        "    This is a process-creation failure, NOT a missing wiki. A sandbox that",
+        "    blocks child processes reports EBUSY here; the wiki may be perfectly fine.",
         "",
-        "  ✖ The wiki repository does not exist yet.",
-        "",
-        "    GitHub does not create <repo>.wiki.git until a first page exists, and",
-        "    there is no API to create one. This is a one-time manual step.",
-        "",
-        "    1. Open  https://github.com/" + REPO + "/wiki",
-        "    2. Click \"Create the first page\" and save it with any content.",
-        "    3. Re-run this script — it will replace that page.",
-        "",
-      ].join("\n"),
-    )
+      )
+    } else {
+      lines.push("    git said: " + (stderr || "(nothing on stderr)"), "")
+      if (/not found|does not exist/i.test(stderr)) {
+        lines.push(
+          "    GitHub does not create <repo>.wiki.git until a first page exists, and",
+          "    there is no API to create one. This is a one-time manual step.",
+          "",
+          "    1. Open  https://github.com/" + REPO + "/wiki",
+          "    2. Click \"Create the first page\" and save it with any content.",
+          "    3. Re-run this script — it will replace that page.",
+          "",
+        )
+      } else {
+        lines.push(
+          "    That is not the shape of a missing wiki — check the network and the",
+          "    credentials before creating a page by hand.",
+          "",
+        )
+      }
+    }
+    console.error(lines.join("\n"))
     return false
   }
+  // A remote that answers but has no HEAD is not a usable wiki either.
+  if (!String(out).trim()) {
+    console.error("")
+    console.error("  ✖ " + WIKI_URL + " answered, but reported no HEAD commit.")
+    console.error("")
+    return false
+  }
+  return true
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
