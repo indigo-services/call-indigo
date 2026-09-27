@@ -1,0 +1,58 @@
+<svg viewBox="0 0 680 360" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Admin Gate — Credential Flow</title>
+<desc>The admin gate flow: visitor enters credentials, PBKDF2 verification runs, session is stored in sessionStorage, and the admin layout renders. The credential digests are not in the bundle.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<text class="th" x="340" y="30" text-anchor="middle" fill="#B5D4F4" font-size="15" font-weight="500">Admin Gate — Credential Flow</text>
+
+<g class="c-amber">
+<rect x="40" y="60" width="120" height="56" rx="8" fill="#412402" stroke="#854F0B" stroke-width="0.5"/>
+<text class="th" x="100" y="82" text-anchor="middle" fill="#FAC775" font-size="13" font-weight="500">Visitor</text>
+<text class="ts" x="100" y="100" text-anchor="middle" fill="#EF9F27" font-size="12">/admin/*</text>
+</g>
+
+<path d="M160 88 L200 88" fill="none" stroke="#EF9F27" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-purple">
+<rect x="210" y="60" width="140" height="56" rx="8" fill="#26215C" stroke="#534AB7" stroke-width="0.5"/>
+<text class="th" x="280" y="82" text-anchor="middle" fill="#CECBF6" font-size="13" font-weight="500">RequireAuth</text>
+<text class="ts" x="280" y="100" text-anchor="middle" fill="#AFA9EC" font-size="12">Session check</text>
+</g>
+
+<path d="M280 116 L280 150" fill="none" stroke="#AFA9EC" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-red">
+<rect x="210" y="160" width="140" height="56" rx="8" fill="#501313" stroke="#A32D2D" stroke-width="0.5"/>
+<text class="th" x="280" y="182" text-anchor="middle" fill="#F7C1C1" font-size="13" font-weight="500">LoginPage</text>
+<text class="ts" x="280" y="200" text-anchor="middle" fill="#F09595" font-size="12">Credential form</text>
+</g>
+
+<path d="M350 188 L390 188" fill="none" stroke="#F09595" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-teal">
+<rect x="400" y="150" width="160" height="76" rx="8" fill="#04342C" stroke="#0F6E56" stroke-width="0.5"/>
+<text class="th" x="480" y="176" text-anchor="middle" fill="#9FE1CB" font-size="13" font-weight="500">auth.ts</text>
+<text class="ts" x="480" y="196" text-anchor="middle" fill="#5DCAA5" font-size="12">PBKDF2-SHA-256</text>
+<text class="ts" x="480" y="212" text-anchor="middle" fill="#5DCAA5" font-size="11">210,000 iterations</text>
+</g>
+
+<path d="M480 226 L480 260" fill="none" stroke="#5DCAA5" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-gray">
+<rect x="400" y="270" width="160" height="56" rx="8" fill="#2C2C2A" stroke="#5F5E5A" stroke-width="0.5"/>
+<text class="th" x="480" y="292" text-anchor="middle" fill="#D3D1C7" font-size="13" font-weight="500">sessionStorage</text>
+<text class="ts" x="480" y="310" text-anchor="middle" fill="#B4B2A9" font-size="12">call-indigo:auth:v1:session</text>
+</g>
+
+<path d="M400 300 L340 300 L340 188 L280 188" fill="none" stroke="#5F5E5A" stroke-width="0.5" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+<text class="ts" x="360" y="294" text-anchor="middle" fill="#B4B2A9" font-size="11">valid session</text>
+
+<path d="M280 216 L280 250 L120 250 L120 116" fill="none" stroke="#AFA9EC" stroke-width="0.5" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+<text class="ts" x="200" y="244" text-anchor="middle" fill="#AFA9EC" font-size="11">AdminLayout renders</text>
+
+<text class="ts" x="340" y="350" text-anchor="middle" fill="#888780" font-size="11">Credential digests are NOT in the bundle. grep finds nothing.</text>
+</svg>

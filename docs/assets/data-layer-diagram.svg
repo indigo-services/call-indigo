@@ -1,0 +1,46 @@
+<svg viewBox="0 0 680 320" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Data Layer — Async Seam</title>
+<desc>The data layer chain: pages call api.ts (the seam), which calls backend.ts, which reads from localStorage. The only file that knows where data physically lives is backend.ts.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<g class="c-amber">
+<rect x="40" y="120" width="120" height="56" rx="8" fill="#412402" stroke="#854F0B" stroke-width="0.5"/>
+<text class="th" x="100" y="142" text-anchor="middle" fill="#FAC775" font-size="13" font-weight="500">Pages</text>
+<text class="ts" x="100" y="160" text-anchor="middle" fill="#EF9F27" font-size="12">useApiData()</text>
+</g>
+
+<path d="M160 148 L200 148" fill="none" stroke="#EF9F27" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-teal">
+<rect x="210" y="100" width="140" height="96" rx="8" fill="#04342C" stroke="#0F6E56" stroke-width="0.5"/>
+<text class="th" x="280" y="128" text-anchor="middle" fill="#9FE1CB" font-size="13" font-weight="500">api.ts</text>
+<text class="ts" x="280" y="148" text-anchor="middle" fill="#5DCAA5" font-size="12">The Seam</text>
+<text class="ts" x="280" y="166" text-anchor="middle" fill="#5DCAA5" font-size="11">Every method async</text>
+<text class="ts" x="280" y="182" text-anchor="middle" fill="#5DCAA5" font-size="11">Pages import ONLY this</text>
+</g>
+
+<path d="M350 148 L390 148" fill="none" stroke="#5DCAA5" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="400" y="100" width="140" height="96" rx="8" fill="#042C53" stroke="#185FA5" stroke-width="0.5"/>
+<text class="th" x="470" y="128" text-anchor="middle" fill="#B5D4F4" font-size="13" font-weight="500">backend.ts</text>
+<text class="ts" x="470" y="148" text-anchor="middle" fill="#85B7EB" font-size="12">The ONLY file that</text>
+<text class="ts" x="470" y="166" text-anchor="middle" fill="#85B7EB" font-size="11">knows data lives in</text>
+<text class="ts" x="470" y="182" text-anchor="middle" fill="#85B7EB" font-size="11">localStorage</text>
+</g>
+
+<path d="M470 196 L470 230" fill="none" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-gray">
+<rect x="400" y="240" width="140" height="56" rx="8" fill="#2C2C2A" stroke="#5F5E5A" stroke-width="0.5"/>
+<text class="th" x="470" y="262" text-anchor="middle" fill="#D3D1C7" font-size="13" font-weight="500">localStorage</text>
+<text class="ts" x="470" y="280" text-anchor="middle" fill="#B4B2A9" font-size="12">call-indigo:v1:*</text>
+</g>
+
+<text class="ts" x="340" y="40" text-anchor="middle" fill="#B5D4F4" font-size="14" font-weight="500">Data Layer — The Async Seam</text>
+<text class="ts" x="340" y="60" text-anchor="middle" fill="#85B7EB" font-size="12">Replacing the storage means replacing backend.ts. Nothing else changes.</text>
+</svg>

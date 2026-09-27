@@ -11,6 +11,10 @@ This document is the lookup table.
 
 ## 1. The chain
 
+![Data layer diagram](../assets/data-layer-diagram.svg)
+
+*Figure 1 — The async seam: pages call `api.ts`, which calls `backend.ts`, which reads from `localStorage`. Replacing the storage means replacing one file.*
+
 ```
 pages  →  api.ts  →  backend.ts  →  localStorage
             ↑

@@ -15,6 +15,10 @@ shaped the way it is.
 
 ## 0. The shape, in one diagram
 
+![Architecture diagram](../assets/architecture-diagram.svg)
+
+*Figure 1 — The four seams: routing, data layer, chrome, and auth gate. Public routes flow to marketing pages; admin routes pass through RequireAuth.*
+
 ```
                           ┌─────────────────────────────┐
    public routes          │  src/App.tsx  (the route      │   admin routes

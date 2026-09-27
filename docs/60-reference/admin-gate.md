@@ -12,6 +12,10 @@ credential, and how the claims below were verified.
 
 ## 1. What this is, and what it is not
 
+![Admin gate flow](../assets/admin-gate-flow.svg)
+
+*Figure 1 — The credential flow: visitor → RequireAuth → LoginPage → PBKDF2 verification → sessionStorage. Digests are not in the bundle.*
+
 | | |
 |---|---|
 | **It is** | a gate that keeps `/admin` off the public internet for anyone who has not been handed the credentials |
@@ -33,6 +37,10 @@ digests appear anywhere outside `src/admin/auth.ts`, so the containment cannot r
 by accident.
 
 ## 2. Where the pieces live
+
+![Admin login page](../assets/admin-login.png)
+
+*Figure 2 — The `/admin` login page. No credential appears in the bundle; verification runs against salted digests.*
 
 | Piece | File |
 |---|---|

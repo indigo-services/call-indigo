@@ -1,0 +1,92 @@
+<svg viewBox="0 0 680 520" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Call Indigo Architecture — Four Seams</title>
+<desc>The four architectural seams of the Call Indigo React SPA: routing, data layer, chrome, and auth gate. Public routes flow through App.tsx to marketing pages; admin routes pass through RequireAuth to admin pages.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<g class="c-blue">
+<rect x="40" y="40" width="600" height="440" rx="16" fill="#042C53" stroke="#185FA5" stroke-width="0.5"/>
+<text class="th" x="340" y="68" text-anchor="middle" fill="#B5D4F4" font-size="15" font-weight="500">Call Indigo — Four Seams</text>
+</g>
+
+<g class="c-teal">
+<rect x="70" y="90" width="240" height="56" rx="8" fill="#04342C" stroke="#0F6E56" stroke-width="0.5"/>
+<text class="th" x="190" y="112" text-anchor="middle" fill="#9FE1CB" font-size="13" font-weight="500">App.tsx — Route Table</text>
+<text class="ts" x="190" y="130" text-anchor="middle" fill="#5DCAA5" font-size="12">The single source of truth</text>
+</g>
+
+<path d="M190 146 L190 170" fill="none" stroke="#5DCAA5" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-teal">
+<rect x="70" y="180" width="100" height="44" rx="8" fill="#04342C" stroke="#0F6E56" stroke-width="0.5"/>
+<text class="th" x="120" y="202" text-anchor="middle" fill="#9FE1CB" font-size="13" font-weight="500">Public</text>
+</g>
+
+<g class="c-teal">
+<rect x="210" y="180" width="100" height="44" rx="8" fill="#04342C" stroke="#0F6E56" stroke-width="0.5"/>
+<text class="th" x="260" y="202" text-anchor="middle" fill="#9FE1CB" font-size="13" font-weight="500">Admin</text>
+</g>
+
+<path d="M120 224 L120 250" fill="none" stroke="#5DCAA5" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M260 224 L260 250" fill="none" stroke="#5DCAA5" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-amber">
+<rect x="60" y="260" width="120" height="56" rx="8" fill="#412402" stroke="#854F0B" stroke-width="0.5"/>
+<text class="th" x="120" y="282" text-anchor="middle" fill="#FAC775" font-size="13" font-weight="500">Marketing Pages</text>
+<text class="ts" x="120" y="300" text-anchor="middle" fill="#EF9F27" font-size="12">Bespoke HTML</text>
+</g>
+
+<g class="c-purple">
+<rect x="200" y="260" width="120" height="56" rx="8" fill="#26215C" stroke="#534AB7" stroke-width="0.5"/>
+<text class="th" x="260" y="282" text-anchor="middle" fill="#CECBF6" font-size="13" font-weight="500">RequireAuth</text>
+<text class="ts" x="260" y="300" text-anchor="middle" fill="#AFA9EC" font-size="12">Seam 4 — The Gate</text>
+</g>
+
+<path d="M260 316 L260 340" fill="none" stroke="#AFA9EC" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-amber">
+<rect x="200" y="350" width="120" height="56" rx="8" fill="#412402" stroke="#854F0B" stroke-width="0.5"/>
+<text class="th" x="260" y="372" text-anchor="middle" fill="#FAC775" font-size="13" font-weight="500">Admin Pages</text>
+<text class="ts" x="260" y="390" text-anchor="middle" fill="#EF9F27" font-size="12">Registry + useApiData</text>
+</g>
+
+<path d="M260 406 L260 430 L120 430 L120 316" fill="none" stroke="#888780" stroke-width="0.5" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+<text class="ts" x="190" y="424" text-anchor="middle" fill="#888780" font-size="11">chrome.ts — Seam 3</text>
+
+<g class="c-gray">
+<rect x="400" y="90" width="220" height="340" rx="12" fill="#2C2C2A" stroke="#5F5E5A" stroke-width="0.5"/>
+<text class="th" x="510" y="114" text-anchor="middle" fill="#D3D1C7" font-size="14" font-weight="500">The Seams</text>
+</g>
+
+<g class="c-blue">
+<rect x="420" y="130" width="180" height="56" rx="8" fill="#042C53" stroke="#185FA5" stroke-width="0.5"/>
+<text class="th" x="510" y="152" text-anchor="middle" fill="#B5D4F4" font-size="13" font-weight="500">Seam 1 — Routing</text>
+<text class="ts" x="510" y="170" text-anchor="middle" fill="#85B7EB" font-size="12">App.tsx owns all paths</text>
+</g>
+
+<g class="c-blue">
+<rect x="420" y="200" width="180" height="56" rx="8" fill="#042C53" stroke="#185FA5" stroke-width="0.5"/>
+<text class="th" x="510" y="222" text-anchor="middle" fill="#B5D4F4" font-size="13" font-weight="500">Seam 2 — Data Layer</text>
+<text class="ts" x="510" y="240" text-anchor="middle" fill="#85B7EB" font-size="12">api.ts → backend.ts</text>
+</g>
+
+<g class="c-blue">
+<rect x="420" y="270" width="180" height="56" rx="8" fill="#042C53" stroke="#185FA5" stroke-width="0.5"/>
+<text class="th" x="510" y="292" text-anchor="middle" fill="#B5D4F4" font-size="13" font-weight="500">Seam 3 — Chrome</text>
+<text class="ts" x="510" y="310" text-anchor="middle" fill="#85B7EB" font-size="12">Shared markup, duplicated</text>
+</g>
+
+<g class="c-blue">
+<rect x="420" y="340" width="180" height="56" rx="8" fill="#042C53" stroke="#185FA5" stroke-width="0.5"/>
+<text class="th" x="510" y="362" text-anchor="middle" fill="#B5D4F4" font-size="13" font-weight="500">Seam 4 — Auth Gate</text>
+<text class="ts" x="510" y="380" text-anchor="middle" fill="#85B7EB" font-size="12">Client-side credential</text>
+</g>
+
+<path d="M340 380 L410 380" fill="none" stroke="#185FA5" stroke-width="1" stroke-dasharray="3,3"/>
+<text class="ts" x="375" y="374" text-anchor="middle" fill="#85B7EB" font-size="11">wraps</text>
+
+<text class="ts" x="340" y="490" text-anchor="middle" fill="#888780" font-size="11">A seam is one file that owns a decision. Replacing it changes that file and nothing else.</text>
+</svg>

@@ -14,6 +14,10 @@ step you run or a word you need; the depth lives in
 
 ## The product in one paragraph
 
+![Onboarding map](../assets/onboarding-map.svg)
+
+*Figure 1 — The path from first read to first merged change. Each step is a document; the four gates are the final checkpoint.*
+
 **Call Indigo** is a home & facility services company in Austin, TX — plumbing,
 electrical, HVAC, carpentry, remodeling. Family owned, locally operated since 2012,
 serving Hays, Travis and Williamson counties. This repository is their **marketing

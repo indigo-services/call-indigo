@@ -12,7 +12,7 @@ those claims live.
 
 | | |
 |---|---|
-| **Library** | `docs/` — **55 documents**, in seven numbered domains |
+| **Library** | `docs/` — **56 documents**, in seven numbered domains |
 | **Front door** | this file |
 | **Start here instead if you are new** | [`../README.md`](../README.md) at the repo root |
 | **Read it as a website** | [**The project wiki**](https://github.com/indigo-services/call-indigo/wiki) — this directory, rendered. **A mirror: edit here, never there.** |
@@ -48,6 +48,7 @@ declares for itself — see `00-meta/conventions.md` §2.
 | [`00-meta/conventions.md`](./00-meta/conventions.md) | living | The evidence rule, the document kinds, naming, the freshness contract |
 | [`00-meta/doc-map.md`](./00-meta/doc-map.md) | derived | Every document with its kind — **generated** from each document's own front matter |
 | [`00-meta/claims.json`](./00-meta/claims.json) | derived | **The claim registry** — every asserted number, with the command that produces it |
+| [`00-meta/docs-butler.md`](./00-meta/docs-butler.md) | living | The docs butler — visual asset agent specification |
 | [`00-meta/templates/plan.md`](./00-meta/templates/plan.md) | template | A plan: findings, phases, risks, open questions with recommendations |
 | [`00-meta/templates/prd.md`](./00-meta/templates/prd.md) | template | A release: problem, scope, requirements with acceptance criteria |
 | [`00-meta/templates/adr.md`](./00-meta/templates/adr.md) | template | A decision that is expensive to reverse |

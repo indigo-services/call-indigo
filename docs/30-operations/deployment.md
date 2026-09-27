@@ -6,6 +6,10 @@
 
 ## 1. What is configured
 
+![Deployment flow](../assets/deployment-flow.svg)
+
+*Figure 1 — The deployment pipeline: git push → author gate → Vercel build → catch-all rewrite. The author gate blocks non-owner commits on Hobby plans.*
+
 **One file, one rule** [M: `vercel.json`]:
 
 ```json

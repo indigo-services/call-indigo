@@ -1,0 +1,65 @@
+<svg viewBox="0 0 680 400" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Deployment Flow — Vercel SPA</title>
+<desc>The deployment pipeline: git push triggers Vercel build, which runs tsc and vite build, outputs to dist/, and serves via a catch-all rewrite to index.html. The author gate blocks non-owner commits on Hobby plans.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<text class="th" x="340" y="30" text-anchor="middle" fill="#B5D4F4" font-size="15" font-weight="500">Deployment Flow</text>
+
+<g class="c-teal">
+<rect x="40" y="60" width="120" height="56" rx="8" fill="#04342C" stroke="#0F6E56" stroke-width="0.5"/>
+<text class="th" x="100" y="82" text-anchor="middle" fill="#9FE1CB" font-size="13" font-weight="500">Git Push</text>
+<text class="ts" x="100" y="100" text-anchor="middle" fill="#5DCAA5" font-size="12">main branch</text>
+</g>
+
+<path d="M160 88 L200 88" fill="none" stroke="#5DCAA5" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-purple">
+<rect x="210" y="50" width="140" height="76" rx="8" fill="#26215C" stroke="#534AB7" stroke-width="0.5"/>
+<text class="th" x="280" y="76" text-anchor="middle" fill="#CECBF6" font-size="13" font-weight="500">Author Gate</text>
+<text class="ts" x="280" y="96" text-anchor="middle" fill="#AFA9EC" font-size="12">Hobby plan: owner only</text>
+<text class="ts" x="280" y="112" text-anchor="middle" fill="#AFA9EC" font-size="11">Non-owner = blocked</text>
+</g>
+
+<path d="M350 88 L390 88" fill="none" stroke="#AFA9EC" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="400" y="50" width="140" height="76" rx="8" fill="#042C53" stroke="#185FA5" stroke-width="0.5"/>
+<text class="th" x="470" y="76" text-anchor="middle" fill="#B5D4F4" font-size="13" font-weight="500">Vercel Build</text>
+<text class="ts" x="470" y="96" text-anchor="middle" fill="#85B7EB" font-size="12">npm run build</text>
+<text class="ts" x="470" y="112" text-anchor="middle" fill="#85B7EB" font-size="11">tsc -b && vite build</text>
+</g>
+
+<path d="M470 126 L470 160" fill="none" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-gray">
+<rect x="400" y="170" width="140" height="56" rx="8" fill="#2C2C2A" stroke="#5F5E5A" stroke-width="0.5"/>
+<text class="th" x="470" y="192" text-anchor="middle" fill="#D3D1C7" font-size="13" font-weight="500">dist/</text>
+<text class="ts" x="470" y="210" text-anchor="middle" fill="#B4B2A9" font-size="12">Static output</text>
+</g>
+
+<path d="M470 226 L470 260" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<g class="c-amber">
+<rect x="360" y="270" width="220" height="76" rx="8" fill="#412402" stroke="#854F0B" stroke-width="0.5"/>
+<text class="th" x="470" y="296" text-anchor="middle" fill="#FAC775" font-size="13" font-weight="500">Catch-All Rewrite</text>
+<text class="ts" x="470" y="316" text-anchor="middle" fill="#EF9F27" font-size="12">/(.*) → /index.html</text>
+<text class="ts" x="470" y="332" text-anchor="middle" fill="#EF9F27" font-size="11">SPA routing in the browser</text>
+</g>
+
+<g class="c-red">
+<rect x="210" y="170" width="140" height="56" rx="8" fill="#501313" stroke="#A32D2D" stroke-width="0.5"/>
+<text class="th" x="280" y="192" text-anchor="middle" fill="#F7C1C1" font-size="13" font-weight="500">Blocked</text>
+<text class="ts" x="280" y="210" text-anchor="middle" fill="#F09595" font-size="12">No deploy, no error</text>
+</g>
+
+<path d="M280 126 L280 170" fill="none" stroke="#A32D2D" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+<text class="ts" x="295" y="152" text-anchor="start" fill="#F09595" font-size="11">non-owner</text>
+
+<path d="M540 88 L580 88 L580 306 L580 306" fill="none" stroke="#EF9F27" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text class="ts" x="590" y="200" text-anchor="start" fill="#EF9F27" font-size="12">call-indigo.com</text>
+</g>
+</svg>

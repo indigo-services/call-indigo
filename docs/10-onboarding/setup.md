@@ -25,6 +25,10 @@ npm install          # install dependencies
 npm run dev          # dev server → http://localhost:5173
 ```
 
+![Homepage hero](../assets/home-hero.png)
+
+*Figure 1 — The homepage at `localhost:5173`, showing the hero section with rotating architectural photography.*
+
 The dev server is Vite's. There is **no** `tailwind.config.js`, **no** PostCSS config
 and **no** `vite.config` beyond the Tailwind plugin — Tailwind v4 is configured in CSS
 ([`../20-development/css-pipeline.md`](../20-development/css-pipeline.md)).
