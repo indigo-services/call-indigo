@@ -1,6 +1,6 @@
 # Tasks — the live punch list
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `322d842`
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-29 at `6cb10f6`
 
 > ⚠️ **Two `T`-numbering schemes collide in this repo.** The ones below are the
 > **client punch list**. A phase PRD's `T2` is a different thing entirely — see
@@ -64,6 +64,43 @@ The alternative reading: *eyebrow* = the name, and *h2* = "BECOME A MEMBER".
 
 ## 2. Client punch list — closed
 
+This section now tracks the **client's own 13-item punch list of 2026-09-29**, which
+supersedes the repo's paraphrase (§1). Each landed item is tracked as its own issue in the
+**v2.0.0** milestone.
+
+| # | Client item | State |
+|---|---|---|
+| **12** | Footer copyright → `© 2026 Call Indigo, LLC. All rights reserved.` | **Landed** (issue #22) — footer constant + the three mirror pages + `LICENSE` + `client-disclosure.md` §5.6, one commit. **This settles the legal entity: `Call Indigo, LLC`.** |
+| **2** | `15+` → `15 years` | Open — S2 wave 1 (issue #13) |
+| **4** | "How it works" two-line heading | Open — S2 wave 1 (issue #14) |
+| **6** | Testimonials → carousel | Open — S2 wave 1 (issue #15) |
+| **11** | Remove the black fade on the "Ready when you call" band | Open — S2 wave 1 (issue #21) |
+| **3** | Rename "Why Indigo" / remove "Peace Of Mind" | **Already satisfied** — the heading is `Why choose Call Indigo` and no "Peace Of Mind" block exists (issue #25) |
+| **7** | FAQ | **No action** — the client said the section is fine |
+| **1, 5, 8** | Hero rotator · section overflow · "13 years"/"Send a message" | **BLOCKED-ON-CLIENT** — the quoted strings exist on no page (issues #24, #26, #27) |
+| **9, 10, 13** | Receipt copy · redundant CONTACT section · site-wide sweep | Deferred to **S2 wave 2**, after the forms merge (issues #16, #17, #23) |
+
+### ⚠️ Found closing #22 — the utility bar names the *other* entity
+
+The client's item 12 asked for the correct copyright name **"and the most up-to-date
+info"**. The footer and `LICENSE` now agree on **`Call Indigo, LLC`**, but the **utility
+bar** on all four pages still renders:
+
+```
+Est. 2012 · Indigo Home & Facility Services
+```
+
+at `src/marketing/chrome-markup.ts:54` and inline in the three mirror pages
+(`HomePage.tsx:59`, `ResidentialPage.tsx:59`, `CommercialPage.tsx:59`).
+
+**It was left alone deliberately.** The two are different fields with different jobs —
+`copyrightName` (`Call Indigo LLC`) is the copyright holder; `legalName`
+(`Indigo Home & Facility Services`) is the entity used *"on documents and the utility
+bar"* (`src/admin/SettingsPage.tsx:33`), and `seed.ts` / `tokens.ts` both still carry it.
+The client's ruling named the **copyright** name, so rewriting the utility bar would be a
+guess about a different field. **Recorded as a question, not silently changed** — resolve
+it in issue #23 (the site-wide sweep) or with the client.
+
 | # | Item | State |
 |---|---|---|
 | **T3** | *(shipped)* | **Closed** |
@@ -118,4 +155,4 @@ Phases 1–5, with their exit criteria:
 
 ---
 
-**Last verified:** 2026-09-27 at `322d842`
+**Last verified:** 2026-09-29 at `6cb10f6`

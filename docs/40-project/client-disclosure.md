@@ -546,22 +546,34 @@ users free of charge; **selling** access to the product requires an **Extended**
 Which one you hold determines whether the dashboard may ever be commercialised. It is
 worth confirming alongside the purchase code.
 
-### 5.6 The copyright holder is unresolved — and must not be guessed
+### 5.6 The copyright holder — RESOLVED 2026-09-29
 
-The repository states two names, and a copyright notice must name the **legal person**:
+The repository stated two names, and a copyright notice must name the **legal person**:
 
 | Name | Occurrences | Where |
 |---|---:|---|
 | `Call Indigo LLC` | **105** | `README.md`, `CHANGELOG.md`, and `copyrightName` **in the running application** |
 | `Indigo Home & Facility Services` | **26** | `PRD.md`, which identifies it explicitly as the **legal** name, with *Call Indigo* as the business name |
 
-[`../../LICENSE`](../../LICENSE) uses the **legal** name and carries a comment explaining
-why. **If that is wrong, it must be corrected in two places** — the `LICENSE` and the
-application's `copyrightName` — because the site footer currently renders
-*"© Call Indigo LLC"*.
+**The client resolved it in client item 12 (issue #22):**
 
-**This is a question for you.** Picking the more frequent string would be a guess dressed
-as a measurement.
+> *"Footer needs to be updated with the correct copyright name for website and the most
+> up-to-date info. Let's use '2026 Call Indigo, LLC' and put 'All rights reserved.'"*
+
+**The ruling is `Call Indigo, LLC`.** The footer constant and the three mirror pages now
+render *"© 2026 Call Indigo, LLC. All rights reserved."*, and [`../../LICENSE`](../../LICENSE)
+names the same entity in its copyright line, its contribution-assignment clause and its
+contact block. `grep -rn 'Indigo Home & Facility Services' LICENSE` returns nothing.
+
+Two notes on the implementation:
+
+- The footer renders **the current year** (`new Date().getFullYear()`), not a hard-coded
+  `2026`. It is 2026 today, so the rendered string matches the client's text exactly, and
+  it does not go stale on 1 January.
+- `chrome-markup.ts` still carries the prototype's *"prototype reconstruction for demo
+  purposes"* line. That line is **never rendered** — `chrome.ts` replaces it with the
+  resolved constant at import time — so it was left alone rather than edited in a
+  generated file.
 
 ### 5.7 The 20 tracked template source files — an open decision
 
@@ -721,7 +733,7 @@ Source of record: [`../60-reference/third-party-assets.md`](../60-reference/thir
 | # | Decision | Blocked on |
 |---|---|---|
 | 1 | **The 20 tracked template source files** — leave, delete, or purge (§5.7) | **You** — the licence is yours |
-| 2 | **Confirm the copyright holder** — `Call Indigo LLC` vs `Indigo Home & Facility Services` (§5.6) | **You** |
+| 2 | **Confirm the copyright holder** — `Call Indigo LLC` vs `Indigo Home & Facility Services` (§5.6) | **Resolved 2026-09-29** — `Call Indigo, LLC` |
 | 3 | **Confirm the licence type** — Regular vs Extended (§5.5) | **You** |
 | 4 | **Record the licence reference**; keep the purchase code private (§5.5) | **You** |
 | 5 | Restore the MIT notices on `bootstrap.min.css` and `wow.js` (§5.4) | **Nobody — owed now** |
