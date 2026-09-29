@@ -65,8 +65,11 @@ The alternative reading: *eyebrow* = the name, and *h2* = "BECOME A MEMBER".
 ## 2. Client punch list — closed
 
 This section now tracks the **client's own 13-item punch list of 2026-09-29**, which
-supersedes the repo's paraphrase (§1). Each landed item is tracked as its own issue in the
-**v2.0.0** milestone.
+supersedes the repo's paraphrase (§1). Each landed item is tracked as its own issue —
+landed ones in the **v2.0.0** milestone, and every item still open in **v2.1.0** after
+the 2026-09-29 reconciliation
+([`plans/plan-prune-and-reconciliation-2026-09-29.md`](./plans/plan-prune-and-reconciliation-2026-09-29.md) §3).
+**v2.0.0 now carries 0 open issues.**
 
 | # | Client item | State |
 |---|---|---|
