@@ -1,11 +1,23 @@
 /**
  * Test harness — assertions, a report, and a TypeScript loader.
  *
- * Zero new dependencies on purpose. The loader uses the `esbuild` that already
- * ships inside `vite`, so a suite can import the real page modules and render
- * them with `react-dom/server` instead of re-parsing the source with regexes.
- * That is the difference between "the string contains an anchor" and "the
- * component renders an anchor".
+ * The loader uses `esbuild` to bundle the real page modules, so a suite can
+ * import them and render with `react-dom/server` instead of re-parsing the
+ * source with regexes. That is the difference between "the string contains an
+ * anchor" and "the component renders an anchor".
+ *
+ * ⚠️ `esbuild` is a DECLARED devDependency, and it has to stay one. It used to
+ * be imported on the assumption that it "ships inside vite", and that assumption
+ * was wrong twice over. First it was only present transitively, so it survived
+ * on a developer machine and vanished under CI's `npm ci` — the comment here
+ * claimed a guarantee npm never made. Then vite 8 demoted `esbuild` to an
+ * OPTIONAL peer dependency (`peerDependenciesMeta.esbuild.optional`), so it is
+ * no longer vendored at all: the suite cannot run anywhere without this
+ * declaration. G4 failed on every push to `main` with
+ * `ERR_MODULE_NOT_FOUND: Cannot find package 'esbuild'`.
+ *
+ * Do not remove the declaration on the grounds that vite also uses esbuild.
+ * Vite lists it as optional precisely so it can be absent.
  *
  * `react` / `react-dom` are left external to the bundle so the rendered tree and
  * the renderer share one React instance — bundling a second copy produces
@@ -231,13 +243,31 @@ export function classTokens(html) {
  *
  * Two details that are easy to get wrong and silently lose classes:
  *   · a leading digit is emitted as a hex escape — `.2xl\:gap` is written
- *     `.\32xl\:gap`, because a CSS identifier cannot start with a digit;
+ *     `.\32 xl\:gap`, because a CSS identifier cannot start with a digit;
  *   · only ASCII needs escaping — `before:content-['✓']` keeps its ✓ raw.
+ *
+ * ⚠️ THE SPACE AFTER `\32` IS LOAD-BEARING, and leaving it out made this
+ * helper unable to see the very class it was asked about. A CSS hex escape is
+ * terminated either by whitespace or by exceeding the 6-digit maximum. `\32x`
+ * is therefore read as *one* escape (`0x32x`, an invalid code point), not as
+ * `2` followed by `x` — so Tailwind writes `\32` + a single space + `xl`.
+ *
+ * Measured [M: 2026-09-29, tailwindcss 4.3.3] with a bare `compile()`:
+ *   candidate `2xl:gap-[52px]` → `.\32 xl\:gap-\[52px\]{gap:52px}`   (space)
+ *   this helper used to emit     `.\32xl\:gap-\[52px\]`               (no space)
+ * The two never match, so `2xl:` classes were reported missing on EVERY run —
+ * and `verify.mjs` gated the build on that report.
+ *
+ * The rule is: after `\3` + the first digit, Tailwind ALWAYS writes a single
+ * space, then the rest of the class name. Measured [M: 2026-09-29, tailwindcss
+ * 4.3.3] — `2xl:gap-[52px]` compiles to `.\32 xl\:gap-\[52px\]{gap:52px}`.
+ * The space is not conditional on the next character being a hex digit; it is
+ * present for `2xl`, for `4xl` and for a bare `2xl` alike.
  */
 export function cssSelector(token) {
   const esc = (s) =>
     s.replace(/[\x00-\x7F]/g, (c) => (/[A-Za-z0-9_-]/.test(c) ? c : `\\${c}`))
-  if (/^\d/.test(token)) return `.\\3${token[0]}${esc(token.slice(1))}`
+  if (/^\d/.test(token)) return `.\\3${token[0]} ${esc(token.slice(1))}`
   return `.${esc(token)}`
 }
 
