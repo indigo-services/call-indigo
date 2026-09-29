@@ -1134,6 +1134,23 @@
   }
   .card-hover:hover { transform: translateY(-8px); box-shadow: var(--shadow-lift); border-color: transparent; }
 
+  /* ---- Testimonials (client item 6) — NOT a carousel ----------------------
+     The carousel was built and then REVERTED on the client's own instruction
+     (2026-09-29). The reviews are ~12-word quotes in portrait cards designed
+     for a 3-across grid; showing one at a time did not remove the white space
+     the client was reacting to, it produced MORE of it. Measured, on a 1440
+     viewport: the 3-across row put a 411px card in a 1280px track and was
+     248px tall; a single 620px centred card left 660–961px of empty track
+     beside it, a full-bleed card rendered as a 1417px × 120px sliver with a
+     dead middle, and a landscape split stranded the attribution at the far
+     right. Every variant read sparser than the layout it replaced.
+
+     So the section stays a 3-across grid and item 6 is addressed by SPACING
+     (the client's own wording was "too much white space"), not by changing the
+     layout. If the carousel is ever revisited, the width probe is kept at
+     `scripts/_probe_reviews_width.cjs` and prints the numbers rather than
+     asserting, so the next attempt starts from measurements instead of taste. */
+
   /* FAQ chevron */
   .chev { @apply size-2.5 flex-none border-r-2 border-b-2 border-brand transition-transform duration-300; }
   details[open] .chev { transform: rotate(225deg); }

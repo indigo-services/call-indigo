@@ -191,20 +191,49 @@ const headSha = (() => {
   // `.git/HEAD` is either a raw SHA (detached) or `ref: refs/heads/<branch>`.
   // Resolving the ref matters: the literal string `ref: refs/heads/main` is not a SHA
   // and would be stamped into the document as one.
+  //
+  // ⚠️ In a git WORKTREE `.git` is a FILE, not a directory: it holds
+  // `gitdir: C:/path/to/main/.git/worktrees/<name>`, and HEAD lives there. Reading
+  // `path.join(ROOT, ".git", "HEAD")` therefore threw, the catch returned "unknown",
+  // and that literal string was stamped into the committed document — measured
+  // 2026-09-29 by regenerating from a worktree. Resolve the indirection first.
+  const gitDir = (() => {
+    const dotGit = path.join(ROOT, ".git")
+    try {
+      if (!fs.statSync(dotGit).isFile()) return dotGit
+      const m = /^gitdir:\s*(.+)$/m.exec(fs.readFileSync(dotGit, "utf8"))
+      if (!m) return dotGit
+      const dir = m[1].trim()
+      return path.isAbsolute(dir) ? dir : path.resolve(ROOT, dir)
+    } catch {
+      return dotGit
+    }
+  })()
   try {
-    const head = fs.readFileSync(path.join(ROOT, ".git", "HEAD"), "utf8").trim()
+    const head = fs.readFileSync(path.join(gitDir, "HEAD"), "utf8").trim()
     const m = /^ref:\s*(.+)$/.exec(head)
     if (!m) return head.slice(0, 7)
-    const refPath = path.join(ROOT, ".git", m[1])
-    if (fs.existsSync(refPath)) return fs.readFileSync(refPath, "utf8").trim().slice(0, 7)
+    // In a worktree the branch refs are NOT under the worktree's gitdir — they live in
+    // the COMMON dir, named by the `commondir` file (`../..` -> the main `.git`). Look
+    // there first, then fall back to the gitdir so a normal checkout is unaffected.
+    const commonFile = path.join(gitDir, "commondir")
+    const commonDir = fs.existsSync(commonFile)
+      ? path.resolve(gitDir, fs.readFileSync(commonFile, "utf8").trim())
+      : gitDir
+    for (const base of [commonDir, gitDir]) {
+      const refPath = path.join(base, m[1])
+      if (fs.existsSync(refPath)) return fs.readFileSync(refPath, "utf8").trim().slice(0, 7)
+    }
     // Packed refs, when the branch ref has been packed away.
-    const packed = path.join(ROOT, ".git", "packed-refs")
-    if (fs.existsSync(packed)) {
-      const line = fs
-        .readFileSync(packed, "utf8")
-        .split("\n")
-        .find((l) => l.endsWith(" " + m[1]))
-      if (line) return line.split(" ")[0].slice(0, 7)
+    for (const base of [commonDir, gitDir]) {
+      const packed = path.join(base, "packed-refs")
+      if (fs.existsSync(packed)) {
+        const line = fs
+          .readFileSync(packed, "utf8")
+          .split("\n")
+          .find((l) => l.endsWith(" " + m[1]))
+        if (line) return line.split(" ")[0].slice(0, 7)
+      }
     }
     return "unknown"
   } catch {

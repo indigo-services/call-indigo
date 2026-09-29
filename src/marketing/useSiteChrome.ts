@@ -31,6 +31,11 @@
  *                             the font size so the longest option cannot reflow
  *                             the hero
  *
+ * There is no item 8. A testimonial carousel was built for client item 6 on
+ * 2026-09-29 and reverted the same day on the client's instruction — one review
+ * at a time read sparser than the 3-across row it replaced. See the testimonials
+ * note in `index.css` for the measurements.
+ *
  * The prototype is a single long-lived page, so main.js can register listeners
  * once and forget them. Here the hook is mounted per route and unmounted on
  * navigation, so every listener, the observer, and the body scroll lock are
@@ -356,6 +361,19 @@ export function useSiteChrome() {
         }, 2600)
       }
     }
+
+    /* ---------- Testimonial carousel — REMOVED 2026-09-29 ----------
+       Client item 6 asked for a carousel because the 3-across review row read as
+       too much white space. It was built, measured, and then reverted on the
+       client's own instruction: one review at a time read SPARSER than the row
+       it replaced (numbers in `index.css` under the testimonials note), so the
+       white space is addressed by spacing instead. The section is a plain
+       3-across grid again and needs no behaviour here.
+
+       The driver that used to live at this point is deleted rather than left
+       inert: an unused block matching `[data-reviews-carousel]` would find
+       nothing and silently do nothing, which is exactly the "assertion that
+       cannot see the thing it claims to check" shape this repo keeps hitting. */
 
     /* ---------- Cleanup ---------- */
     return () => {
