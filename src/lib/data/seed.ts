@@ -171,7 +171,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   address: "1005 Meredith Drive, Austin, TX 78748",
   establishedYear: "2012",
   serviceArea: "Hays, Travis, and Williamson counties",
-  licenseNumber: "RMP: 45574",
+  licenseNumber: "RMP45574 EC23851",
   notificationEmail: "support@call-indigo.com",
   ...THEME_DEFAULTS,
 }

@@ -591,7 +591,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <dt className="font-bold text-ink">Licence</dt>
-                    <dd>RMP: 45574</dd>
+                    <dd>RMP45574 EC23851</dd>
                   </div>
                   <div>
                     <dt className="font-bold text-ink">Hours</dt>
