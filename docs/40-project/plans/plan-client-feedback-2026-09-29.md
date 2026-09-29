@@ -1,6 +1,9 @@
 # Plan — client feedback round 4, release `v2.0.2`
 
 **Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-29 at `21304ed`
+**Status:** ✅ **APPROVED — proceed.** All five owner questions are answered; see §9.
+**Scope change at approval:** **Q4 is OUT of this release** and re-filed as a
+`question`. The release is therefore **16 tasks, not 17** (see §1.4).
 
 Nineteen text and string changes the client supplied on 2026-09-29 as
 **"Project Requirements — Client Validation & Release Change Log, Call-Indigo.com
@@ -8,8 +11,8 @@ Release v2.0.2."** The brief is a two-page PDF; the text below is quoted from
 `pypdf`'s extraction of it, not retyped by eye.
 
 **This round is different from rounds 1–3 in one way that governs the whole plan:
-it is not a layout round.** Fifteen of the nineteen items are a single string
-replaced on one page. Four are not, and each of those four is called out as its
+it is not a layout round.** Sixteen of the nineteen items are a single string
+replaced on one page. Three are not, and each of those three is called out as its
 own task rather than folded into the copy pass.
 
 Gate for the round: **`npm test`**, and nothing else. No new probe is needed for
@@ -94,19 +97,57 @@ Plus a **fifth** surface the client's "every instance" wording reaches:
 contact details — with **no `License:` prefix**, so it is a different string and
 gets its own task (F16).
 
+### 1.4 The owner's decisions — taken 2026-09-29, and the one that changes scope
+
+All five questions in §9 are answered. **Four confirm the plan; one removes an item.**
+
+| Q | Decision | Effect on the release |
+|---|---|---|
+| **Q1** | *"Ship it verbatim."* | **F1/F16 unchanged** — `License: RMP45574 EC23851`, no space, no separator. No second-guessing. |
+| **Q2** | *"(a) — remove badge entirely."* | **F5 is UNBLOCKED** and is now reading **(a)** in §3.3. The `15 / Years of Experience` badge comes off; the two photos stand alone. |
+| **Q3** | *"Leave it as you recommend."* | The `v2.1.0` double assignment stays recorded and unfixed. **No task.** |
+| **Q4** | *"Mark as labeled `question` and not in this release."* | ⚠️ **F4 IS OUT OF `v2.0.2`.** The About paragraph is not edited. Re-filed as a `question` issue outside the milestone. See below. |
+| **Q5** | *"Remove, not in this release."* | The footer de-duplication does not happen. **No task.** The four-copy edit stays a four-copy edit. |
+
+#### ⚠️ Q4 removes an item — and it is not a deferral to a later release
+
+**Q4 asked whether to accept the brief's About paragraph verbatim, which drops
+*"across Hays, Travis, and Williamson counties"* from the Home page.** The owner's
+answer is that this is a **`question`**, not a change: the client should rule on
+whether the county list survives before anything is edited.
+
+So F4 is **not** moved to `v2.1.0` and **not** re-scoped. It leaves `v2.0.2`
+entirely and becomes **a question for the client**, tracked as its own issue with
+the `question` label and **no milestone**.
+
+**What this does *not* change.** The rest of item D still lands — the hard `<br>`
+after *"…for any address."* is part of the same paragraph as the sentence that is
+in question, and **the break cannot be separated from the text safely**: inserting
+it means rewriting the paragraph, which is the thing Q4 asks the client to rule on
+first. **So the whole of F4 waits.** `v2.0.2` ships the Home About band with its
+heading changed (F3) and its paragraph **untouched**.
+
+**Consequence to state plainly:** after this release, the Home About paragraph
+still reads as one unbroken sentence with the county list intact. That is the
+**conservative** outcome — nothing is lost, one requested change is pending an
+answer. It is the right way round for a `question`.
+
+**Effect on the count: 17 tasks → 16.**
+
 ---
 
 ## 2. The product, decomposed
 
 Nineteen capabilities, each mapped to exactly one task and one release.
+**F4 (item D) is out of the release** per §1.4 — it is marked `— OUT —` below.
 
 | # | Client's words (quoted) | Task | Where |
 |---|---|---|---|
 | A | *"Change every instance `License: RMP 45574` to `License: RMP45574 EC23851`"* | **F1** | 4 footer copies + Contact |
 | B | *"Remove the Emm dash in the hero to read `Fast, licensed local…`"* | **F2** | Home hero |
 | C | *"the text below to: `Family Owned, (line break) Locally Operated.`"* | **F3** | Home `#about` |
-| D | *"make 2 lines and update text: `Call Indigo is your single phone call for any address.` (Line Break) `Serving homes and facilities since 2012; We are Licensed, insured, and headquartered in Austin, Texas.`"* | **F4** | Home `#about` |
-| E | *"Remove Pill Icon Textbox: "15yrs of experience""* / *"Left side to display only the 2 side by side images."* | **F5** | Home `#about` |
+| D | *"make 2 lines and update text: `Call Indigo is your single phone call for any address.` (Line Break) `Serving homes and facilities since 2012; We are Licensed, insured, and headquartered in Austin, Texas.`"* | **— OUT —** F4 | **not in `v2.0.2`** — see §1.4 |
+| E | *"Remove Pill Icon Textbox: "15yrs of experience""* / *"Left side to display only the 2 side by side images."* | **F5** → reading **(a)** | Home `#about` |
 | F | *"Change "Why choose call indigo" to read: "Peace Of Mind""* | **F6** | Home `#choose` |
 | G | *""How it works" Change to read: "A Clear Path From (Line break) Start-To-Finish""* | **F7** | Home `#process` |
 | H | *""RESIDENTIAL & HOME SERVICES" Should be in all capitals."* | **F8** | Residential hero |
@@ -152,8 +193,12 @@ built to the letter and reverted).
 ⚠️ **One consequence to carry into the task, not to decide here.** The brief's
 `RMP45574 EC23851` contains **no space whatsoever**. A reader who has never seen a
 Texas licence will read `RMP45574` as a typo. If the client wants it to read as
-two codes, `RMP45574 · EC23851` is the one-character fix — **ask before shipping,
-do not pre-empt**. See §9 Q1.
+two codes, `RMP45574 · EC23851` is the one-character fix.
+
+> ✅ **SETTLED — Q1, 2026-09-29: ship it verbatim.** The question was raised and
+> answered. **Render `License: RMP45574 EC23851` exactly.** Do not add the space,
+> do not add a separator, and do not re-open this in the task. The reasoning
+> above is kept because it is why the string looks wrong and is not.
 
 ### 3.2 "Emm dash" in the hero is a **CSS `::before` rectangle**, not a text character
 
@@ -240,8 +285,13 @@ src/marketing/pages/HomePage.tsx:467     <span class="years-badge-label text-ink
 **Decision: remove the badge from the About band's left column**, satisfying
 *"only the 2 side by side images"* literally.
 
-**This is the round's one genuinely ambiguous item, and it is not being guessed
-at.** Three readings exist and they produce three different pages:
+> ✅ **SETTLED — Q2, 2026-09-29: reading (a). Remove the badge entirely.**
+> F5 is **unblocked**. The three readings below are kept because they are why the
+> question had to be asked, and because **(b) and (c) remain explicitly ruled
+> out** — a half-removed badge is the shape of defect that ships and reads as a
+> rendering bug.
+
+Three readings existed and they would produce three different pages:
 
 | reading | what happens | evidence for |
 |---|---|---|
@@ -249,14 +299,17 @@ at.** Three readings exist and they produce three different pages:
 | (b) Remove only the **text** | a white rounded box with a blue disc and nothing in it | the word *"Textbox"*; but leaves an obviously broken element |
 | (c) Remove only the **icon disc** | `15 / Years of Experience` stays, disc goes | *"Pill **Icon**"*; but contradicts "only the 2 images" |
 
-**Recommendation: (a)**, and the task carries a **blocking question** rather than
-an assumption. The factual loss under (a) is small and already covered: the Home
-hero badge is the only place `15` appears, but *"since 2012"* is stated in the
-footer licence line, the About paragraph and the `#choose` band, so no claim about
-the company's age leaves the site. See §9 Q2.
+**Recommendation: (a)** — **ACCEPTED.** The factual loss under (a) is small and
+already covered: the Home hero badge is the only place `15` appears, but
+*"since 2012"* is stated in the footer licence line, the About paragraph and the
+`#choose` band, so no claim about the company's age leaves the site.
 
-⚠️ **Do not do (b) or (c) silently.** A half-removed badge is the shape of defect
+⚠️ **(b) and (c) are ruled out.** A half-removed badge is the shape of defect
 that ships and reads as a rendering bug.
+
+**F5's exit criterion is the strong form:** `grep -c "years-badge" HomePage.tsx`
+→ **`0`**, and the About band's left column renders exactly two `<figure>`
+elements.
 
 ### 3.4 "All capitals" is a **content** change, not a CSS transform
 
@@ -387,9 +440,35 @@ list of facts a rewrite *must not break* (`plan-client-feedback-2026-09-26.md`
 §Q3 lists Austin HQ and the service area among the things the footer and About band
 both state). It **survives** in the residential hero chip's sibling copy
 (`ResidentialPage.tsx:218`: *"Serving Hays, Travis, and Williamson counties"*), so
-the site does not go silent about its area — but the **Home page** would. Flagged
-as §9 Q4; **ship the brief's text if the client confirms**, because the client
-supplied it in quotes.
+the site does not go silent about its area — but the **Home page** would.
+
+#### ✅ SETTLED — Q4, 2026-09-29: **F4 is OUT of `v2.0.2`** and re-filed as a `question`
+
+The owner ruled that the county deletion is **the client's decision, not ours**.
+F4 therefore leaves this release **entirely** — it is **not** deferred to
+`v2.1.0` and **not** re-scoped. It becomes its own issue, labelled **`question`**,
+**outside every milestone**, and it ships when the client answers.
+
+**Why the whole of F4 waits, rather than just sentence 2.** The hard `<br>` in
+instruction 1 lands in the same paragraph as the sentence in question. Inserting
+it means rewriting the paragraph, and the rewrite is exactly what Q4 asks the
+client to rule on first. **So the Home About paragraph is not touched at all.**
+
+**The conservative outcome, stated plainly.** After `v2.0.2` the Home About
+paragraph still reads as one unbroken sentence, with the county list intact:
+
+```
+Call Indigo is your single phone call for any address. Licensed, insured, and headquartered in Austin, Texas since 2012 — serving homes and facilities across Hays, Travis, and Williamson counties.
+```
+
+**Nothing is lost and one requested change is pending an answer** — the right way
+round for a `question`. The heading above it (`F3`) **does** ship, so the About
+band is not untouched.
+
+**This is the only place in the release where the client gets less than they
+asked for, and it is deliberate.** If the client answers *"keep the counties"*,
+F4 is a two-line edit; if they answer *"drop them"*, it is the brief's text
+verbatim.
 
 ⚠️ **A `<br>` inside this paragraph has a responsive side-effect.** At ≤1440 and
 below, the *hero* paragraph's `<br>` is suppressed by
@@ -407,11 +486,16 @@ phase structure.
 
 ### 4.1 `v2.0.2` — the client's quick-fix text pass
 
-**In scope.** The 19 requests in §2, the suite staying green, and the three
-documentation registrations in §10.
+**In scope.** **16** of the 19 requests in §2 *(item D / F4 is out — §1.4)*, the
+suite staying green, and the three documentation registrations in §10.
 
 **NOT in scope — explicitly:**
 
+- ⚠️ **F4 — the Home About paragraph. Do NOT touch it.** The county-list question
+  is filed as a `question` for the client, and the hard `<br>` cannot be inserted
+  without rewriting the paragraph that question is about. **This is the item most
+  likely to be "helpfully" completed by accident** — the brief asks for it, the
+  paragraph is one line, and the fix looks trivial. It is not yours to make.
 - **No new probe.** These are string changes on pages the suite already renders.
 - **No CSS refactor.** F2 and F9 touch CSS; neither opens a design-token change.
   *(Do not "fix up" `.banner-lead` while removing the dash — the remaining rules
@@ -420,8 +504,9 @@ documentation registrations in §10.
   paragraph and nothing more. Not a grid change. *(The round-3 precedent is
   explicit: item 6's carousel was built and reverted for being a layout change
   that read worse.)*
-- **No chrome deduplication.** The four-copy footer is a known trap and stays one
-  for this release. Fixing it is a separate, larger change.
+- **No chrome deduplication.** ✅ Confirmed by the owner (Q5). The four-copy footer
+  is a known trap and **stays one** for this release. Fixing it is a separate,
+  larger change.
 - **No version string bump to `2.0.2` in `package.json` / `README.md`** *until the
   release commit* — v2.0.1 shipped a defect where the strings lagged the tag
   (`CHANGELOG.md:53–54`).
@@ -444,11 +529,20 @@ documentation registrations in §10.
 | E7 | Neither eyebrow relies on a transform | `grep -n "text-transform" src/index.css` restricted to `.hero-eyebrow` | **no hits in that block** |
 | E8 | The whole suite | `npm test` | green, and **read the check count from the run** — do not trust any number written in a doc |
 | E9 | The built bundle agrees with the source | `npm run build`, then grep `dist/` for `RMP45574 EC23851` | **present in the bundle**, not only in `src/` |
-| E10 | It renders at the two widths that matter | `scripts/_devshot.sh` against Home @ **1920** and **390** | the About `<br>` holds; the CTA does not collide with the h1 |
+| E10 | It renders at the two widths that matter | `scripts/_devshot.sh` against Home @ **1920** and **390** | the CTA does not collide with the h1; the About heading's `<br>` holds |
+| **E11** | ⚠️ **F4 was NOT done** — the About paragraph is untouched | `git diff <base> -- src/marketing/pages/HomePage.tsx` | the only Home paragraph hunk is **none**; `grep -c "across Hays" src/marketing/pages/HomePage.tsx` → **`1`** |
 
 **E9 is not optional.** `test:only` does **not** rebuild, so a `dist/` left from a
 previous run makes E1–E7 pass while the shipped bundle is stale. The repo has
 already been bitten by asserting against source and shipping a different bundle.
+
+**E11 is a negative check, and it is deliberate.** Every other criterion here
+asserts that something happened; this one asserts that something **did not**. The
+repair it guards against is specific and likely: the brief asks for the About
+paragraph rewrite, the paragraph is one line, the edit looks trivial, and a task
+list that says *"Home copy pass"* invites completing it. **A suite that cannot see
+the omission is what makes the omission cheap** — the county list would leave the
+Home page silently, which is precisely the outcome Q4 was raised to prevent.
 
 ### 4.2 Suggested commit order inside the release
 
@@ -457,7 +551,8 @@ Four commits, grouped so a bisect lands on one page's change:
 1. **`fix(marketing): the licence line reads RMP45574 EC23851`** — F1, F16.
    *All five surfaces in one commit* — the footer is four copies and a partial edit
    is the exact defect round 3's item 12 avoided by doing all four at once.
-2. **`fix(marketing): home copy pass`** — F2, F3, F4, F5, F6, F7.
+2. **`fix(marketing): home copy pass`** — F2, F3, ~~F4~~, F5, F6, F7. *(F4 is out;
+   see §1.4 — it must **not** appear in this commit.)*
 3. **`fix(marketing): residential copy pass`** — F8, F9, F10, F11.
 4. **`fix(marketing): commercial copy pass`** — F12, F13, F14, F15, F16, F17, F18,
    F9 *(the commercial half)*.
@@ -546,8 +641,8 @@ its case. **Only the chip on the commercial hero** is in scope; the footer addre
 | **F16** | Contact `<dd>` → `RMP45574 EC23851` | A | `v2.0.2` | — | Contact |
 | **F2** | Hide `.banner-lead::before`; drop `padding-left` | B | `v2.0.2` | — | Home |
 | **F3** | About `h2` → `Family Owned,` `<br>` `Locally Operated.` | C | `v2.0.2` | — | Home |
-| **F4** | About `<p>` → 2 lines, brief's text verbatim | D | `v2.0.2` | **Q4** | Home |
-| **F5** | Remove the `15 / Years of Experience` badge | E | `v2.0.2` | **Q2** | Home |
+| ~~**F4**~~ | ~~About `<p>` → 2 lines, brief's text verbatim~~ | D | **OUT** | ✅ closed as a `question` | — |
+| **F5** | Remove the `15 / Years of Experience` badge — **reading (a)** | E | `v2.0.2` | ✅ **unblocked (Q2)** | Home |
 | **F6** | `#choose` `h2` → `Peace Of Mind` *(keep id)* | F | `v2.0.2` | — | Home |
 | **F7** | `#process` `h2` → `A Clear Path From` `<br>` `Start-To-Finish` | G | `v2.0.2` | — | Home |
 | **F8** | Residential eyebrow → `RESIDENTIAL & HOME SERVICES` | H | `v2.0.2` | — | Residential |
@@ -561,8 +656,13 @@ its case. **Only the chip on the commercial hero** is in scope; the footer addre
 | **F17** | `#choose` `h2` → 2 lines, Title Case | R | `v2.0.2` | — | Commercial |
 | **F18** | Contact `h2` → `Call Indigo For Your Commercial Property.` | S | `v2.0.2` | — | Commercial |
 
-**17 tasks. 19 client requests. 2 shared tasks** — F9 covers H+I+N, and F16 is the
-fifth licence surface the client's *"every instance"* reaches but did not name.
+**16 tasks in `v2.0.2`. 19 client requests, of which 1 is out of the release.
+2 shared tasks** — F9 covers H+I+N, and F16 is the fifth licence surface the
+client's *"every instance"* reaches but did not name.
+
+**Nothing in this release is blocked.** F5's `Q2` is answered (reading **(a)**),
+and F4's `Q4` resolved by **leaving** the release. **The release is ready to
+start.**
 
 ### 5.1 F10 and F16 need their "before" read carefully
 
@@ -601,7 +701,9 @@ true ordering constraints are:
 ```
 F1 ─┬─ (all four footer copies + Contact, ONE commit — a partial edit is the defect)
 F16 ┘
-F3 ── F4          (same paragraph block in HomePage.tsx — edit sequentially, never in parallel)
+F3 ─╌ F4          (same file, adjacent blocks — F4 is OUT of this release, so
+                   F3 is a standalone edit. Do NOT "tidy" the paragraph while
+                   editing the heading above it.)
 F6 ── F17         (same SECTION on two different pages; independent, but the same
                    heading string appears on both — grep before and after)
 F15 ── F14        (F14 creates the eyebrow that sits ABOVE F15's heading)
@@ -619,10 +721,15 @@ reverts the licence line and a test that reads the output will not catch it,
 because the output was correct when it was written.
 
 **Which tasks are genuinely parallel:** F2–F18 are all independent **files**, so
-they can be written in any order — but they are **not** independent *edits*: F3 and
-F4 are in the same file, as are F6/F7 and F13/F14/F15/F17/F18. **Edit one file
-sequentially. Never batch parallel edits to the same file** — the writes race and
-every call still reports success.
+they can be written in any order — but they are **not** independent *edits*: F3
+and F5 are in the same file (and sit in the same band), as are F6/F7 and
+F13/F14/F15/F17/F18. **Edit one file sequentially. Never batch parallel edits to
+the same file** — the writes race and every call still reports success.
+
+⚠️ **F3 and F5 both touch the Home About band.** F3 changes the `h2`; F5 removes
+the badge from the left column. They are adjacent, and **F4 sits between them in
+the DOM and is deliberately not being edited** — so neither task may "tidy" the
+paragraph. Do them sequentially and re-grep after each.
 
 ---
 
@@ -634,8 +741,8 @@ every call still reports success.
 | **R2** | `chrome-markup.ts` edited by hand, then regenerated over | F1 silently reverts on the next `_brand.py` run | Edit `scripts/_brand.py`, re-run it; never hand-edit the generated file | Open |
 | **R3** | F2's fix removes the dash but leaves `padding-left: 54px` | A 54px indent with nothing in it — reads as a layout bug on the client's first look | E3 **and** E4; the task states the two changes are one | **High** |
 | **R4** | F2's fix greps `—` and edits the **sentence** dash | The client's approval of the quoted copy is undone; the real dash stays | The task names `.banner-lead::before`, not a character | **High** |
-| **R5** | F5 removes half the badge | A white box with a blue disc and no text renders on Home | Q2 answered before the task starts; (a)/(b)/(c) written out | **Blocked — Q2** |
-| **R6** | F4 drops the county service-area list from the Home page | A factual claim about coverage leaves the page the client reviews most | Named in §3.7 and Q4; the string survives on Residential | Open — Q4 |
+| **R5** | F5 removes half the badge | A white box with a blue disc and no text renders on Home | ✅ **CLOSED** — Q2 answered as reading **(a)**; (b)/(c) explicitly ruled out; E5 asserts `years-badge` → 0 | **Closed** |
+| **R6** | ~~F4 drops the county service-area list from the Home page~~ | *Removed with F4* | ✅ **CLOSED** — Q4 took F4 **out of the release**; the county list is untouched | **Closed** |
 | **R7** | F9's mobile size collides with the h1 at 390 | Two large blocks fight on the smallest width | `clamp()`; E10 renders at 390 | Open |
 | **R8** | A case-sensitive grep for the client's `Austin, Tx` returns 0 | F13 is closed as "already satisfied" while the text ships | The task names the real string `Austin, TX` and `CommercialPage.tsx:225` | Open |
 | **R9** | `test:only` used instead of `npm test` | `dist/` stays stale and E9's bundle check passes on an old build | E8 and E9 run `npm test` / `npm run build` in full; the count is read from the run | Open |
@@ -679,70 +786,97 @@ Carried forward **and** newly fenced.
 
 Each carries a recommendation, not just a question.
 
-### Q1. The licence string has no space in it. Ship it verbatim?
+### Q1. The licence string has no space in it. Ship it verbatim? — ✅ **ANSWERED: yes**
 
-`License: RMP45574 EC23851`. The client quoted it exactly, so the default is
-**verbatim**. But `RMP45574` reads as a typo to anyone who does not know Texas
-writes the prefix against the digits.
+> **The owner's ruling, 2026-09-29: *"ship it verbatim."***
 
-- **Recommend:** **ship it verbatim** and put the question in the PR description.
-  The client supplied the exact string; second-guessing it is what round 3's
-  carousel taught this repo not to do.
-- Alternative: `License: RMP45574 · EC23851` — one character, unambiguous, and if
-  the client's intent was two codes this is what they meant.
-- Alternative: `License: RMP 45574 · EC 23851` — the cleanest read, and the one
-  with the most distance from what the client actually typed. **Not recommended.**
+**F1 and F16 render `License: RMP45574 EC23851` exactly** — no space between prefix
+and digits, no separator between the two codes. The recommendation was accepted.
 
-**This does not block the release.** Ship verbatim; the fix is one character.
+*The question as it was asked, kept for the record:* `RMP45574` reads as a typo to
+anyone who does not know Texas writes the prefix against the digits. The
+alternative `RMP45574 · EC23851` is one character and unambiguous.
 
-### Q2. F5 — *"Remove Pill Icon Textbox"*: the badge, the text, or the disc? **BLOCKS F5**
+**This does not block the release.** It did not then either — the string ships
+either way; the question was only which one.
 
-Three readings, three different pages; all three written out in §3.3.
+### Q2. F5 — the badge, the text, or the disc? — ✅ **ANSWERED: (a), remove the badge**
 
-- **Recommend: (a) remove the badge entirely.** It is the only reading that
-  satisfies *"Left side to display only the 2 side by side images"*, and the
-  factual loss is nil — *"since 2012"* is stated in three other places.
-- Alternative: (b) remove only the text — leaves an empty white box.
-- Alternative: (c) remove only the icon disc — contradicts "only the 2 images".
+> **The owner's ruling, 2026-09-29: *"(a) — remove badge entirely."***
 
-**Needs a one-line confirmation before F5 starts.** F5 is the only task in this
-release that cannot be started on the brief alone.
+**F5 is UNBLOCKED.** The `15 / Years of Experience` badge comes off the About
+band's left column, leaving the two photographs. Readings **(b)** and **(c)** are
+**explicitly ruled out** — a half-removed badge is not an acceptable middle.
 
-### Q3. `v2.1.0` is both a roadmap release and a live milestone. Resolve it separately?
+*The question as it was asked, kept for the record:* three readings, three
+different pages; all three written out in §3.3. (a) was recommended because it is
+the only reading that satisfies the client's own clause, and because the factual
+loss is nil — *"since 2012"* is stated in three other places.
 
-Pre-existing, not created here: `roadmap.md` §1 gives `v2.1.0` to documentation
-phase 2, while the GitHub milestone `v2.1.0 — deferred backlog` holds 12 open
-issues. One number, two owners.
+### Q3. `v2.1.0` is both a roadmap release and a live milestone — ✅ **ANSWERED: leave it**
 
-- **Recommend: leave it.** Nothing in this round touches `v2.1.0`, and renumbering
-  a live milestone mid-round is a change with its own blast radius. **Record it,
-  do not fix it here.**
-- Alternative: rename the milestone to match the roadmap. Larger, and it would
-  touch 12 issues this release does not otherwise open.
+> **The owner's ruling, 2026-09-29: *"leave it as you recommend."***
 
-### Q4. F4 deletes the county list from the Home page. Confirm?
+Recorded and **unfixed**. Nothing in this round touches `v2.1.0`; renumbering a
+live milestone mid-round carries its own blast radius and 12 issues this release
+does not otherwise open.
 
-The brief's replacement text drops *"across Hays, Travis, and Williamson
-counties"* — the Home page's only statement of its service area. It survives on
-Residential (`ResidentialPage.tsx:218`).
+*The question as it was asked, kept for the record:* `roadmap.md` §1 gives
+`v2.1.0` to documentation phase 2, while the GitHub milestone `v2.1.0 — deferred
+backlog` holds 12 open issues. One number, two owners.
 
-- **Recommend: ship the brief's text.** The client quoted it. The claim is not lost
-  site-wide, only on Home, and adding it back is a one-line follow-up if they miss
-  it.
-- Alternative: keep the counties by appending them to the Austin clause. This
-  **edits a quoted string**, which is the thing §3.1 rejects. **Not recommended.**
+### Q4. F4 deletes the county list from the Home page — ✅ **ANSWERED: OUT of this release, filed as a `question`**
 
-### Q5. The footer licence line is four copies of one string. De-duplicate?
+> **The owner's ruling, 2026-09-29: *"mark as labeled `question` and not in this
+> release."***
 
-`chrome-markup.ts:170` plus one inline copy on each of the three mirror pages. Any
-licence change is a four-file edit, forever.
+**F4 does not ship in `v2.0.2`.** It is **not** moved to `v2.1.0` and **not**
+re-scoped — it becomes its own issue, labelled **`question`**, **outside every
+milestone**, and lands when the client answers. **Full reasoning in §1.4.**
 
-- **Recommend: not in this release.** Do it as its own task with a sync test, the
-  same shape as E1's policy test. Doing it inside a text round mixes a refactor
-  with a copy fix and makes the release hard to review.
-- Alternative: do it now while four files are already open. **Rejected** — the
-  four copies are the reason a partial edit is possible, and touching the mechanism
-  during a copy pass removes the one check (E1 = 5) that proves the copy is right.
+**The consequence, stated plainly:** the Home About paragraph keeps its county
+list and stays a single unbroken sentence. The heading above it (`F3`) still
+ships. **This is the only item where the client gets less than they asked for,
+and it is deliberate** — a `question` should not be answered by the person
+implementing it.
+
+*The question as it was asked, kept for the record:* the brief's replacement text
+drops *"across Hays, Travis, and Williamson counties"* — the Home page's only
+statement of its service area. It survives on Residential
+(`ResidentialPage.tsx:218`). The recommendation had been to ship the brief's text
+because the client quoted it; **the owner preferred to ask first**, which is the
+more conservative call and costs nothing but a question.
+
+### Q5. The footer licence line is four copies of one string — ✅ **ANSWERED: not in this release**
+
+> **The owner's ruling, 2026-09-29: *"remove — not in this release."***
+
+The de-duplication does not happen. **F1 stays a four-file edit**, and the
+`E1 = 5` check that proves the copy is right stays intact — which is the point:
+touching the mechanism during a copy pass would remove the one assertion that
+catches a partial licence edit.
+
+*The question as it was asked, kept for the record:* `chrome-markup.ts:170` plus
+one inline copy on each of the three mirror pages; any licence change is a
+four-file edit, forever. Recommended as its own task with a sync test, the same
+shape as `E1`'s policy test.
+
+---
+
+## 9.1 Decisions taken — the summary
+
+**The plan is APPROVED and the release is ready to start. Nothing is blocked.**
+
+| Q | Ruling | Effect |
+|---|---|---|
+| Q1 | ship verbatim | F1/F16 unchanged |
+| Q2 | remove the badge (a) | **F5 unblocked** |
+| Q3 | leave it | no task; recorded |
+| Q4 | `question`, not this release | **F4 removed — 16 tasks, not 17** |
+| Q5 | remove, not this release | footer stays four copies |
+
+**Genuinely open, and not blocking:** the client's answer to **Q4**. It resolves
+one paragraph on one page and nothing else depends on it.
 
 ---
 
@@ -823,7 +957,7 @@ Not now. **When the work executes.**
 | `CHANGELOG.md` | A `v2.0.2` section, Keep-a-Changelog format, each entry citing its commit | With each commit |
 | `README.md` | The version string → `2.0.2`; the build figures, re-measured | Release commit |
 | `package.json` | `version` → `2.0.2` | Release commit |
-| `docs/40-project/tasks.md` | The client punch list gains the round-4 rows; §2's closed table is updated | After the merge |
+| `docs/40-project/tasks.md` | The client punch list gains the round-4 rows; §2's closed table is updated; **F4 is recorded as a `question`, not as pending work** | After the merge |
 | `docs/40-project/roadmap.md` | No change — this release is not in either roadmap | — |
 | `docs/10-onboarding/glossary.md:50` | `RMP` now carries **two** codes; the entry names one | After the merge |
 | `docs/40-project/client-disclosure.md:93` | The licence string | After the merge, if the disclosure is client-facing |
@@ -831,4 +965,9 @@ Not now. **When the work executes.**
 ⚠️ **`client-disclosure.md:93` is the one with a decision attached.** It reads
 `RMP 45574` with a space. Whether the disclosure follows the rendered footer to
 `RMP45574 EC23851` is a legal-document question, not a copy one — **ask, do not
-assume.**
+assume.** *(Q1 ruled on the **rendered page**; it did not rule on the disclosure.)*
+
+⚠️ **`tasks.md` must not list F4 as work.** The distinction the repo has had to make
+before, and got wrong, is *pending* versus *blocked on the client*
+(`CHANGELOG.md:33–40`). F4 is neither — it is **an open question for the client**,
+and it should be filed where the other client questions live.
