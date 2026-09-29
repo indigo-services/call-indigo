@@ -10,6 +10,40 @@ with pre-release tags for release candidates.
 
 ## [Unreleased] — working dashboard, public inquiry page, copy pass, client punch list
 
+### Repository prune and v2.0.0 milestone reconciliation, 2026-09-29
+
+**Shipped as `f3fd594`** (`chore(repo): prune scratch from the index and reconcile
+v2.0.0`). Plan and full evidence:
+[`docs/40-project/plans/plan-prune-and-reconciliation-2026-09-29.md`](./docs/40-project/plans/plan-prune-and-reconciliation-2026-09-29.md).
+
+**Fifteen files left the index — untracked, not deleted (`f3fd594`).** Twelve
+`archive/audit/v1-audit/_t*.py` ad-hoc Playwright probes, each carrying a hardcoded
+local Chrome path so it cannot run on any other machine and no document references
+it; one raw probe dump (`_gt767.txt`); and two pre-edit copies of a generated page
+(`v2check/index.html.bak{,2}`) that `gen_pages.py` reproduces. A `.gitignore` rule
+keeps them from returning, and `archive/README.md` names every removal. **Tracked
+files 624 → 609.** The pack object was already lean at **9.12 MiB** — the 188 MB
+`archive/` is almost entirely gitignored binaries that never entered history.
+
+**The v2.0.0 milestone held 7 open issues and now holds none.** All 7 moved to
+**v2.1.0** — every one blocked on the client, not on engineering. Six of the client's
+thirteen items quote strings that exist on **no page**: `13 years` (#27),
+`Send a message` (#27), `Proof We Care` (#26), `24/7 Emergency Response` (#24), and
+`gradient` (#21) all return **0 hits** across `src/` [M: `grep -rin`, `main` at
+`b6b4709`]. Item 3 was already satisfied and closed (#25). What genuinely shipped for
+v2.0.0 is items **2, 4 and 12** (#13, #14, #22) plus the CI fix (#28).
+
+**The wiki had drifted by three commits, and its index still read 54 documents.**
+Wiki HEAD `c315c9d` was stamped `2da36b6`; `docs/` had moved to 57 files, so three
+documents were missing from the wiki (`docs-butler.md`, the backend proposal, and
+`client-disclosure.md`). Re-synced with `scripts/_wiki_sync.cjs` — **which runs fine
+here**, contrary to E12 (#30)'s `[M: …EBUSY]` note, so that limit is
+per-environment rather than a property of the script. The measured drift is recorded
+on #30.
+
+**Corrected:** `docs/40-project/tasks.md` §2 still asserted the landed items were
+tracked in the v2.0.0 milestone.
+
 ### Client punch list, v2.0.0 wave 1, 2026-09-29
 
 **Shipped across `9e23bea`, `5b845cd`, `e4fb4a0`, `f155a87`** on `release/v2.0.0`.
