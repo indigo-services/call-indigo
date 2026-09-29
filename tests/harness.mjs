@@ -243,13 +243,31 @@ export function classTokens(html) {
  *
  * Two details that are easy to get wrong and silently lose classes:
  *   · a leading digit is emitted as a hex escape — `.2xl\:gap` is written
- *     `.\32xl\:gap`, because a CSS identifier cannot start with a digit;
+ *     `.\32 xl\:gap`, because a CSS identifier cannot start with a digit;
  *   · only ASCII needs escaping — `before:content-['✓']` keeps its ✓ raw.
+ *
+ * ⚠️ THE SPACE AFTER `\32` IS LOAD-BEARING, and leaving it out made this
+ * helper unable to see the very class it was asked about. A CSS hex escape is
+ * terminated either by whitespace or by exceeding the 6-digit maximum. `\32x`
+ * is therefore read as *one* escape (`0x32x`, an invalid code point), not as
+ * `2` followed by `x` — so Tailwind writes `\32` + a single space + `xl`.
+ *
+ * Measured [M: 2026-09-29, tailwindcss 4.3.3] with a bare `compile()`:
+ *   candidate `2xl:gap-[52px]` → `.\32 xl\:gap-\[52px\]{gap:52px}`   (space)
+ *   this helper used to emit     `.\32xl\:gap-\[52px\]`               (no space)
+ * The two never match, so `2xl:` classes were reported missing on EVERY run —
+ * and `verify.mjs` gated the build on that report.
+ *
+ * The rule is: after `\3` + the first digit, Tailwind ALWAYS writes a single
+ * space, then the rest of the class name. Measured [M: 2026-09-29, tailwindcss
+ * 4.3.3] — `2xl:gap-[52px]` compiles to `.\32 xl\:gap-\[52px\]{gap:52px}`.
+ * The space is not conditional on the next character being a hex digit; it is
+ * present for `2xl`, for `4xl` and for a bare `2xl` alike.
  */
 export function cssSelector(token) {
   const esc = (s) =>
     s.replace(/[\x00-\x7F]/g, (c) => (/[A-Za-z0-9_-]/.test(c) ? c : `\\${c}`))
-  if (/^\d/.test(token)) return `.\\3${token[0]}${esc(token.slice(1))}`
+  if (/^\d/.test(token)) return `.\\3${token[0]} ${esc(token.slice(1))}`
   return `.${esc(token)}`
 }
 
