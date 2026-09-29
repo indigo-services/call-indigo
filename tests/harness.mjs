@@ -1,11 +1,23 @@
 /**
  * Test harness — assertions, a report, and a TypeScript loader.
  *
- * Zero new dependencies on purpose. The loader uses the `esbuild` that already
- * ships inside `vite`, so a suite can import the real page modules and render
- * them with `react-dom/server` instead of re-parsing the source with regexes.
- * That is the difference between "the string contains an anchor" and "the
- * component renders an anchor".
+ * The loader uses `esbuild` to bundle the real page modules, so a suite can
+ * import them and render with `react-dom/server` instead of re-parsing the
+ * source with regexes. That is the difference between "the string contains an
+ * anchor" and "the component renders an anchor".
+ *
+ * ⚠️ `esbuild` is a DECLARED devDependency, and it has to stay one. It used to
+ * be imported on the assumption that it "ships inside vite", and that assumption
+ * was wrong twice over. First it was only present transitively, so it survived
+ * on a developer machine and vanished under CI's `npm ci` — the comment here
+ * claimed a guarantee npm never made. Then vite 8 demoted `esbuild` to an
+ * OPTIONAL peer dependency (`peerDependenciesMeta.esbuild.optional`), so it is
+ * no longer vendored at all: the suite cannot run anywhere without this
+ * declaration. G4 failed on every push to `main` with
+ * `ERR_MODULE_NOT_FOUND: Cannot find package 'esbuild'`.
+ *
+ * Do not remove the declaration on the grounds that vite also uses esbuild.
+ * Vite lists it as optional precisely so it can be absent.
  *
  * `react` / `react-dom` are left external to the bundle so the rendered tree and
  * the renderer share one React instance — bundling a second copy produces
