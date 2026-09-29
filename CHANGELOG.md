@@ -8,6 +8,96 @@ with pre-release tags for release candidates.
 
 ---
 
+## [v2.0.2] — 2026-09-29
+
+A **copy release**. Every change is text, and the client asked for all of them.
+No capability, no data, no route and no layout mechanism moved — with one
+deliberate exception, the hero rule below, which the client read as stray
+punctuation and asked to be removed.
+
+Merged as **`6b85257`** (PR #59, squash of `7a36d43`). CI `Gates` success
+(run `36566263416`); suite **153/153** on `main`.
+
+Planned in [`docs/40-project/plans/plan-client-feedback-2026-09-29.md`](./docs/40-project/plans/plan-client-feedback-2026-09-29.md),
+which records each client request as a before → after pair with its `file:line`.
+
+### Changed
+
+**The licence line, in all five surfaces it renders in.** `License: RMP: 45574`
+→ `License: RMP45574 EC23851`. There are **five** places, not the four the client
+implied: the generated `chrome-markup.ts`, an inline copy on each of the three
+mirror pages, **and the Contact-page `<dd>`** — which carries the same number
+with no `License:` prefix at all, so a grep for the footer string never reaches
+it [M: `grep -rn "RMP: 45574" src/` → 0 after the change]. The two settings
+records (`src/lib/data/seed.ts`, `src/admin/mock/tokens.ts`) moved with it, so
+the site cannot hold two different licence numbers depending on whether the
+footer renders from markup or from settings.
+
+**The hero rule the client called an "Emm dash" is gone.** It was never a text
+character — it was a `.banner-lead::before` 36×3px rectangle
+(`src/index.css`). The rule is deleted, and so is every `padding-left` that
+existed only to clear it. **There were three, not two:** 54px (base), 27px
+(≤1440) and 0 (≤991). Removing only the base indent would have left a 27px hole
+at 1440. Measured in a browser: the paragraph's left edge and the `<h1>`'s now
+coincide at 95px, and `::before` computes to `none`. The em dash inside the
+sentence itself is untouched.
+
+**Home.** The About heading reads `Family Owned,` / `Locally Operated.` on two
+lines; the `15 / Years of Experience` badge is **removed entirely** (the client's
+"remove Pill Icon Textbox" had three readings — a half-removed badge was ruled
+out); `Why choose Call Indigo` → `Peace Of Mind`; and the process heading →
+`A Clear Path From` / `Start-To-Finish`, a three-character revision of the round-2
+wording.
+
+**Residential and Commercial.** Both service eyebrows are now all capitals **as
+content**, not via `text-transform`: a CSS transform leaves the DOM lowercase, so
+the rendered page and the accessibility tree would disagree — and this suite
+asserts rendered text, so it could not have caught the change at all. The
+consultation CTA goes from `12.5px` — the small-print size — to
+`clamp(18px, 1.4vw, 22px)`, with the phone number on its own line inside the
+**same** `tel:` anchor, so the tap target did not split. Commercial also loses
+`Austin, TX` from its hero chip, gains a `Commercial Services` eyebrow that never
+existed, and takes Title Case on two headings. Both contact headings were
+reworded and given a trailing period.
+
+### Not changed, deliberately
+
+**The Home About paragraph is untouched.** The client's item D bundles a rewrite
+with the deletion of the county service-area list. Removing the list is the
+client's decision, not ours, so the whole paragraph waits on their answer — and
+the suite asserts this **negatively**: that paragraph does not appear in the diff
+at all. It still reads as one unbroken sentence with the county list intact. The
+item is filed as **#43**, labelled `question`, in no milestone.
+
+`valvoro-prototype/` is **not** touched: it is a reference-only archive, and
+`src/` is the source of record.
+
+### Fixed
+
+**`package-lock.json` had been drifting since v2.0.0.** Its two root version
+fields still read `2.0.0-rc1` while `package.json` shipped `2.0.1` — two releases
+stale, and nothing failed, because no check asserted it. This is the same
+claim-without-a-producer shape as the historical README check-count drift. All
+three version strings now move together.
+
+### Suite
+
+Three checks encoded the round-3 state and became false by construction. They
+were **inverted, not deleted** — deleting them would have left the removals
+unasserted, and a re-added badge is precisely the regression a screenshot would
+not catch:
+
+- the two `.years-badge` shape/anchor checks now assert the badge is **gone** and
+  that the About band still renders **exactly two** photos, with a control proving
+  the removal check would catch a re-added badge;
+- the hero-eyebrow check carries the approved round-4 strings.
+
+`routes.md` was regenerated from its generator (never hand-edited — the line
+counts moved with the page files); the README check count moved `152 → 153` in
+the same commit.
+
+---
+
 ## [v2.0.1] — 2026-09-29
 
 A **repository-hygiene release**. No customer-facing behaviour changes: the
