@@ -12,7 +12,7 @@ those claims live.
 
 | | |
 |---|---|
-| **Library** | `docs/` — **57 documents**, in seven numbered domains |
+| **Library** | `docs/` — **58 documents**, in seven numbered domains |
 | **Front door** | this file |
 | **Start here instead if you are new** | [`../README.md`](../README.md) at the repo root |
 | **Read it as a website** | [**The project wiki**](https://github.com/indigo-services/call-indigo/wiki) — this directory, rendered. **A mirror: edit here, never there.** |
@@ -109,6 +109,7 @@ declares for itself — see `00-meta/conventions.md` §2.
 | [`40-project/plans/plan-docs-refactor-2026-09-27.md`](./40-project/plans/plan-docs-refactor-2026-09-27.md) | dated | The refactor: findings F1–F10, target structure, five phases |
 | [`40-project/plans/plan-client-feedback-2026-09-25.md`](./40-project/plans/plan-client-feedback-2026-09-25.md) | dated | Round-2 client feedback: plan, evidence, risks, outcome |
 | [`40-project/plans/plan-client-feedback-2026-09-26.md`](./40-project/plans/plan-client-feedback-2026-09-26.md) | dated | Round-3 client feedback: plan and evidence |
+| [`40-project/plans/plan-prune-and-reconciliation-2026-09-29.md`](./40-project/plans/plan-prune-and-reconciliation-2026-09-29.md) | dated | v2.0.0 prune, health verification and milestone reconciliation |
 
 ### 50 — Sessions: the human/agent I/O protocol
 

@@ -81,3 +81,25 @@ archive/
   source in `src/index.css`. It is not stale as a **design reference**: it is the
   stylesheet the marketing design system was ported from.
 - Nothing else in the archive is touched.
+
+## Pruned 2026-09-29 — scratch files removed from the index
+
+Fifteen files left the repository during the v2.0.0 prune. **They were untracked,
+not deleted** — the bytes are still on disk, and a `.gitignore` rule
+(`archive/**/_t*.py`, `archive/**/_gt767.txt`, `archive/**/*.html.bak{,2}`)
+keeps them from silently returning.
+
+| Removed from the index | Count | Why |
+|---|---|---|
+| `v1-audit/_t2.py` … `_t13.py` | 12 | Ad-hoc Playwright probes, each with a **hardcoded local Chrome path** (`C:/Users/jaden.black/AppData/Local/ms-playwright/…`), so they cannot run on any other machine. Superseded by the documented `v2check/` harness above, and referenced by no document. |
+| `v1-audit/_gt767.txt` | 1 | A single probe's raw output dump, with no producer named anywhere. |
+| `v2check/index.html.bak`, `.bak2` | 2 | Pre-edit copies of a generated page. The generator (`gen_pages.py`) is retained, so both are reproducible. |
+
+**Not pruned, deliberately:** everything the archive's own "Why this is archived"
+list names — `verify.py`, `diag.py`, `mincontent.py`, `shots.py`, `gen_pages.py`,
+`GROUND_TRUTH-*`, `tw.css`, and `css/_orphaned-style.css.bak` (the one backup that
+*is* documented). The `archive/v1-prototype/valvoro-prototype/` copy is
+**byte-identical** to the root `valvoro-prototype/` for HTML, CSS, JS and the
+ground-truth docs — so it is a documented duplicate, not an accident, and removing
+it is the owner's call rather than a mechanical prune.
+

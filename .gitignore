@@ -89,6 +89,20 @@ archive/audit/v1-audit/v2check/twtest/node_modules/
 # silently untrack every shipped image.
 /images/
 
+# ── Archive scratch, pruned 2026-09-29 ─────────────────────────
+# Throwaway probe scripts and editor backups inside archive/ that no
+# document references and that cannot run outside one machine.
+#   archive/**/_t<N>.py          ad-hoc Playwright probes with a hardcoded
+#                                local Chrome path; superseded by the
+#                                documented v2check/ harness (archive/README.md).
+#   archive/**/_gt767.txt        a single probe's raw output dump.
+#   archive/**/*.html.bak{,2}    pre-edit copies of a generated page.
+# Untracked, not deleted — the bytes stay on disk, they just leave the repo.
+archive/**/_t*.py
+archive/**/_gt767.txt
+archive/**/*.html.bak
+archive/**/*.html.bak2
+
 # ── Misc ───────────────────────────────────────────────────────
 .cache/
 .temp/
