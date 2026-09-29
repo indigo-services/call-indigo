@@ -31,7 +31,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
          right : "Est. {establishedYear} · {legalName}"
                  = "Est. 2012 · Indigo Home & Facility Services"
        This replaces the previous v2-only copy ("Open 24/7 • Emergency Service",
-       the street address, and "License: RMP: 45574"). Two deliberate
+       the street address, and "License: RMP45574 EC23851"). Two deliberate
        departures from v1's markup: the 1px divider between the two left items
        is dropped, because v1's ribbon has no divider (its left group is just
        \`flex gap-4 md:gap-6\`); and the icons stay \`text-sky\` rather than v1's
@@ -207,7 +207,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
       <div class="slab-body shell">
         <div class="grid items-center gap-12 lg:grid-cols-[1.02fr_.98fr] lg:gap-[70px]">
           <div class="text-white">
-            <span class="hero-eyebrow">Commercial &amp; facility services</span>
+            <span class="hero-eyebrow">COMMERCIAL &amp; FACILITY SERVICES</span>
             <h1 class="text-[clamp(38px,4.6vw,64px)] font-extrabold leading-[1.04] tracking-[-.02em]">Love Your Facility Forever.</h1>
             <p class="mt-6 max-w-[580px] text-[17px] leading-[28px] text-white/85">Hire our national and insured facility services partners. And join our membership to achieve peace of mind with all things related to your facility.</p>
             <div class="mt-8 flex flex-wrap items-center gap-4">
@@ -220,13 +220,13 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
                 <span class="pill-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
               </a>
             </div>
-            <a href="tel:+15126084999" class="mt-7 inline-block text-[12.5px] font-bold uppercase tracking-[0.16em] text-white/80">Call for a Consultation: (512) 608-4999</a>
+            <a href="tel:+15126084999" class="mt-7 inline-block text-[clamp(18px,1.4vw,22px)] font-bold tracking-[0.16em] text-white/80">CALL FOR A CONSULTATION<br>(512) 608-4999</a>
           </div>
           <div class="relative">
             <img src="/assets/images/commercial-crew.jpg" alt="Call Indigo facility services crew on a commercial job"
               class="h-[320px] w-full rounded-[18px] border-[3px] border-white/25 object-cover md:h-[400px] lg:h-[470px]">
             <div class="absolute bottom-5 left-5 max-w-[300px] rounded-[14px] bg-white p-5 shadow-drop">
-              <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-body">National coverage · Austin, TX</p>
+              <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-body">National coverage</p>
               <a href="tel:+15126084999" class="mt-1.5 block text-[22px] font-extrabold tracking-[-.02em] text-ink">(512) 608-4999</a>
             </div>
           </div>
@@ -268,7 +268,8 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
   <section class="band pad-140">
     <div class="shell">
       <div class="reveal mx-auto mb-12 max-w-[780px] text-center">
-        <h2 class="h-section">National crews, full range of services</h2>
+        <span class="eyebrow">Commercial Services</span>
+        <h2 class="h-section">National Crews,<br>Full Range Of Services</h2>
       </div>
       <div class="grid gap-7 lg:grid-cols-2">
         <article class="reveal rounded-panel bg-topbar p-8 text-white md:p-10">
@@ -298,7 +299,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     <div class="shell grid grid-cols-[1.05fr_.95fr] items-center gap-[70px] max-lg:grid-cols-1 max-lg:gap-11">
       <div class="reveal">
         <span class="eyebrow">Why Call Indigo</span>
-        <h2 class="h-section">All new customers receive a free inspection</h2>
+        <h2 class="h-section">All New Customers<br>Receive A Free Inspection</h2>
         <p class="mt-4">Four things every new customer gets, whichever facility you run.</p>
         <div class="mt-7 grid gap-6">
           <div class="reveal flex gap-4.5">
@@ -356,7 +357,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
         </div>
         <div>
           <span class="eyebrow">Contact</span>
-          <h2 class="h-section text-white">Call Indigo for your commercial property</h2>
+          <h2 class="h-section text-white">Call Indigo For Your Commercial Property.</h2>
           <p class="mt-4 max-w-[520px] text-[#dfe7fb]">Tell us about your facility and we will build a custom maintenance strategy with a free inspection.</p>
           <div class="mt-7 flex flex-wrap items-center gap-5">
             <a href="tel:+15126084999" class="pill pill-lg">
@@ -409,7 +410,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <span class="font-sans text-[23px] font-bold leading-none tracking-[-0.06em] text-white">Call Indigo</span>
         </div>
         <p>Licensed and insured home and facility services. One call covers plumbing, electrical, HVAC, carpentry, painting, and more — done right the first time.</p>
-        <p class="mt-3 text-[13px] text-white/60">Indigo Home &amp; Facility Services<br>License: RMP: 45574</p>
+        <p class="mt-3 text-[13px] text-white/60">Indigo Home &amp; Facility Services<br>License: RMP45574 EC23851</p>
         <div class="mt-4 flex gap-3">
           <img src="/assets/images/trust-icon1.png" alt="" class="size-11 object-contain">
           <img src="/assets/images/trust-icon2.png" alt="" class="size-11 object-contain">

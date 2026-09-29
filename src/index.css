@@ -1014,37 +1014,32 @@
   .banner-lead {
     font-size: 22px;
     line-height: 29px;
-    padding-left: 54px;
     margin-top: 12px;
     margin-bottom: 39px;
   }
-  .banner-lead::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 12px;
-    width: 36px;
-    height: 3px;
-    background-color: var(--color-secondary, #fff);
-  }
+  /* The 36x3px rule that used to sit here was removed at the client's request
+     in round 4 — they read it as a stray "Emm dash". Its `padding-left` went
+     with it: it existed ONLY to clear the dash, so leaving it behind would
+     have rendered a 54px hole with nothing in it. The same is true of the
+     `27px` indent at <=1440 and the `display:none` for the dash at <=991.
+     The one genuine em dash in this paragraph is inside the sentence text in
+     the markup, not here — do not "fix" that one. */
   @media (max-width: 1440px) {
-    .banner-lead { font-size: 18px; line-height: 27px; padding-left: 30px; margin-top: 5px; margin-bottom: 25px; }
-    .banner-lead::before { width: 20px; }
+    .banner-lead { font-size: 18px; line-height: 27px; margin-top: 5px; margin-bottom: 25px; }
     /* responsive.css:723 — `.banner-content-con p br { display: none }` */
     .banner-lead br { display: none; }
   }
   @media (max-width: 1199px) {
-    .banner-lead { font-size: 16px; line-height: 26px; padding-left: 27px; margin-bottom: 20px; }
+    .banner-lead { font-size: 16px; line-height: 26px; margin-bottom: 20px; }
   }
   /* These two blocks MUST sit AFTER the rules above. Same specificity, so later
      source order wins — a bare `.banner-lead` override placed earlier in this
      stylesheet is silently shadowed by the base rule at line 524 and does
-     nothing. That bug left the paragraph at 16px/26px with a 27px indent at 768
-     instead of 15px/26px with none, which pushed it from two lines to three and
-     made the hero 31px too tall there. */
+     nothing. That bug left the paragraph at 16px/26px at 768 instead of
+     15px/26px, which pushed it from two lines to three and made the hero 31px
+     too tall there. */
   @media (max-width: 991px) {
     .banner-lead { font-size: 15px; line-height: 26px; padding-left: 0; margin-top: 5px; margin-bottom: 15px; }
-    .banner-lead::before { display: none; }
   }
   @media (max-width: 767px) {
     .banner-lead { font-size: 16px; line-height: 25px; text-align: center; margin: 5px 0 12px; }

@@ -31,7 +31,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
          right : "Est. {establishedYear} · {legalName}"
                  = "Est. 2012 · Indigo Home & Facility Services"
        This replaces the previous v2-only copy ("Open 24/7 • Emergency Service",
-       the street address, and "License: RMP: 45574"). Two deliberate
+       the street address, and "License: RMP45574 EC23851"). Two deliberate
        departures from v1's markup: the 1px divider between the two left items
        is dropped, because v1's ribbon has no divider (its left group is just
        \`flex gap-4 md:gap-6\`); and the icons stay \`text-sky\` rather than v1's
@@ -196,7 +196,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
       <div class="slab-body shell">
         <div class="grid items-center gap-12 lg:grid-cols-[1.02fr_.98fr] lg:gap-[70px]">
           <div class="text-white">
-            <span class="hero-eyebrow">Residential &amp; home services</span>
+            <span class="hero-eyebrow">RESIDENTIAL &amp; HOME SERVICES</span>
             <h1 class="text-[clamp(38px,4.6vw,64px)] font-extrabold leading-[1.04] tracking-[-.02em]">Love Your Home Forever.</h1>
             <p class="mt-6 max-w-[580px] text-[17px] leading-[28px] text-white/85">Hire our locally licensed and insured home services crews. And join our membership to achieve peace of mind with all things related to your home.</p>
             <div class="mt-8 flex flex-wrap items-center gap-4">
@@ -209,7 +209,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
                 <span class="pill-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
               </a>
             </div>
-            <a href="tel:+15126084999" class="mt-7 inline-block text-[12.5px] font-bold uppercase tracking-[0.16em] text-white/80">Call for a Consultation: (512) 608-4999</a>
+            <a href="tel:+15126084999" class="mt-7 inline-block text-[clamp(18px,1.4vw,22px)] font-bold tracking-[0.16em] text-white/80">CALL FOR A CONSULTATION<br>(512) 608-4999</a>
           </div>
           <div class="relative">
             <img src="/assets/images/repair-img1.jpg" alt="Call Indigo home services crew on a residential job"
@@ -230,8 +230,14 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
   <section class="band pad-140">
     <div class="shell">
       <div class="reveal mx-auto mb-12 max-w-[780px] text-center">
-        <span class="eyebrow">Residential Services</span>
-        <h2 class="h-section">Love your residence forever with our Indigo Home Membership.</h2>
+        <!-- CLIENT round 4, F10 — the h2 here ("Love your residence forever with
+             our Indigo Home Membership.") was deleted as redundant, and the
+             eyebrow was PROMOTED to the heading role rather than left stranded:
+             deleting the h2 alone would have opened the band on a bare eyebrow
+             with no title. The eyebrow's own words are already a correct title
+             for this band, so no new copy was invented.
+             The paragraph below is unchanged. -->
+        <h2 class="h-section">Residential Services</h2>
         <p class="mt-4">One team for the whole property — from the membership that plans ahead to the one-off repair.</p>
       </div>
       <div class="grid gap-7 lg:grid-cols-2">
@@ -370,7 +376,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
         </div>
         <div>
           <span class="eyebrow">Contact</span>
-          <h2 class="h-section text-white">Call Indigo for the address that needs attention</h2>
+          <h2 class="h-section text-white">Call Indigo For Your Residential Property.</h2>
           <p class="mt-4 max-w-[520px] text-[#dfe7fb]">Tell us what kind of property you have and what needs to be repaired, scoped, or coordinated.</p>
           <div class="mt-7 flex flex-wrap items-center gap-5">
             <a href="tel:+15126084999" class="pill pill-lg">
@@ -423,7 +429,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <span class="font-sans text-[23px] font-bold leading-none tracking-[-0.06em] text-white">Call Indigo</span>
         </div>
         <p>Licensed and insured home and facility services. One call covers plumbing, electrical, HVAC, carpentry, painting, and more — done right the first time.</p>
-        <p class="mt-3 text-[13px] text-white/60">Indigo Home &amp; Facility Services<br>License: RMP: 45574</p>
+        <p class="mt-3 text-[13px] text-white/60">Indigo Home &amp; Facility Services<br>License: RMP45574 EC23851</p>
         <div class="mt-4 flex gap-3">
           <img src="/assets/images/trust-icon1.png" alt="" class="size-11 object-contain">
           <img src="/assets/images/trust-icon2.png" alt="" class="size-11 object-contain">

@@ -20,7 +20,7 @@ export const siteFacts = {
   establishedYear: "2012",
   serviceArea: "Hays, Travis, and Williamson counties",
   serviceAreaCities: ["Austin", "Buda", "Kyle", "San Marcos"],
-  licenseNumber: "RMP: 45574",
+  licenseNumber: "RMP45574 EC23851",
   copyrightName: "Call Indigo LLC",
 } as const
 

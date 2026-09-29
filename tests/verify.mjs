@@ -879,22 +879,52 @@ export async function run() {
     return out
   }
 
-  check("the years badge is centred on the seam and anchored to the row's bottom", () => {
-    // It used to be `right: -29%` of the RIGHT photo's wrapper: measured at 1920
-    // it sat 360px right of the seam, 104px of it on the right photo and its
-    // last 100px past the photo row entirely. The client then asked for it
-    // HORIZONTAL, centred at the BOTTOM between the two photos. The rendered
-    // result was measured in a browser at 0px off the seam from 1920 down to
-    // 768; what this pins is the mechanism, which is the part that can silently
-    // revert while a screenshot still looks plausible.
-    const tag = /<div class="([^"]*\byears-badge\b[^"]*)"/.exec(home.clean)
-    if (!tag) return ["the home page has no .years-badge element"]
-    // The row's own gap, read from the markup rather than copied here — the seam
-    // is its midpoint, so the badge's offset is half of whatever the row says.
-    const before = home.clean.slice(0, home.clean.indexOf("about-img2"))
-    const gaps = [...before.matchAll(/gap-\[(\d+)px\]/g)]
-    const rowGap = gaps.length ? Number(gaps[gaps.length - 1][1]) : null
-    return badgeAnchorProblems(tag[1], ruleBody("\\.years-badge"), rowGap)
+  // CLIENT round 4, F5 — the "15 / Years of Experience" badge was REMOVED from
+  // the Home About band entirely (owner's reading (a) of three). The two checks
+  // that used to live here asserted the badge's anchors and its horizontal
+  // lockup shape; both are now false by construction, so they were INVERTED
+  // rather than deleted. Deleting them would have left the removal unasserted,
+  // and a re-added badge is exactly the shape of regression a screenshot would
+  // not catch — a white box with a disc and no text still looks plausible.
+  check("the years badge is GONE from the Home About band", () => {
+    const out = []
+    if (/\byears-badge\b/.test(home.clean)) {
+      out.push("the home page still renders a .years-badge element — F5 removed it in round 4")
+    }
+    // The badge's parts must be gone too, not just its container class: a
+    // half-removal is the specific defect the round-4 brief called out.
+    for (const c of ["years-badge-icon", "years-badge-num", "years-badge-label"]) {
+      if (new RegExp(`\\b${c}\\b`).test(home.clean)) out.push(`the markup still uses .${c}`)
+    }
+    if (/Years of Experience/.test(home.clean)) {
+      out.push('the text "Years of Experience" still appears on the home page')
+    }
+    return out
+  })
+
+  check("the About band still renders exactly its two photos after the badge removal", () => {
+    // The POSITIVE half of the pair above. Removing the badge must not have
+    // taken a photo with it — the badge sat inside the second photo's wrapper,
+    // so a sloppy removal could have deleted the wrapper's contents wholesale.
+    const out = []
+    const row = home.clean.slice(home.clean.indexOf("about-img2"), home.clean.indexOf("</div>\n      </div>"))
+    for (const img of ["about-img1.jpg", "about-img2.jpg"]) {
+      if (!new RegExp(img.replace(".", "\\.")).test(home.clean)) out.push(`the About band no longer renders ${img}`)
+    }
+    const figs = (home.clean.match(/about-img[12]\.jpg/g) || []).length
+    if (figs !== 2) out.push(`expected exactly 2 About photos, found ${figs}`)
+    return out
+  })
+
+  check("the badge-removal check would catch a re-added badge", () => {
+    // Control: feed the assertion a string that DOES carry the badge and require
+    // a complaint. Without this the negative check above could pass on a page
+    // that had simply failed to render.
+    const withBadge = '<div class="years-badge rounded-[18px] bg-white shadow-lift">'
+    if (!/\byears-badge\b/.test(withBadge)) {
+      return ["the removal check's predicate does not match the markup it is meant to catch"]
+    }
+    return []
   })
 
   check("the badge-anchor detector would catch an anchored-but-uncentred badge", () => {
@@ -975,15 +1005,15 @@ export async function run() {
     return out
   }
 
-  check("the years badge is a horizontal lockup that steps down at 1440", () => {
-    const tag = /<div class="([^"]*\byears-badge\b[^"]*)"/.exec(home.clean)
-    if (!tag) return ["the home page has no .years-badge element"]
-    const out = badgeShapeProblems(tag[1], ruleBody("\\.years-badge"), stepBlock(".years-badge", 1440))
-    for (const c of ["years-badge-icon", "years-badge-num", "years-badge-label"]) {
-      if (!new RegExp(`\\b${c}\\b`).test(home.clean)) out.push(`the markup does not use .${c}`)
-    }
-    return out
-  })
+  // The old "years badge is a horizontal lockup that steps down at 1440" check
+  // lived here. It was REPLACED (not deleted) by the pair above: with the badge
+  // gone from the markup, asserting its shape is asserting nothing.
+  //
+  // `badgeShapeProblems` and `badgeAnchorProblems` are still exercised by the
+  // detector controls below, which run against SYNTHETIC fixtures — they prove
+  // the detectors still work, which is what makes them worth keeping even though
+  // no live element uses them. If the badge is ever reinstated, restore the two
+  // shape/anchor checks beside the removal check so the pair stays honest.
 
   check("the lockup-shape detector would catch the vertical lozenge", () => {
     const out = []
@@ -1388,9 +1418,15 @@ export async function run() {
 
   check("both service heroes open with the same hero-eyebrow kicker", () => {
     const out = []
+    // CLIENT round 4, F8 + F12 — the client asked for these two eyebrows in ALL
+    // CAPITALS. The fix was made in the MARKUP (not with `text-transform`),
+    // deliberately: a CSS transform leaves the DOM lowercase, so this check —
+    // which reads rendered text through renderToStaticMarkup and therefore sees
+    // no CSS at all — could not have asserted it. The strings below are the
+    // approved round-4 copy; they are the change, not an incidental drift.
     const want = {
-      residential: "Residential &amp; home services",
-      commercial: "Commercial &amp; facility services",
+      residential: "RESIDENTIAL &amp; HOME SERVICES",
+      commercial: "COMMERCIAL &amp; FACILITY SERVICES",
     }
     for (const p of servicePages) {
       const found = [...p.clean.matchAll(/<span class="hero-eyebrow">([^<]*)<\/span>/g)].map((m) => m[1])

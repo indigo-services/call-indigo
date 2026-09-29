@@ -167,7 +167,7 @@ export const FOOTER_HTML = `  <div class="pad-rl">
           <span class="font-sans text-[23px] font-bold leading-none tracking-[-0.06em] text-white">Call Indigo</span>
         </div>
         <p>Licensed, bonded and insured home and facility services. One call covers plumbing, electrical, HVAC, carpentry, painting, and more — done right the first time.</p>
-        <p class="mt-3 text-[13px] text-white/60">Indigo Home &amp; Facility Services<br>License: RMP: 45574</p>
+        <p class="mt-3 text-[13px] text-white/60">Indigo Home &amp; Facility Services<br>License: RMP45574 EC23851</p>
         <div class="mt-4 flex gap-3">
           <img src="/assets/images/trust-icon1.png" alt="" class="size-11 object-contain">
           <img src="/assets/images/trust-icon2.png" alt="" class="size-11 object-contain">

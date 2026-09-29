@@ -31,7 +31,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
          right : "Est. {establishedYear} · {legalName}"
                  = "Est. 2012 · Indigo Home & Facility Services"
        This replaces the previous v2-only copy ("Open 24/7 • Emergency Service",
-       the street address, and "License: RMP: 45574"). Two deliberate
+       the street address, and "License: RMP45574 EC23851"). Two deliberate
        departures from v1's markup: the 1px divider between the two left items
        is dropped, because v1's ribbon has no divider (its left group is just
        \`flex gap-4 md:gap-6\`); and the icons stay \`text-sky\` rather than v1's
@@ -427,9 +427,10 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
              with them: \`flex-[…]\`/\`max-w-[…]\` are each file's own natural width
              (372 for about-img1, 347 for about-img2), so leaving them behind
              would upscale the 347px source into a 372px box and squeeze the
-             other. \`about-img2.jpg\` takes the LEFT slot because the badge now
-             sits at the seam between the two — see \`.years-badge\` in
-             src/index.css for why that is the safe way round. -->
+             other. \`about-img2.jpg\` keeps the LEFT slot: that placement was
+             chosen in round 3 to keep the (now-removed) experience badge clear
+             of the left photo's subject, and the swap itself is a separate
+             decision that still stands. -->
         <figure class="m-0 min-w-0 flex-[347] max-w-[347px] max-lg:w-[260px] max-lg:flex-none max-lg:max-w-none max-md:w-1/2 max-md:pr-[8px]">
           <img src="/assets/images/about-img2.jpg" alt="Property inspection" class="w-full rounded-[18px]">
         </figure>
@@ -437,41 +438,20 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <figure class="m-0">
             <img src="/assets/images/about-img1.jpg" alt="Call Indigo technician at work" class="w-full rounded-[18px]">
           </figure>
-          <!-- .years-experience-con — the template's 205 x 301 vertical lozenge,
-               \`border-radius: 104px\`, badge x 724..929.
-
-               CLIENT 2026-09-26, twice over. First: "between the two photos to
-               the left, but with the images swapped so it doesn't overlap the
-               left image person's photo" — the template's \`right: -29%\` hung it
-               off the photo row's right end, 104px of it on the right photo and
-               100px past the row entirely. Then: make it HORIZONTAL, icon left
-               and text right, centred at the BOTTOM between the two photos.
-
-               So the geometry moved into \`.years-badge\` in src/index.css, which
-               now owns the position, the padding, the gap and — through the
-               \`--yb-*\` variables — every dimension below. That is deliberate:
-               the photos shrink at <=1440 and the badge has to shrink with them,
-               and one variable set is the only way to be sure nothing is left
-               behind at the old size. Only the shape and colour utilities stay
-               here.
-
-               The radius is 18px now, not 104px: the lozenge was exempt from the
-               radius tightening as "a shape rather than a corner", and a
-               horizontal icon BOX is a corner. -->
-          <div class="years-badge rounded-[18px] bg-white shadow-lift max-md:hidden">
-            <span class="years-badge-icon grid shrink-0 place-items-center rounded-full bg-topbar">
-              <img src="/assets/images/about-icon.png" alt="" aria-hidden="true">
-            </span>
-            <span class="block text-left">
-              <strong class="years-badge-num block font-extrabold text-sky">15</strong>
-              <span class="years-badge-label text-ink">Years of Experience</span>
-            </span>
-          </div>
+          <!-- CLIENT round 4, F5 — the "15 / Years of Experience" badge that sat
+               here was REMOVED ENTIRELY, not hidden and not half-cut. The owner
+               chose reading (a) of three: remove the whole pill. The factual
+               loss is covered elsewhere — "since 2012" is stated in the footer
+               licence line, the About paragraph and the #choose band, so no
+               claim about the company's age leaves the site.
+               Its badge CSS in src/index.css is now dead. The suite asserts the
+               class token appears 0 times in this file — which is why this note
+               avoids spelling it out. -->
         </div>
       </div>
       <div class="reveal">
         <span class="eyebrow">About Us</span>
-        <h2 class="h-section">Family Owned, Locally Operated</h2>
+        <h2 class="h-section">Family Owned,<br>Locally Operated.</h2>
         <p class="mb-6 mt-4">Call Indigo is your single phone call for any address. Licensed, insured, and headquartered in Austin, Texas since 2012 — serving homes and facilities across Hays, Travis, and Williamson counties.</p>
         <!-- \`.about-listing-con\` is two side-by-side \`ul\`s, not one column. -->
         <ul class="mb-8 grid gap-x-8 gap-y-3 sm:grid-cols-2">
@@ -574,7 +554,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     <div class="shell grid grid-cols-[1.05fr_.95fr] items-center gap-[70px] max-lg:grid-cols-1 max-lg:gap-11">
       <div class="reveal">
         <span class="eyebrow">Why Call Indigo</span>
-        <h2 class="h-section">Why choose Call Indigo</h2>
+        <h2 class="h-section">Peace Of Mind</h2>
         <p class="mt-4">Four things every new customer gets, whichever service you call us for.</p>
         <div class="mt-7 grid gap-6">
           <div class="reveal flex gap-4.5">
@@ -667,7 +647,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     <div class="shell">
       <div class="reveal mb-12 max-w-[660px]">
         <span class="eyebrow">How It Works</span>
-        <h2 class="h-section">Clear Path From<br>Start To Finish</h2>
+        <h2 class="h-section">A Clear Path From<br>Start-To-Finish</h2>
       </div>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <div class="card card-hover reveal relative p-[30px]">
@@ -909,7 +889,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <span class="font-sans text-[23px] font-bold leading-none tracking-[-0.06em] text-white">Call Indigo</span>
         </div>
         <p>Licensed and insured home and facility services. One call covers plumbing, electrical, HVAC, carpentry, painting, and more — done right the first time.</p>
-        <p class="mt-3 text-[13px] text-white/60">Indigo Home &amp; Facility Services<br>License: RMP: 45574</p>
+        <p class="mt-3 text-[13px] text-white/60">Indigo Home &amp; Facility Services<br>License: RMP45574 EC23851</p>
         <div class="mt-4 flex gap-3">
           <img src="/assets/images/trust-icon1.png" alt="" class="size-11 object-contain">
           <img src="/assets/images/trust-icon2.png" alt="" class="size-11 object-contain">
