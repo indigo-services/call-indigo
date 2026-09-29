@@ -83,6 +83,7 @@ exists to prevent — see [`conventions.md` §2](./conventions.md#2-declare-the-
 | [`40-project/decisions/README.md`](../40-project/decisions/README.md) | index | Decisions — ADRs |
 | [`40-project/plans/plan-client-feedback-2026-09-25.md`](../40-project/plans/plan-client-feedback-2026-09-25.md) | dated | Plan — client feedback round, 2026-09-25 |
 | [`40-project/plans/plan-client-feedback-2026-09-26.md`](../40-project/plans/plan-client-feedback-2026-09-26.md) | dated | Client feedback round 3 — plan and evidence, 2026-09-26 |
+| [`40-project/plans/plan-client-feedback-2026-09-29.md`](../40-project/plans/plan-client-feedback-2026-09-29.md) | dated | Client feedback round 4 — the v2.0.2 quick-fix text pass, 2026-09-29 |
 | [`40-project/plans/plan-docs-refactor-2026-09-27.md`](../40-project/plans/plan-docs-refactor-2026-09-27.md) | dated | Documentation refactor — plan and evidence, 2026-09-27 |
 | [`40-project/plans/plan-prune-and-reconciliation-2026-09-29.md`](../40-project/plans/plan-prune-and-reconciliation-2026-09-29.md) | dated | Plan — v2.0.0 prune, health verification and milestone reconciliation |
 | [`40-project/prd/phase-1-truth-and-index.md`](../40-project/prd/phase-1-truth-and-index.md) | dated | PRD — Phase 1: Truth & Index |
