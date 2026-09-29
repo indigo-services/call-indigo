@@ -463,7 +463,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
               <img src="/assets/images/about-icon.png" alt="" aria-hidden="true">
             </span>
             <span class="block text-left">
-              <strong class="years-badge-num block font-extrabold text-sky">15<sup>+</sup></strong>
+              <strong class="years-badge-num block font-extrabold text-sky">15</strong>
               <span class="years-badge-label text-ink">Years of Experience</span>
             </span>
           </div>
@@ -667,7 +667,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     <div class="shell">
       <div class="reveal mb-12 max-w-[660px]">
         <span class="eyebrow">How It Works</span>
-        <h2 class="h-section">A clear path from first call to scheduled work</h2>
+        <h2 class="h-section">Clear Path From<br>Start To Finish</h2>
       </div>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <div class="card card-hover reveal relative p-[30px]">
