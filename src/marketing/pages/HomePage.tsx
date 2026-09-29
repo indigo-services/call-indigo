@@ -463,7 +463,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
               <img src="/assets/images/about-icon.png" alt="" aria-hidden="true">
             </span>
             <span class="block text-left">
-              <strong class="years-badge-num block font-extrabold text-sky">15<sup>+</sup></strong>
+              <strong class="years-badge-num block font-extrabold text-sky">15</strong>
               <span class="years-badge-label text-ink">Years of Experience</span>
             </span>
           </div>
@@ -667,7 +667,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     <div class="shell">
       <div class="reveal mb-12 max-w-[660px]">
         <span class="eyebrow">How It Works</span>
-        <h2 class="h-section">A clear path from first call to scheduled work</h2>
+        <h2 class="h-section">Clear Path From<br>Start To Finish</h2>
       </div>
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <div class="card card-hover reveal relative p-[30px]">
@@ -709,8 +709,16 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
         <span class="eyebrow">Testimonials</span>
         <h2 class="h-section">Trusted Reviews from Homeowners &amp; Businesses</h2>
       </div>
+      <!-- Client item 6 (2026-09-29) was "can you make the section a carousel?
+           Right now it has 3 sections or blocks. It looks like there's too much
+           white space." A carousel WAS built and then reverted on the client's
+           instruction: one review at a time read sparser than this 3-across row,
+           not denser (the numbers are in \`index.css\` under the testimonials
+           note). The white space is addressed by SPACING here instead. Do not
+           re-introduce a carousel without re-measuring — the probe is kept at
+           \`scripts/_probe_reviews_width.cjs\`. -->
       <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <article class="card card-hover reveal p-[30px]">
+        <article class="card card-hover reveal p-[30px]" data-review-slide>
           <img src="/assets/images/quote-icon.png" alt="" class="mb-3.5 w-[38px]">
           <img src="/assets/images/stars.png" alt="5 stars" class="mb-3 h-4 w-auto">
           <p class="mb-5 font-medium text-[#3c4656]">“Fast, reliable, and courteous service. Highly recommend!”</p>
@@ -719,7 +727,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
             <div><strong class="block text-[15px] font-bold text-ink">Amanda R.</strong><span class="text-[13px]">Homeowner</span></div>
           </footer>
         </article>
-        <article class="card card-hover reveal p-[30px]">
+        <article class="card card-hover reveal p-[30px]" data-review-slide>
           <img src="/assets/images/quote-icon.png" alt="" class="mb-3.5 w-[38px]">
           <img src="/assets/images/stars.png" alt="5 stars" class="mb-3 h-4 w-auto">
           <p class="mb-5 font-medium text-[#3c4656]">“Professional team, arrived on time, and fixed the issue quickly.”</p>
@@ -728,7 +736,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
             <div><strong class="block text-[15px] font-bold text-ink">Michael S.</strong><span class="text-[13px]">Business Owner</span></div>
           </footer>
         </article>
-        <article class="card card-hover reveal p-[30px]">
+        <article class="card card-hover reveal p-[30px]" data-review-slide>
           <img src="/assets/images/quote-icon.png" alt="" class="mb-3.5 w-[38px]">
           <img src="/assets/images/stars.png" alt="5 stars" class="mb-3 h-4 w-auto">
           <p class="mb-5 font-medium text-[#3c4656]">“Clear pricing, tidy work, and the leak hasn't come back since.”</p>
@@ -937,7 +945,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     </div>
     <div class="shell">
       <div class="flex flex-col items-center gap-3 border-t border-white/10 py-5 text-center text-[13px] lg:flex-row lg:justify-between lg:text-left">
-        <p>© <span id="year"></span> Call Indigo LLC. All rights reserved.</p>
+        <p>© <span id="year"></span> Call Indigo, LLC. All rights reserved.</p>
         <div class="flex flex-col items-center gap-2.5 md:flex-row md:flex-wrap md:justify-center md:gap-x-5 md:gap-y-2">
           <button type="button" class="legal-link" data-legal="terms">Terms of Service</button>
           <button type="button" class="legal-link" data-legal="privacy">Privacy Policy</button>

@@ -1,25 +1,28 @@
 Call Indigo Website — proprietary notice
 ========================================
 
-Copyright (c) 2012–2026 Indigo Home & Facility Services. All rights reserved.
+Copyright (c) 2012–2026 Call Indigo, LLC. All rights reserved.
 
 <!--
-  ⚠️ THE COPYRIGHT HOLDER ABOVE MUST BE CONFIRMED BEFORE THIS FILE IS RELIED ON.
+  RESOLVED 2026-09-29 — the client ruled on the legal entity (client item 12,
+  issue #22). The repository had stated two names, and they are not
+  interchangeable:
 
-  The repository states two names, and they are not interchangeable:
+    "Call Indigo LLC"                  appeared 105 times — README.md,
+                                       CHANGELOG.md, and as `copyrightName` in
+                                       the running application
+    the PRD's "legal name"             appeared  26 times — PRD.md identified an
+                                       entity by that name explicitly as the LEGAL
+                                       name, with "Call Indigo" as the business
 
-    "Call Indigo LLC"                  appears 105 times — README.md, CHANGELOG.md,
-                                       and as `copyrightName` in the application
-    "Indigo Home & Facility Services"  appears  26 times — and PRD.md identifies it
-                                       explicitly as the LEGAL name, with "Call
-                                       Indigo" as the business/trading name
+  The client's instruction was to use "2026 Call Indigo, LLC" in the footer, so
+  the legal person that owns the work is **Call Indigo, LLC**. This file and the
+  application's footer now agree.
 
-  A copyright notice names the legal person that owns the work, so the legal name is
-  used above. If that is wrong, correct it here AND in `copyrightName`, because the
-  application currently renders "© Call Indigo LLC" in the site footer.
+  The footer renders the current year rather than the literal "2026", which is
+  the same value today and does not go stale on 1 January.
 
-  This is a question for the client, not a string to be chosen by frequency.
-  See docs/60-reference/third-party-assets.md §5.
+  See docs/40-project/client-disclosure.md §5.6 for the resolution.
 -->
 
 
@@ -75,8 +78,8 @@ Contributions
 -------------
 
 By submitting a contribution to this repository you confirm that you have the right to
-do so, and you assign copyright in that contribution to Indigo Home & Facility
-Services. See CONTRIBUTING.md.
+do so, and you assign copyright in that contribution to Call Indigo, LLC. See
+CONTRIBUTING.md.
 
 
 Contact
@@ -84,4 +87,4 @@ Contact
 
 Licensing and permissions: support@call-indigo.com
 
-Indigo Home & Facility Services · 1005 Meredith Drive, Austin, TX 78748 · RMP 45574
+Call Indigo, LLC · 1005 Meredith Drive, Austin, TX 78748 · RMP 45574

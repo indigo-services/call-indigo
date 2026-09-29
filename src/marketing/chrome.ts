@@ -120,7 +120,7 @@ const INQUIRY_LINK_ANCHOR =
   '<a href="mailto:support@call-indigo.com" class="block py-1 hover:text-sky">support@call-indigo.com</a>'
 const COPYRIGHT =
   '<p>© <span id="year"></span> Call Indigo LLC — prototype reconstruction for demo purposes.</p>'
-const COPYRIGHT_FIXED = '<p>© <span id="year"></span> Call Indigo LLC. All rights reserved.</p>'
+const COPYRIGHT_FIXED = '<p>© <span id="year"></span> Call Indigo, LLC. All rights reserved.</p>'
 /** Includes the leading newline so the whole line goes, not just its text. */
 const LICENCE_LINE =
   '\n          <span class="text-white/60">Licensed, bonded, and insured.</span>'

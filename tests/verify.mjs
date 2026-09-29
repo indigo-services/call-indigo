@@ -647,6 +647,37 @@ export async function run() {
     return out
   })
 
+  /* ── The 2026-09-29 punch list ────────────────────────────────────────────
+   *
+   * Client item 6 was "make the testimonials a carousel — it looks like there's
+   * too much white space". A carousel was built and then REVERTED on the
+   * client's instruction the same day: showing one review at a time read
+   * sparser than the 3-across row, not denser. The measurements are recorded in
+   * `index.css` under the testimonials note; the width probe that produced them
+   * is kept at `scripts/_probe_reviews_width.cjs`.
+   *
+   * So there is no carousel to assert. What IS worth asserting is the thing the
+   * carousel work proved is fragile: all three reviews are in the STATIC markup.
+   * A layout that renders the reviews at runtime would leave the section empty in
+   * the server-rendered HTML and the suite would never notice. */
+  check("the testimonials keep all three reviews in the static markup", () => {
+    // The reviews section is `#reviews` on the home page only.
+    const home = pages.find((p) => p.name === "home")
+    if (!home) return ["no home page rendered"]
+    const out = []
+    const html = home.clean
+    if (!html.includes('id="reviews"')) return ["the home page has no reviews section"]
+    // Every named reviewer must be present, not just a slide count.
+    for (const who of ["Amanda R.", "Michael S.", "Derrick M."]) {
+      if (!html.includes(who)) out.push(`the static markup lost "${who}"`)
+    }
+    // And the section must not carry any leftover carousel scaffolding.
+    for (const gone of ["data-reviews-carousel", "data-review-dot", "data-review-prev"]) {
+      if (html.includes(gone)) out.push(`leftover carousel markup: ${gone}`)
+    }
+    return out
+  })
+
   /* ── The 2026-09-26 revision round ────────────────────────────────────────
    *
    * Two changes that a layout engine decides and this suite therefore CANNOT

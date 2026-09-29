@@ -10,6 +10,50 @@ with pre-release tags for release candidates.
 
 ## [Unreleased] — working dashboard, public inquiry page, copy pass, client punch list
 
+### Client punch list, v2.0.0 wave 1, 2026-09-29
+
+**Shipped across `9e23bea`, `5b845cd`, `e4fb4a0`, `f155a87`** on `release/v2.0.0`.
+
+**Item 12 — the copyright holder, resolved (`9e23bea`).** The footer read
+`Call Indigo LLC`; the client confirmed the registered name is **`Call Indigo, LLC`**
+(with the comma). Changed in the shared `COPYRIGHT_FIXED` constant in
+`src/marketing/chrome.ts` **and** in the three duplicated inline footers — the chrome
+is not shared, so a seam-only edit would have reached one page of four. `LICENSE` and
+`client-disclosure.md` §5.6/§7.2 updated in the same commit, so the legal record and
+the rendered page agree.
+
+**Item 2 — `15+` → `15` (`5b845cd`).** The `<sup>+</sup>` is gone from the home hero
+badge. Verified against the built bundle rather than the source alone.
+
+**Item 4 — the "How it works" heading (`5b845cd`).** Now breaks deliberately as
+`Clear Path From<br>Start To Finish`, under the existing `How It Works` eyebrow.
+
+**Item 6 — the testimonial carousel was built and REVERTED (`e4fb4a0`).** The client
+asked for a carousel because the three-across row "looks like there's too much white
+space". One review at a time read **sparser** than the row it replaced, not denser;
+every width treatment was measured and all failed. The reviews are ~12-word quotes in
+portrait cards built for a three-across grid. **The white space is the section being
+wider than the grid** — at 1920 the row fills only 71% (456px cards under a 1417px
+`--col` cap in a 1920px band). So item 6 is addressed by spacing, tracked separately.
+Reverted on the client's instruction; issue #15 closed *not planned* with the
+measurements. `scripts/_probe_reviews_width.cjs` is kept so a future attempt starts
+from numbers.
+
+**Item 11 — the "black fade" does not exist (`f155a87`, blocked).** `grep -rn
+"gradient" src/` returns nothing, and a browser scan of every element's computed
+`background-image` on the home page found **zero gradients and zero black stops**. The
+band's scrim is a flat `background-color` and its photograph has no dark edge. The
+client's description matches neither the code nor the rendered page, so issue #21 is
+**blocked on a circled screenshot** rather than fixed on a guess.
+
+**Two traps found, both recorded in `.workbuddy-ai/memory/MEMORY.md`.** (1) Tailwind
+v4 cascade layers put generated utilities *after* `components`, so a plain rule in
+`index.css` cannot override a utility at any specificity — the fix is to delete the
+utility from the markup, not to out-specify it. (2) A browser probe grouped rows by a
+`top` field its own helper never returned, and reported a plausible `fill` computed
+off a zero-width row; an instrument that cannot see its subject reports the same
+numbers before and after a real change.
+
 ### Visual assets and docs butler, 2026-09-27
 
 **Shipped as `12b8015`** — `feat(docs): add visual assets and docs butler specification`.

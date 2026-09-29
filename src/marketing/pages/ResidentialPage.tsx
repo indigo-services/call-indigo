@@ -459,7 +459,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     </div>
     <div class="shell">
       <div class="flex flex-col items-center gap-3 border-t border-white/10 py-5 text-center text-[13px] lg:flex-row lg:justify-between lg:text-left">
-        <p>© <span id="year"></span> Call Indigo LLC. All rights reserved.</p>
+        <p>© <span id="year"></span> Call Indigo, LLC. All rights reserved.</p>
         <div class="flex flex-col items-center gap-2.5 md:flex-row md:flex-wrap md:justify-center md:gap-x-5 md:gap-y-2">
           <button type="button" class="legal-link" data-legal="terms">Terms of Service</button>
           <button type="button" class="legal-link" data-legal="privacy">Privacy Policy</button>
