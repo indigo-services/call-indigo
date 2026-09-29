@@ -660,6 +660,15 @@ its case. **Only the chip on the commercial hero** is in scope; the footer addre
 2 shared tasks** — F9 covers H+I+N, and F16 is the fifth licence surface the
 client's *"every instance"* reaches but did not name.
 
+**The table lists 17 rows for 16 tasks.** F1 and F16 are *one task delivered
+by two issues*: the four footer copies (`chrome-markup.ts` + 3 inline) and the
+Contact-page `<dd>` share a string but live on different files, and the `<dd>`
+wears no `License:` prefix — so a grep for the footer string never finds it
+(§1.2, finding 2). Filed separately so neither can be closed against the other.
+**The `v2.0.2` milestone therefore holds 17 open issues (#39–#42, #44–#56),
+which is 16 tasks minus F4 plus the F16 split** — the numbers are reconciled,
+not off by one.
+
 **Nothing in this release is blocked.** F5's `Q2` is answered (reading **(a)**),
 and F4's `Q4` resolved by **leaving** the release. **The release is ready to
 start.**
