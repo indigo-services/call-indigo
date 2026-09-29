@@ -71,10 +71,10 @@ supersedes the repo's paraphrase (§1). Each landed item is tracked as its own i
 | # | Client item | State |
 |---|---|---|
 | **12** | Footer copyright → `© 2026 Call Indigo, LLC. All rights reserved.` | **Landed** (issue #22) — footer constant + the three mirror pages + `LICENSE` + `client-disclosure.md` §5.6, one commit. **This settles the legal entity: `Call Indigo, LLC`.** |
-| **2** | `15+` → `15 years` | Open — S2 wave 1 (issue #13) |
-| **4** | "How it works" two-line heading | Open — S2 wave 1 (issue #14) |
-| **6** | Testimonials → carousel | Open — S2 wave 1 (issue #15) |
-| **11** | Remove the black fade on the "Ready when you call" band | Open — S2 wave 1 (issue #21) |
+| **2** | `15+` → `15 years` | **Landed** (issue #13) — the `<sup>+</sup>` removed from the home hero badge. Confirmed a real fault against the built bundle, unlike items 1/3/5/8. Commit `5b845cd`. |
+| **4** | "How it works" two-line heading | **Landed** (issue #14) — heading is now `Clear Path From<br>Start To Finish`. Commit `5b845cd`. |
+| **6** | Testimonials → carousel | **Reverted, deliberately** (issue #15, closed *not planned*). Built, measured, and reverted on the client's instruction: one review at a time read **sparser** than the 3-across row, not denser. Every variant failed (620px centred card / full-bleed / landscape — numbers in `index.css`). **The real cause is the section being wider than the grid** (at 1920 the row fills only 71%), so this is now a **spacing** item, still open. Commit `e4fb4a0`. |
+| **11** | Remove the black fade on the "Ready when you call" band | **BLOCKED-ON-CLIENT** (issue #21). Measured: **no gradient exists** — `grep -rn "gradient" src/` = 0, and a browser scan of every element's computed `background-image` found **0 gradients, 0 black stops**. The band's scrim is a flat `background-color`, and its photograph has no dark edge. The description matches neither the code nor the rendered page; a circled screenshot is requested. |
 | **3** | Rename "Why Indigo" / remove "Peace Of Mind" | **Already satisfied** — the heading is `Why choose Call Indigo` and no "Peace Of Mind" block exists (issue #25) |
 | **7** | FAQ | **No action** — the client said the section is fine |
 | **1, 5, 8** | Hero rotator · section overflow · "13 years"/"Send a message" | **BLOCKED-ON-CLIENT** — the quoted strings exist on no page (issues #24, #26, #27) |
