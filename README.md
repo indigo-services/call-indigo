@@ -11,7 +11,7 @@ is either the answer itself or a link to the document that holds it. The complet
 documentation index is [docs/README.md](./docs/README.md), also rendered as a
 [**wiki**](https://github.com/indigo-services/call-indigo/wiki).
 
-**Current version:** v2.0.rc1 (pre-release) — see [CHANGELOG.md](./CHANGELOG.md) for the
+**Current version:** v2.0.1 — see [CHANGELOG.md](./CHANGELOG.md) for the
 release entries and [PRD.md](./PRD.md) for the full product requirements document.
 
 > **Scope note.** The dashboard in this build does more than the PRD's rc1 mockup
