@@ -77,7 +77,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
         title: "Security",
         path: "/admin/security",
         icon: Shield,
-        description: "Sign-in protections and session behaviour.",
+        description: "Clerk account and session controls.",
       },
     ],
   },

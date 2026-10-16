@@ -12,7 +12,7 @@ those claims live.
 
 | | |
 |---|---|
-| **Library** | `docs/` — **59 documents**, in seven numbered domains |
+| **Library** | `docs/` — **60 documents**, in seven numbered domains |
 | **Front door** | this file |
 | **Start here instead if you are new** | [`../README.md`](../README.md) at the repo root |
 | **Read it as a website** | [**The project wiki**](https://github.com/indigo-services/call-indigo/wiki) — this directory, rendered. **A mirror: edit here, never there.** |
@@ -101,6 +101,7 @@ declares for itself — see `00-meta/conventions.md` §2.
 | [`40-project/decisions/0002-client-side-admin-gate.md`](./40-project/decisions/0002-client-side-admin-gate.md) | dated | Why the gate is client-side, and what it is not |
 | [`40-project/decisions/0003-localstorage-behind-an-async-seam.md`](./40-project/decisions/0003-localstorage-behind-an-async-seam.md) | dated | Why `api.ts` is async over a synchronous backend |
 | [`40-project/decisions/0004-numbered-documentation-domains.md`](./40-project/decisions/0004-numbered-documentation-domains.md) | dated | Why this directory is numbered, and what it cost |
+| [`40-project/decisions/0005-clerk-admin-identity.md`](./40-project/decisions/0005-clerk-admin-identity.md) | dated | Why Clerk identities and an invite-only admin role gate protect the dashboard UI |
 | [`40-project/prd/phase-1-truth-and-index.md`](./40-project/prd/phase-1-truth-and-index.md) | dated | **v2.0.rc2** — make the docs true, give `docs/` a front door |
 | [`40-project/prd/phase-2-repo-standards-and-ci.md`](./40-project/prd/phase-2-repo-standards-and-ci.md) | dated | **v2.1.0** — `.github/`, hygiene files, the gates enforced on PR |
 | [`40-project/prd/phase-3-docs-library.md`](./40-project/prd/phase-3-docs-library.md) | dated | **v2.2.0** — the numbered-domain library, fully populated |

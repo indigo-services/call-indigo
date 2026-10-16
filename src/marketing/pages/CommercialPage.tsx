@@ -615,15 +615,17 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
         <h3>4. How We Share Information</h3>
         <p>We do not sell your personal information. We share it only as needed to run the business: with
           the crews and trade partners assigned to your job, with the software providers who host our
-          website, email, and record-keeping tools, and with insurers, auditors, or authorities when the
-          law requires it. Vendors are expected to protect your information and to use it only for the
-          service they provide to us.</p>
+          website, email, and record-keeping tools, with Clerk for authentication of authorized private
+          dashboard operators, and with insurers, auditors, or authorities when the law requires it.
+          Vendors are expected to protect your information and use it only for the service they provide
+          to us.</p>
 
         <h3>5. Cookies and Analytics</h3>
-        <p>This public site sets no cookies and runs no analytics, advertising, or third-party tracking
-          scripts. Our private admin dashboard sets a single cookie recording whether its sidebar is open;
-          it carries no personal information and is not used to track you. You can block or delete cookies
-          in your browser settings at any time.</p>
+        <p>The public marketing pages do not set cookies or run analytics, advertising, or third-party
+          tracking scripts. The private admin dashboard uses Clerk for operator sign-in; Clerk sets
+          cookies needed to maintain an authentication session, and the dashboard stores a sidebar
+          preference cookie. These are used for sign-in and interface preferences, not advertising or
+          site analytics. Blocking these cookies may prevent sign-in or reset the sidebar preference.</p>
 
         <h3>6. Calls, Texts, and Email</h3>
         <p>We use the contact details you give us to answer your request and to arrange the work — that is

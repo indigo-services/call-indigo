@@ -1,6 +1,6 @@
 # Roadmap
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `ff46132`
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-16 in the uncommitted working tree
 
 Two roadmaps, deliberately separate: **the product** and **the documentation**. They
 ship on their own clocks, and the documentation one exists because the product one had
@@ -43,7 +43,7 @@ half-restructured tree gets generated twice.
 
 | # | Work | Depends on | State |
 |---|---|---|---|
-| **F1** | Authentication — a **server-issued** session | — | **Partly landed** — a client-side prototype gate ships; the real one is owed before any real data exists |
+| **F1** | Authentication — a **server-issued** session | — | **Partly landed** — Clerk identity and an admin-role check gate the SPA UI; server-side authorization still requires a backend |
 | **F2** | Real persistence — API + database | F1 | Open. **The `api.ts` seam was built for exactly this** |
 | **F3** | A working design-token editor | F1, F2, a token-source decision | Open. `/admin/design` is read-only today |
 | **F4** | Content management for the marketing copy and images | F1, F2 | Open |
@@ -51,7 +51,7 @@ half-restructured tree gets generated twice.
 | **F6** | The remaining sidebar pages | F1 | **Landed** — Profile, Notifications, Security, Assets and Components are all real pages now |
 | **F7** | Reconcile the two button systems | §8.3 debt | Open |
 | **F8** | Static pre-rendering / SEO | R4 | Open |
-| **F9** | Audit log and roles | F1, F2 | Open |
+| **F9** | Audit log and roles | F1, F2 | **Partly landed** — Clerk public metadata gates the admin UI; server-enforced roles and audit logging remain open |
 | **F10** | Retire `valvoro-prototype/` | rc1 acceptance | **Blocked** — needs §13.2 parity re-measured and signed off |
 | **F11** | ~~The `#area` city-list contradiction~~ | — | **Closed** — resolved to the four-city list |
 | **F12** | Update the `modern-web-app` skill template to Tailwind v4 | R1 | Open |
@@ -62,8 +62,8 @@ half-restructured tree gets generated twice.
 The contact form currently writes to the **submitter's own browser** — the business
 never receives a submission ([`../30-operations/observability.md` §2](../30-operations/observability.md#2-what-we-cannot-see)).
 
-**F1 gates F2**, and F1 is not a small change: a server-issued session means a server,
-which means the project stops being a static SPA on Vercel.
+**F2 is still the main data boundary.** Clerk sign-in does not protect the current browser-local
+records or authorize future API calls; a backend must verify Clerk sessions and enforce roles.
 
 ## 3. The client punch list
 

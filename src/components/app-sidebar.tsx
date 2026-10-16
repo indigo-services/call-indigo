@@ -12,6 +12,7 @@
  * dashboard pages is client-side and keeps the localStorage-backed state warm.
  */
 import { Link, useLocation } from "react-router-dom"
+import { UserButton, useClerk, useUser } from "@clerk/react"
 
 import {
   Sidebar,
@@ -27,16 +28,18 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { ADMIN_NAV } from "@/admin/routes"
-import { signOut } from "@/admin/auth"
 import { api } from "@/lib/data/api"
 import { useApiData } from "@/lib/data/hooks"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation()
+  const { signOut } = useClerk()
+  const { user } = useUser()
   const inquiries = useApiData("sidebar-inquiries", () => api.listInquiries())
-  const profile = useApiData("sidebar-profile", () => api.getProfile())
 
   const unread = inquiries.data?.filter((i) => i.status === "new").length ?? 0
+  const displayName = user?.fullName ?? user?.primaryEmailAddress?.emailAddress ?? "Admin account"
+  const email = user?.primaryEmailAddress?.emailAddress ?? ""
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -107,9 +110,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <div className="px-3 py-2 text-xs text-sidebar-foreground/60">
           <p className="font-medium text-sidebar-foreground">
-            {profile.data?.fullName ?? "…"}
+            {displayName}
           </p>
-          <p className="truncate">{profile.data?.email ?? "…"}</p>
+          <p className="truncate">{email}</p>
         </div>
         <div className="flex items-center justify-between gap-2 px-3 pb-2">
           <Link
@@ -118,12 +121,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           >
             ← Back to the site
           </Link>
-          {/* No navigation on click: `signOut` clears the session and the store
-              notifies `RequireAuth`, which swaps the whole shell for the sign-in
-              page. A `navigate()` here would fight that render. */}
+          <UserButton />
           <button
             type="button"
-            onClick={signOut}
+            onClick={() => void signOut({ redirectUrl: "/" })}
             className="text-xs text-sidebar-foreground/60 underline-offset-2 hover:text-sidebar-foreground hover:underline"
           >
             Sign out

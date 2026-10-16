@@ -2,6 +2,11 @@
 
 **Kind:** dated · **Owner:** the repo · **Prepared for:** the client · **Last verified:** 2026-09-29 at `6cb10f6`
 
+> **Cookie-policy update (2026-10-16):** The existing Clerk sign-in now uses authentication
+> cookies on the private `/admin` route. This proposal's cookie discussion applies to the
+> public marketing pages and to the proposed payment integration; it predates that admin
+> authentication change.
+
 **The work, in one line.** Move the site off browser storage onto a real server, so a form
 submission reaches your inbox instead of staying in the visitor's browser — and, if you want
 it, add a way to take bookings and payments online.

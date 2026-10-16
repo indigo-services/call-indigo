@@ -21,6 +21,7 @@
  */
 
 @import "tailwindcss";
+@import "@clerk/themes/shadcn.css";
 
 @custom-variant dark (&:is(.dark *));
 

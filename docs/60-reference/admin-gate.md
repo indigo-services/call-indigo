@@ -1,8 +1,13 @@
-# The `/admin` gate — a client-side prototype credential
+# Historical `/admin` gate — the removed shared credential
 
 **Kind:** dated · **Last verified:** 2026-09-27 at `2f009a2`
 **Status:** implemented 2026-09-26 · **Release:** v2.0.rc1 (pre-release)
 **Supersedes:** `docs/dashboard-scope.md` §9.1 ("No authentication")
+
+> **Historical record — superseded by [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md).**
+> The shared username/password implementation described below has been removed. Do not
+> use its credential rotation procedure, session details, or screenshots as current
+> setup instructions.
 
 The client asked for a username and password on the dashboard. This document is the
 reconciliation: what was built, what it does and does not protect, how to rotate the

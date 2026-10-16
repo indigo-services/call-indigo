@@ -2,7 +2,7 @@
 
 **Kind:** dated · **Trigger:** the live site is wrong, down, or serving something
 unintended · **Target:** identify within 10 minutes, mitigate within 30 ·
-**Last verified:** 2026-09-27 at `2f009a2`
+**Last verified:** 2026-10-16 in the uncommitted working tree
 
 > Written for a person under pressure. Short sentences, exact commands. The *why* lives
 > in [`deployment.md`](./deployment.md) and [`observability.md`](./observability.md).
@@ -19,7 +19,8 @@ Before anything else, separate the three things that look identical from the out
 | The site loads, but a **deep link or a refresh** 404s | The SPA rewrite is missing or was removed | §3 |
 | The site loads, but **the old version** is being served | The deploy did not happen, or did not ship | §4 |
 | The site loads, but an image is missing | A moved or renamed asset | §5 |
-| The site is fine, but **`/admin` shows the sign-in page** | Working as intended — the gate is client-side and per-tab | **Not an incident.** See [`security.md`](./security.md) |
+| The site is fine, but **`/admin` shows the sign-in page** | Working as intended when signed out; Clerk handles the session | **Not an incident.** See [`security.md`](./security.md) |
+| **`/admin` says sign-in is not configured** | The Vercel environment lacks the Clerk publishable key | Check the target's environment-variable scope in Vercel, then redeploy |
 | **The contact form submitted but no email arrived** | Working as intended — there is no backend | **Not an incident.** See [`observability.md` §2](./observability.md#2-what-we-cannot-see) |
 
 > **The last two rows are the two most likely false alarms.** Both are documented

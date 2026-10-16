@@ -2,6 +2,12 @@
 
 **Kind:** dated · **Owner:** the repo · **Prepared for:** the client · **Last verified:** 2026-09-27 at `322d842`
 
+> **Historical snapshot dated 2026-09-27.** Its authentication section describes the
+> earlier shared-credential prototype, and its visitor-data, cookie, and third-party
+> service sections predate Clerk. The current integration and disclosure are recorded in
+> [ADR 0005](./decisions/0005-clerk-admin-identity.md), the current [security posture](../30-operations/security.md),
+> and the live policy copy.
+
 **Everything this project has built, everything it changed, everything it got wrong, and
 everything that is still open — in one document, with the source of each claim named.**
 

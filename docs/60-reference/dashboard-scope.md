@@ -3,6 +3,11 @@
 **Kind:** dated · **Last verified:** 2026-09-27 at `899beff`
 **Status:** accepted 2026-09-18 · **Release:** v2.0.rc1 (pre-release)
 
+> **Historical scope record.** Authentication details in this snapshot were superseded
+> by [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md) on 2026-10-16.
+> The route and data-layer descriptions remain a record of that release, not current
+> Clerk setup guidance.
+
 The PRD describes rc1's `/admin` as a **mockup**: exactly three entries, `useState`
 only, no authentication, no persistence, no API. This build is not that. Every
 `/admin` item is now a real page backed by a working data layer, and there is a

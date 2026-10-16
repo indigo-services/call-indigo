@@ -28,6 +28,9 @@
     "test:only": "node tests/run.mjs"
   },
   "dependencies": {
+    "@clerk/react": "^6.17.8",
+    "@clerk/themes": "^2.4.57",
+    "@clerk/ui": "^1.40.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cn": "^0.4.0",

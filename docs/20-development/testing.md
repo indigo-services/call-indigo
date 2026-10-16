@@ -1,6 +1,6 @@
 # Testing and verification
 
-**Kind:** living · **Owner:** the repo · **Last verified:** 2026-09-27 at `2f009a2` ·
+**Kind:** living · **Owner:** the repo · **Last verified:** 2026-10-16 in the uncommitted working tree ·
 **Source of truth for the code:** [`../../tests/`](../../tests/)
 
 Verification for the build. **Zero new dependencies** — the loader uses the `esbuild`
@@ -37,7 +37,7 @@ npm run test:only # run the suites against the LAST build (does not rebuild)
 | | Service heroes and page primaries | Each service page scopes its own scrim, and the header agrees |
 | | CTA bands carry the client's mark | No floating badge, one phone glyph everywhere |
 | | Theme tokens are authorable | The picker's defaults, validation and contrast bars |
-| `auth.mjs` | Dashboard gate | The KDF cost, the digest encodings, the guard's placement, and that no page still claims there is no sign-in |
+| `auth.mjs` | Clerk integration | SDK generation, Vercel-to-Vite public-key mapping, fail-closed admin role, route guard, and account controls |
 | `run.mjs` | — | Entry point; orders the suites and turns the tally into an exit code |
 
 > **Check counts are deliberately not listed here.** They grow with every round, and

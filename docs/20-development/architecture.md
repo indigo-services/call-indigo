@@ -1,6 +1,6 @@
 # Architecture — the four seams
 
-**Kind:** living · **Owner:** the repo · **Last verified:** 2026-09-27 at `2f009a2`
+**Kind:** living · **Owner:** the repo · **Last verified:** 2026-10-16 in the uncommitted working tree
 
 This is a client-rendered React SPA. It has no server, and that single fact explains
 most of its architecture. What follows is not a file listing — it is the four places
@@ -17,7 +17,7 @@ shaped the way it is.
 
 ![Architecture diagram](../assets/architecture-diagram.svg)
 
-*Figure 1 — The four seams: routing, data layer, chrome, and auth gate. Public routes flow to marketing pages; admin routes pass through RequireAuth.*
+*Figure 1 — Routing, data layer, chrome, and Clerk identity. Public routes flow to marketing pages; admin routes pass through the Clerk-backed RequireAuth gate.*
 
 ```
                           ┌─────────────────────────────┐
@@ -30,7 +30,7 @@ shaped the way it is.
         │                             ▼
         │                   ┌──────────────────┐
         │                   │ RequireAuth      │  ← the gate (seam 4)
-        │                   │ src/admin/auth.ts│
+        │                   │ Clerk identity   │
         │                   └────────┬─────────┘
         ▼                            ▼
   ┌───────────────────┐    ┌────────────────────────┐
@@ -137,8 +137,8 @@ would catch a missing dependency.
 2. **Corrupt JSON and a full quota both fall back rather than taking the page down.**
    That is a resilience choice, and it means a write can fail silently by design.
 3. **Reset demo data** clears the whole namespace and restores the seed fixtures. It
-   does **not** sign the operator out — the session key is deliberately outside the
-   `call-indigo:v1:` namespace (see seam 4).
+   does **not** sign the operator out — Clerk manages the auth session separately from
+   the app's `call-indigo:v1:` localStorage namespace (see seam 4).
 
 Full detail: [`../60-reference/data-layer.md`](../60-reference/data-layer.md).
 
@@ -166,28 +166,20 @@ Four pages render the chrome — home, residential, commercial, and contact — 
 first three carry their own copy. A fix applied to home alone is a fix to a quarter of
 the site, and it will look correct in a browser if you only open home.
 
-## Seam 4 — the admin gate
+## Seam 4 — Clerk identity for the admin UI
 
-`src/admin/auth.ts` owns the credential, the KDF and the session store.
+`src/admin/AdminArea.tsx` mounts `ClerkProvider` when the Vercel-supplied publishable key is present;
+the admin entry point is lazy-loaded so marketing visitors do not download Clerk.
+`src/admin/RequireAuth.tsx` waits for Clerk to load, requires a signed-in user, and then
+requires `publicMetadata.role === "admin"` before rendering `AdminLayout`. The role check
+fails closed. The sign-in page and account menu use Clerk's prebuilt React components.
 
-| | |
-|---|---|
-| **Password** | Salted **PBKDF2-HMAC-SHA-256**, 210,000 iterations |
-| **Username** | Salted SHA-256 |
-| **Session** | `sessionStorage`, expires after 12 hours, dies with the tab |
-| **Namespace** | Deliberately **outside** `call-indigo:v1:`, so "Reset demo data" does not sign the operator out |
-
-**Neither credential is in the bundle** — grepping the built JavaScript for either
-finds nothing. The *digests* are, and a digest is crackable offline.
-
-> **It is not access control, and nothing in this repo may imply that it is.** There
-> is no server, so there is nowhere for a secret to hide from the browser: anyone who
-> can open devtools can set the session flag by hand. Four in-app surfaces say so on
-> screen, and `tests/auth.mjs` **fails if any of them reverts.**
-
-Threat model, rotation procedure, risk register:
-[`../60-reference/admin-gate.md`](../60-reference/admin-gate.md). A server-issued
-session is PRD §16.2 **F1**.
+The React guard controls the visible SPA only. It is not server authorization: all app
+code is public, and dashboard records remain in browser `localStorage`. The Clerk secret
+key is not used by Vite and must remain server-only. The Vercel-to-Vite public-key mapping
+is documented in [`../30-operations/environments.md`](../30-operations/environments.md).
+See [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md) for the decision and
+its limits.
 
 ---
 

@@ -1,6 +1,6 @@
 # Data layer
 
-**Kind:** dated · **Owner:** `src/lib/data/` · **Last verified:** 2026-09-27 at `2f009a2`
+**Kind:** dated · **Owner:** `src/lib/data/` · **Last verified:** 2026-10-16 in the uncommitted working tree
 
 The full surface. The *reasoning* is in
 [`../40-project/decisions/0003-localstorage-behind-an-async-seam.md`](../40-project/decisions/0003-localstorage-behind-an-async-seam.md);
@@ -30,7 +30,7 @@ pages  →  api.ts  →  backend.ts  →  localStorage
 | `hooks.ts` | 62 | `useApiData` — the single read path |
 | `use-draft.ts` | 57 | Draft state that survives a background refresh |
 
-[M: `wc -l src/lib/data/*.ts` — 798 lines total. `src/admin/auth.ts` is 317.]
+[M: `src/lib/data/` owns app data; Clerk authentication is managed separately by `@clerk/react`.]
 
 ## 2. The storage namespace
 
@@ -41,11 +41,9 @@ call-indigo:v1:<key>
 **Versioned on purpose.** A shape change bumps `v1` rather than migrating, and a stale
 key is inert rather than corrupting.
 
-**One key is deliberately outside the namespace:** the auth session
-([`../40-project/decisions/0002`](../40-project/decisions/0002-client-side-admin-gate.md)).
-It lives in `sessionStorage` under its own key, so **"Reset demo data" does not sign the
-operator out.** That is a decision, not an oversight — and it is the kind of thing that
-looks like a bug until you know.
+Clerk owns the authentication session separately from this app-data namespace. The
+`resetDemoData()` operation clears only `call-indigo:v1:*` and does not call Clerk's
+sign-out method.
 
 ## 3. The API surface
 
@@ -126,7 +124,6 @@ UI whose loading state is untested.
 |---|---|---|
 | **Corrupt JSON** in a key | Falls back rather than throwing | A demo must not be taken down by its own storage |
 | **Quota exceeded** | Falls back rather than throwing | Same |
-| **`sessionStorage` unavailable** (private-mode Safari, storage disabled) | `auth.ts` probes for it and falls back | Same |
 | **`crypto.randomUUID` absent** | Falls back to a timestamp + random id | Older browsers |
 | **A write fails** | **It can fail silently.** This is the cost of the two fallbacks above | ⚠️ The deliberate trade: resilience over loudness |
 
@@ -140,8 +137,8 @@ UI whose loading state is untested.
 3. **No migration is possible.** A real backend starts empty. Acceptable now because
    there is nothing worth migrating — and it will not be true after the first real
    inquiry.
-4. **No authentication on the data.** Anything in the namespace is readable by anything
-   that can run script on the origin.
+4. **No server authorization on the data.** The browser-only Clerk role check controls the
+   admin UI, but anything in the namespace is readable by code running on the origin.
 
 **Replacing `localStorage` with `fetch` is a change to `api.ts` alone** — that is what
 the seam is for, and it is PRD §16.2 **F2**.

@@ -1,6 +1,6 @@
 <svg viewBox="0 0 680 520" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
 <title>Call Indigo Architecture — Four Seams</title>
-<desc>The four architectural seams of the Call Indigo React SPA: routing, data layer, chrome, and auth gate. Public routes flow through App.tsx to marketing pages; admin routes pass through RequireAuth to admin pages.</desc>
+<desc>The four architectural seams of the Call Indigo React SPA: routing, data layer, chrome, and Clerk identity. Public routes flow through App.tsx to marketing pages; admin routes pass through the Clerk-backed RequireAuth component.</desc>
 <defs>
 <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
 <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>

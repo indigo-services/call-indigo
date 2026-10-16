@@ -1,9 +1,8 @@
 /**
  * Profile page — /admin/profile.
  *
- * The operator's own details. Editing here updates the sidebar footer live,
- * because both read the same record through the API and the API notifies
- * subscribers on write.
+ * The dashboard's editable profile record. Clerk identity details are shown
+ * separately in the sidebar and managed through the Clerk account menu.
  */
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -35,7 +34,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Profile" description="The signed-in operator's own details.">
+      <PageHeader title="Profile" description="The dashboard profile saved in this browser.">
         <Button variant="outline" onClick={reset} disabled={!dirty}>
           Discard
         </Button>
@@ -132,9 +131,8 @@ export default function ProfilePage() {
         <CardHeader>
           <CardTitle>Account</CardTitle>
           <CardDescription>
-            Sign-in is a client-side prototype gate — one shared operator login, no accounts
-            and no per-user data. Nothing here is a credential, and nothing here can change
-            the password the gate checks.
+            These editable details are dashboard profile data. Your Clerk identity, password,
+            and account security are managed separately from this page.
           </CardDescription>
         </CardHeader>
       </Card>
