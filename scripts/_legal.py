@@ -16,9 +16,10 @@ Audited against the code, 2026-09-20:
   3. "Improve our site" — nothing measures the site.               -> unsupported
   4. "software providers who host our scheduling, payment, and email tools" — no
      scheduling or payment integration exists in rc1.             -> unsupported
-  5. "This site uses cookies ... to understand which pages are useful" — the public
-     site sets NO cookie at all. The only cookie in the codebase is shadcn's
-     `sidebar_state`, written by src/components/ui/sidebar.tsx on /admin. -> FALSE
+  5. "This site uses cookies ... to understand which pages are useful" — at the
+     2026-09-20 audit, the public site set no cookie and the only app cookie was
+     shadcn's `sidebar_state` on /admin. Clerk auth cookies were added later; the
+     current disclosure distinguishes those from tracking cookies.             -> FALSE
   6. "you agree that we may contact you ... including by text message ... reply STOP"
      — the form carries no SMS or marketing consent; its own text says "We use your
      details only to answer this request." The policy contradicts the form, and
@@ -76,9 +77,10 @@ REPLACEMENTS = [
           requires it. Vendors are expected to protect your information and to use it only for the service
           they provide to us.</p>""",
         """          the crews and trade partners assigned to your job, with the software providers who host our
-          website, email, and record-keeping tools, and with insurers, auditors, or authorities when the
-          law requires it. Vendors are expected to protect your information and to use it only for the
-          service they provide to us.</p>""",
+          website, email, and record-keeping tools, with Clerk for authentication of authorized private
+          dashboard operators, and with insurers, auditors, or authorities when the law requires it.
+          Vendors are expected to protect your information and use it only for the service they provide
+          to us.</p>""",
     ),
     (
         "cookies — the public site sets none",
@@ -87,10 +89,11 @@ REPLACEMENTS = [
           which pages are useful. You can block or delete cookies in your browser settings; some parts of
           the site may work less smoothly if you do.</p>""",
         """        <h3>5. Cookies and Analytics</h3>
-        <p>This public site sets no cookies and runs no analytics, advertising, or third-party tracking
-          scripts. Our private admin dashboard sets a single cookie recording whether its sidebar is open;
-          it carries no personal information and is not used to track you. You can block or delete cookies
-          in your browser settings at any time.</p>""",
+        <p>The public marketing pages do not set cookies or run analytics, advertising, or third-party
+          tracking scripts. The private admin dashboard uses Clerk for operator sign-in; Clerk sets
+          cookies needed to maintain an authentication session, and the dashboard stores a sidebar
+          preference cookie. These are used for sign-in and interface preferences, not advertising or
+          site analytics. Blocking these cookies may prevent sign-in or reset the sidebar preference.</p>""",
     ),
     (
         "calls and texts — match what the form actually says",

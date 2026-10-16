@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { useSiteTheme } from "@/lib/use-theme"
+import { lazy, Suspense } from "react"
 
 // Marketing pages (bespoke — PRD §8)
 import HomePage from "@/marketing/pages/HomePage"
@@ -10,20 +11,19 @@ import CommercialPage from "@/marketing/pages/CommercialPage"
 import ContactPage from "@/marketing/pages/ContactPage"
 
 // Admin dashboard (registry-only — PRD §7)
-import AdminLayout from "@/admin/AdminLayout"
-import RequireAuth from "@/admin/RequireAuth"
 import InquiriesPage from "@/admin/InquiriesPage"
 import SettingsPage from "@/admin/SettingsPage"
 import ProfilePage from "@/admin/ProfilePage"
 import NotificationsPage from "@/admin/NotificationsPage"
-import SecurityPage from "@/admin/SecurityPage"
 import DesignSystemPage from "@/admin/DesignSystemPage"
 import AssetsPage from "@/admin/AssetsPage"
 import ComponentsPage from "@/admin/ComponentsPage"
-import { lazy, Suspense } from "react"
+
+const AdminArea = lazy(() => import("@/admin/AdminArea"))
+const SecurityPage = lazy(() => import("@/admin/SecurityPage"))
 
 /**
- * The docs mirror is the one lazily-loaded admin page, and the reason is measured.
+ * The docs mirror is a lazily-loaded admin page, and the reason is measured.
  *
  * `DocsPage` reads `docs/00-meta/doc-map.md` eagerly to build its index, and it pulls in
  * `marked` plus one chunk per document. Imported statically it moved the entry chunk from
@@ -73,27 +73,16 @@ export default function App() {
         <Route path="/contact" element={<ContactPage />} />
 
         {/* Admin routes. The sidebar's source of truth is `src/admin/routes.ts`;
-            this table must stay in step with it.
-
-            The whole shell is behind `RequireAuth`, which is why the guard wraps
-            `AdminLayout` here rather than living inside it: an unauthenticated
-            visitor must not see the sidebar at all. `RequireAuth` renders the
-            sign-in page in place of its children, so no `/admin/login` route
-            exists and no redirect can loop. */}
-        <Route
-          path="/admin"
-          element={
-            <RequireAuth>
-              <AdminLayout />
-            </RequireAuth>
-          }
-        >
+            this table must stay in step with it. AdminArea loads Clerk only for
+            this route, and RequireAuth wraps the shell so signed-out visitors
+            never see the sidebar. */}
+        <Route path="/admin" element={<Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Loading admin…</p>}><AdminArea /></Suspense>}>
           <Route index element={<Navigate to="/admin/inquiries" replace />} />
           <Route path="inquiries" element={<InquiriesPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="security" element={<SecurityPage />} />
+          <Route path="security" element={<Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Loading security…</p>}><SecurityPage /></Suspense>} />
           <Route path="design" element={<DesignSystemPage />} />
           <Route path="assets" element={<AssetsPage />} />
           <Route path="components" element={<ComponentsPage />} />

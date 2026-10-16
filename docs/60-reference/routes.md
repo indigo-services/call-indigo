@@ -5,7 +5,7 @@
 Every route the build serves, read out of `src/App.tsx` and `src/admin/routes.ts`.
 Regenerating is the only way to change this file.
 
-Generated 2026-09-29. `tests/policy.mjs` asserts that the router and the sidebar model
+Generated 2026-10-16. `tests/policy.mjs` asserts that the router and the sidebar model
 agree on every `/admin` page; this table is that agreement, printed.
 
 ---
@@ -14,9 +14,9 @@ agree on every `/admin` page; this table is that agreement, printed.
 
 | Path | Renders | Source | Lines |
 |---|---|---|---:|
-| `/` | `HomePage` | `src/marketing/pages/HomePage.tsx` | 1172 |
-| `/residential` | `ResidentialPage` | `src/marketing/pages/ResidentialPage.tsx` | 712 |
-| `/commercial` | `CommercialPage` | `src/marketing/pages/CommercialPage.tsx` | 693 |
+| `/` | `HomePage` | `src/marketing/pages/HomePage.tsx` | 1174 |
+| `/residential` | `ResidentialPage` | `src/marketing/pages/ResidentialPage.tsx` | 714 |
+| `/commercial` | `CommercialPage` | `src/marketing/pages/CommercialPage.tsx` | 695 |
 | `/contact` | `ContactPage` | `src/marketing/pages/ContactPage.tsx` | 611 |
 
 The first three are the marketing pages ported from `valvoro-prototype/`.
@@ -29,13 +29,13 @@ sidebar, and no `/admin/login` route exists to loop through.
 
 | Path | Renders | Source | Lines |
 |---|---|---|---:|
-| `/admin` | `RequireAuth` → `AdminLayout` | — | — |
+| `/admin` | `Suspense` | — | — |
 | `(index)` | redirect → /admin/inquiries | — | — |
 | `inquiries` | `InquiriesPage` | `src/admin/InquiriesPage.tsx` | 428 |
 | `settings` | `SettingsPage` | `src/admin/SettingsPage.tsx` | 126 |
-| `profile` | `ProfilePage` | `src/admin/ProfilePage.tsx` | 144 |
+| `profile` | `ProfilePage` | `src/admin/ProfilePage.tsx` | 142 |
 | `notifications` | `NotificationsPage` | `src/admin/NotificationsPage.tsx` | 234 |
-| `security` | `SecurityPage` | `src/admin/SecurityPage.tsx` | 263 |
+| `security` | `Suspense` | — | — |
 | `design` | `DesignSystemPage` | `src/admin/DesignSystemPage.tsx` | 405 |
 | `assets` | `AssetsPage` | `src/admin/AssetsPage.tsx` | 167 |
 | `components` | `ComponentsPage` | `src/admin/ComponentsPage.tsx` | 165 |
@@ -64,7 +64,7 @@ and each page's title. It is the file to edit when adding a page.
 | General | `/admin/settings` | Business details, used across the site and its documents. |
 | Profile | `/admin/profile` | The signed-in operator's own details. |
 | Notifications | `/admin/notifications` | What the team gets told about, and when. |
-| Security | `/admin/security` | Sign-in protections and session behaviour. |
+| Security | `/admin/security` | Clerk account and session controls. |
 
 ### Design
 
@@ -93,4 +93,4 @@ and each page's title. It is the file to edit when adding a page.
 
 ---
 
-*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `b660e00`.*
+*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `dbdd365`.*

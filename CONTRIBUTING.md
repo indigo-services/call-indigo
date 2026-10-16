@@ -50,8 +50,9 @@ there is one thing to be wrong.
   `@/lib/data/api` (PRD §16.2 F2).
 - A raise to the lint ceiling in `.github/workflows/ci.yml` to make a build pass.
 - A document that states a number nobody measured.
-- Anything that adds a cookie, analytics, or a third-party captcha — the client's
-  requirements rule these out.
+- Analytics, advertising or tracking cookies, and a third-party captcha — the client's
+  requirements rule these out. Clerk's authentication cookies are the explicitly
+  approved exception, limited to the private `/admin` sign-in flow.
 
 ---
 

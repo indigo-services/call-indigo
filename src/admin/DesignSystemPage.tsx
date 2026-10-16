@@ -20,8 +20,8 @@
  *
  * That last step is deliberately a copy-paste rather than a button: publishing
  * means writing to the deployed stylesheet, which needs a real backend — a
- * signed-in operator is not enough, and the gate in `src/admin/auth.ts` cannot
- * publish anything. See `src/lib/theme.ts` and PRD §16.2 F2/F4.
+ * signed-in Clerk operator is not enough to publish anything. See
+ * `src/lib/theme.ts` and PRD §16.2 F2/F4.
  */
 import { useEffect, useState } from "react"
 import { Copy, Check, RotateCcw } from "lucide-react"

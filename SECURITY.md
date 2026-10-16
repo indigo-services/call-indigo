@@ -16,19 +16,17 @@ a **documented, deliberate limitation** rather than a defect.
 
 | Surface | Reality |
 |---|---|
-| **The `/admin` sign-in** | **Client-side only. It is not access control.** There is no server, so there is nowhere for a secret to hide from the browser. Anyone who can open devtools can set the session flag by hand. This is recorded in `docs/60-reference/admin-gate.md`, stated on screen in four in-app places, and asserted by `tests/auth.mjs`. |
-| **Dashboard data** | `localStorage`, per-browser, not shared, not a database. There is no server-side data to breach. |
-| **The contact form** | Writes to the same `localStorage` namespace. The captcha is **local arithmetic**, not a bot defence. There is no address field, no cookie is set, and there is no analytics. |
-| **Credentials in the bundle** | There are none. The password is a salted PBKDF2-HMAC-SHA-256 digest (210,000 iterations); the username is a salted SHA-256. Grepping the built JavaScript for either finds nothing. **The digests are still in the bundle, and a digest is crackable offline** — the gate's whole purpose is to keep `/admin` off the public internet while it is being demonstrated, not to be a security boundary. |
+| **The `/admin` sign-in** | Clerk React sign-in; the intended policy is Invite-only plus a client check for `publicMetadata.role === "admin"`. This is not server-side data authorization. See `docs/40-project/decisions/0005-clerk-admin-identity.md`. |
+| **Dashboard data** | `localStorage`, per-browser, not shared, not a database. The app has no server-side record store. |
+| **The contact form** | Writes to the submitter's `localStorage`. The captcha is **local arithmetic**, not a bot defence. The form does not collect an address. The public marketing pages run no analytics or advertising. |
+| **Authentication data** | Clerk manages admin identity and session cookies. `CLERK_SECRET_KEY` is not loaded into the client bundle. The app has no authenticated backend, so Clerk does not protect the browser-local records. |
 
-A server-issued session is PRD §16.2 **F1** and lands before this dashboard is
-pointed at anything real. Until then, "the gate is bypassable" is a known and
-documented state, not a vulnerability report.
+The role check is client-side UI gating only. Add a backend that verifies Clerk sessions
+and enforces role permissions before storing or serving shared or sensitive data.
 
 ## What *is* in scope
 
-- A way to make the dashboard reachable **without** a browser that can run the
-  bundle — i.e. a real authentication bypass rather than the documented one.
+- A way to access shared or sensitive data without an authenticated server-side check.
 - A secret committed to the tree: an API key, a token, a real password (as opposed
   to the deliberately-shipped salted digest).
 - A dependency with a known advisory that the build actually exercises.

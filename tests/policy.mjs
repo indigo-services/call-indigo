@@ -30,13 +30,8 @@ function rel(p) {
 }
 
 /**
- * Source with its comments removed, before any identifier scan.
- *
- * The auth-boundary check below looks for `/admin/login`, and both `App.tsx` and
- * `LoginPage.tsx` mention that exact path in a comment explaining why no such
- * route exists. Scanning the raw text reports the explanation as the thing it
- * explains — the same trap as matching a CSS rule inside a comment, which has
- * now caught this project out four times.
+ * Source with its comments removed, before identifier scans. This prevents
+ * explanatory comments from being mistaken for imports or code paths.
  */
 function stripJsComments(src) {
   return src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^[ \t]*\/\/.*$/gm, " ")
@@ -182,42 +177,16 @@ export function run() {
     return []
   })
 
-  check("auth is a client-side gate in one module, with no server session (PRD §7.4.4, §9.1)", () => {
-    // THIS CHECK USED TO BE THE OPPOSITE, and the inversion is deliberate. PRD
-    // §9.1 scoped authentication out, so the suite rejected every auth-shaped
-    // identifier — `useAuth`, `signIn`, `sessionStorage`, all of it. The client
-    // has since asked for a prototype gate, so the rule is no longer "auth must
-    // not exist" but "auth must not grow beyond the shape that was sanctioned":
-    // no server session, no token, no login route, and the credential material
-    // in exactly one module so replacing it with a real check is a change to one
-    // file rather than a hunt.
-    const FORBIDDEN = [
-      /\bAuthProvider\b/,
-      /\/admin\/login/,
-      /\bjwt\b/i,
-      /\bgetServerSession\b/,
-      /\bNextAuth\b/,
-      /\bProtectedRoute\b/,
-    ]
-    const OWNER = "src/admin/auth.ts"
+  check("Clerk owns admin identity while data authorization remains a backend responsibility", () => {
     const out = []
-
-    for (const f of srcFiles) {
-      const text = stripJsComments(read(f))
-      for (const re of FORBIDDEN) {
-        const m = re.exec(text)
-        if (m) out.push(`${rel(f)} — matches ${re} ("${m[0]}")`)
-      }
-    }
-
-    const holders = srcFiles
-      .filter((f) => /PASSWORD_HASH_B64|USERNAME_HASH_HEX/.test(stripJsComments(read(f))))
-      .map(rel)
-    if (!holders.includes(OWNER)) out.push(`${OWNER} does not declare the credential digests`)
-    for (const p of holders.filter((h) => h !== OWNER)) {
-      out.push(`the credential digests are also referenced in ${p}; they belong in ${OWNER} alone`)
-    }
-
+    const adminArea = read(path.join(ROOT, "src", "admin", "AdminArea.tsx"))
+    const guard = read(path.join(ROOT, "src", "admin", "RequireAuth.tsx"))
+    const helper = read(path.join(ROOT, "src", "admin", "clerkAuth.ts"))
+    if (!/@clerk\/react/.test(adminArea) || !/ClerkProvider/.test(adminArea)) out.push("AdminArea.tsx does not mount ClerkProvider")
+    if (!/useAuth\(\)/.test(guard) || !/hasAdminRole\(user\)/.test(guard)) out.push("RequireAuth does not gate the admin UI with Clerk identity and role")
+    if (!/publicMetadata\?\.role === "admin"/.test(helper)) out.push("the admin role is not read from Clerk public metadata")
+    if (!/not server authorization/i.test(guard)) out.push("the client-only authorization limit is not stated in the guard")
+    if (existsSync(path.join(ROOT, "src", "admin", "auth.ts"))) out.push("the removed shared credential implementation still exists")
     return out
   })
 

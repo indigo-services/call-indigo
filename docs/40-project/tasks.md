@@ -1,6 +1,6 @@
 # Tasks — the live punch list
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-29 at `6cb10f6`
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-16 in the uncommitted working tree
 
 > ⚠️ **Two `T`-numbering schemes collide in this repo.** The ones below are the
 > **client punch list**. A phase PRD's `T2` is a different thing entirely — see
@@ -109,9 +109,9 @@ it in issue #23 (the site-wide sweep) or with the client.
 | **T3** | *(shipped)* | **Closed** |
 | **T4** | The Terms of Service and Privacy text | **Closed for the prototype.** The client's answer: treat it as done for now. **A *public* launch still needs the real text** — the placeholder copy still carries its own warning. |
 
-> **A rewrite must not break four facts, all verified against the build:** no cookie is
-> set; no analytics exists; the form collects **no postal address**; the captcha is
-> **local arithmetic** with no third-party service.
+> **A rewrite must preserve these facts, verified against the build:** public marketing
+> pages set no cookies or analytics; Clerk auth cookies are used only for private `/admin`
+> sign-in; the form collects **no postal address**; the captcha is **local arithmetic**.
 
 ## 3. Engineering tasks — ours, and unblocked
 

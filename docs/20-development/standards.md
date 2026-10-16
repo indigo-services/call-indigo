@@ -261,8 +261,9 @@ Components are not hand-written, not copied from a blog, not re-implemented.
 | **Import discipline** | No `src/admin/**` file may import from `src/marketing/**` | Pre-merge grep |
 | **Route count** | `/admin` routes match `src/admin/routes.ts` exactly, and `/admin/*` has no catch-all page — unknown paths redirect (§5.2, `docs/dashboard-scope.md`) | Pre-merge assertion |
 | **Nav model** | Every `/admin` page is listed in `src/admin/routes.ts` — a page cannot exist without a sidebar entry and a breadcrumb | Pre-merge review |
-| **Auth boundary** | No server session, token or `/admin/login` route may appear, and the credential digests live in `src/admin/auth.ts` alone (§6, `docs/admin-gate.md`) | Pre-merge assertion |
-| **Storage containment** | Only `src/lib/data/backend.ts` may reference `localStorage`, and only `src/admin/auth.ts` may reference `sessionStorage`; every other file goes through `src/lib/data/api.ts` | Pre-merge grep |
+| **Auth boundary** | `@clerk/react` owns browser identity; `RequireAuth` fails closed unless Clerk reports a signed-in user with the `admin` public-metadata role. This gates UI only; data authorization remains a backend responsibility (ADR 0005) | `tests/auth.mjs` |
+| **Secret boundary** | Vite may expose only the Clerk publishable key mapped from Vercel's `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`; `CLERK_SECRET_KEY` must never be placed in a client-visible variable | `tests/auth.mjs` |
+| **Storage containment** | Only `src/lib/data/backend.ts` may access app `localStorage`; Clerk manages its own authentication state. Every other app-data access goes through `src/lib/data/api.ts` | Pre-merge grep |
 | **Design-system coverage** | Every component class used in the marketing markup is defined in `src/index.css` — the count of missing classes must be zero | Pre-merge script |
 
 ### Custom-component exceptions
@@ -327,7 +328,7 @@ does not apply here.**
 | Sidebar block files | `src/components/` (root — they are block, not ui) |
 | Bespoke marketing components | `src/marketing/` |
 | Admin pages | `src/admin/` |
-| Dashboard gate (client-side, prototype) | `src/admin/auth.ts` — see `docs/admin-gate.md` |
+| Clerk provider and role gate | `src/main.tsx`, `src/admin/RequireAuth.tsx`, `src/admin/clerkAuth.ts` — see [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md) |
 | Mock fixtures (design-token display only) | `src/admin/mock/` |
 | Dashboard data layer | `src/lib/data/` — see `docs/dashboard-scope.md` |
 | Shared utilities | `src/lib/` |

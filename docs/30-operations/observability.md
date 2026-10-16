@@ -1,11 +1,12 @@
 # Observability
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `2f009a2`
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-16 in the uncommitted working tree
 
-**The honest summary: this project has almost no observability, and that is a known
-and deliberate state rather than an oversight.** It is a marketing site with a
-client-side demo dashboard. Nothing here takes a payment, stores a personal record, or
-has an uptime obligation that a status page would serve.
+**The honest summary: this project has almost no application observability, and that is
+a known and deliberate state rather than an oversight.** It is a marketing site with a
+client-side demo dashboard. It takes no payments and has no app backend; Clerk handles
+admin identity and session state as an external service. No app-level error or usage
+telemetry is collected.
 
 This document exists so the gap is **written down** rather than rediscovered.
 
@@ -20,6 +21,7 @@ This document exists so the gap is **written down** rather than rediscovered.
 | **Runtime errors** | **The browser console.** Not collected. | — | Whoever is looking |
 | **Traffic** | Vercel's own dashboard | ~real time | Whoever has Vercel access |
 | **Form submissions** | The visitor's own `localStorage` | — | **Nobody but that visitor** |
+| **Admin identities and sessions** | Clerk Dashboard | As users sign in | A Clerk administrator |
 
 ## 2. What we cannot see
 
@@ -38,16 +40,14 @@ This document exists so the gap is **written down** rather than rediscovered.
 
 ## 3. Why there is no analytics
 
-**It is a requirement, not a deferral.** Three constraints, all recorded:
+**Analytics and advertising remain out of scope.** The public marketing pages set no
+cookies or load analytics scripts. The explicitly approved Clerk integration runs only
+for private admin sign-in and sets authentication cookies; see [the privacy disclosure](../../src/marketing/pages/HomePage.tsx)
+and [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md).
 
-1. **The client's requirements rule out cookies and third-party trackers.**
-2. **`CONTRIBUTING.md` names it in "What we will not merge"** — *"Anything that adds a
-   cookie, analytics, or a third-party captcha."*
-3. **`README.md`'s known limitations** states that no cookie is set and no analytics is
-   loaded.
-
-A future change that adds analytics is therefore not a small change — it reverses a
-recorded client decision. **Name the collision rather than making it quietly.**
+A future analytics or advertising integration would reverse the recorded client decision.
+Necessary Clerk auth cookies are limited to `/admin`; they are not permission to add
+tracking or analytics cookies.
 
 ## 4. What a useful next step would look like
 
@@ -75,4 +75,4 @@ for exactly which classes of defect the suite cannot see.
 
 ---
 
-**Last verified:** 2026-09-27 at `2f009a2`
+**Last verified:** 2026-10-16 in the uncommitted working tree

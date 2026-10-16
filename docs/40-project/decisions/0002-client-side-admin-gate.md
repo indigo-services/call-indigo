@@ -1,7 +1,11 @@
-# ADR 0002 — A client-side gate on `/admin`, and saying out loud what it is not
+# ADR 0002 — A client-side gate on `/admin`, and saying out loud what it was not
 
-**Kind:** dated · **Status:** accepted · **Date:** 2026-09-26 (`e622315`) ·
+**Kind:** dated · **Status:** superseded by ADR 0005 · **Date:** 2026-09-26 (`e622315`) ·
 **Last verified:** 2026-09-27 at `2f009a2` · **Deciders:** the repo, on the client's request
+
+> Historical decision record. The credential implementation described below has been
+> removed. The current Clerk integration and its limits are recorded in
+> [ADR 0005](./0005-clerk-admin-identity.md).
 
 ---
 

@@ -37,7 +37,7 @@ release entries and [PRD.md](./PRD.md) for the full product requirements documen
 | Understand what this product is meant to be | [PRD.md](./PRD.md) |
 | Know what changed, and when | [CHANGELOG.md](./CHANGELOG.md) |
 | **Know what is still open** | [docs/40-project/tasks.md](./docs/40-project/tasks.md) — the live punch list |
-| Understand the `/admin` sign-in | [docs/60-reference/admin-gate.md](./docs/60-reference/admin-gate.md) |
+| Understand the `/admin` sign-in | [ADR 0005](./docs/40-project/decisions/0005-clerk-admin-identity.md) |
 | Know how it deploys, and the author gate | [docs/30-operations/deployment.md](./docs/30-operations/deployment.md) |
 | Find past work and reference material | [archive/README.md](./archive/README.md) |
 | Contribute | [CONTRIBUTING.md](./CONTRIBUTING.md) |
@@ -48,7 +48,7 @@ release entries and [PRD.md](./PRD.md) for the full product requirements documen
 
 | Layer | Technology | Notes |
 |---|---|---|
-| Build | Vite 7 | Fast dev server, optimised production builds |
+| Build | Vite 8 | Fast dev server, optimised production builds |
 | UI | React 19 + TypeScript 5.9 | SPA with client-side routing |
 | CSS | Tailwind CSS v4 (`@tailwindcss/vite`) | No `tailwind.config.js`, no PostCSS plugin |
 | Dashboard components | shadcn/ui (`new-york` style) | Registry-only under `/admin` (PRD §7) |
@@ -57,7 +57,7 @@ release entries and [PRD.md](./PRD.md) for the full product requirements documen
 | Icons | lucide-react | Matches shadcn `iconLibrary` |
 | Toasts | sonner | Dashboard save confirmations |
 | Dashboard data | `localStorage` behind an async API seam | Demo only — see [Data layer](#data-layer) |
-| Dashboard access | A client-side sign-in gate | **Not access control** — see [The dashboard gate](#the-dashboard-gate) |
+| Dashboard access | Clerk sign-in plus an admin-role UI check | Does not authorize data on a server — see [Admin sign-in](#admin-sign-in) |
 | Path alias | `@/*` → `src/*` | Required by the shadcn CLI |
 | Node | `^20.19.0 \|\| >=22.12.0` | `package.json` `engines`, pinned in `.nvmrc` |
 
@@ -90,10 +90,10 @@ producer attached to it and nothing failed when it drifted.
 |---|---|---|
 | Type check | `npm run typecheck` | **0 errors** |
 | Lint | `npm run lint` | **0 errors, 4 warnings** — `react-refresh/only-export-components` in `src/components/ui/{badge,button,sidebar,tabs}.tsx` (registry files, pre-existing) |
-| Build | `npm run build` | **1815 modules** — 813.48 kB JS (240.13 kB gzip) / 130.84 kB CSS (23.16 kB gzip) / 1.46 kB HTML. The >500 kB chunk warning is pre-existing; code-splitting is the fix |
-| Verification | `npm run test:only` | **153 checks passed** |
+| Build | `npm run build` | **1871 modules** — 752.50 kB entry JS (216.62 kB gzip) / 130.75 kB CSS (23.38 kB gzip) / 1.53 kB HTML. The main entry still triggers Vite's >500 kB chunk warning |
+| Verification | `npm run test:only` | **147 checks passed** |
 
-*Measured 2026-09-27 at `899beff`, vite v7.3.6.* **One row here is machine-checked
+*Measured 2026-10-16 in the uncommitted working tree, Vite 8.3.1.* **One row here is machine-checked
 and three are a snapshot.** The check count cannot drift: `tests/run.mjs` compares it
 against the run that just happened and fails when the two disagree. The build figures
 are a snapshot — **editing any `src/` file moves the JS byte count** (this row read
@@ -131,7 +131,7 @@ The generated route table, with each page's file and line count, is
 | `/admin/settings` | Business details (`General`) — persisted |
 | `/admin/profile` | The signed-in operator's own details — persisted |
 | `/admin/notifications` | What the team is told about, and when — persisted |
-| `/admin/security` | 2FA toggle, session timeout, change password, reset demo data |
+| `/admin/security` | Clerk account management and reset demo data |
 | `/admin/design` | Design System — read-only brand token display |
 | `/admin/assets` | The images the marketing pages serve, discovered from disk |
 | `/admin/components` | The registry primitives and their exports, discovered from disk |
@@ -193,10 +193,11 @@ indigo/
       pages/                     HomePage · ResidentialPage · CommercialPage · ContactPage
       Frame.tsx Slab.tsx Pill.tsx   Unused scaffolding — see below
     admin/
+      AdminArea.tsx              Lazy admin entry point and Clerk provider
       AdminLayout.tsx            SidebarProvider + AppSidebar + SidebarInset + breadcrumb
-      RequireAuth.tsx            The route guard — wraps the layout, not the pages
-      LoginPage.tsx              The sign-in page, rendered in place of the dashboard
-      auth.ts                    The credential, the KDF, the session store
+      RequireAuth.tsx            Clerk identity + admin-role gate around the dashboard
+      LoginPage.tsx              Clerk's sign-in component, shown in place of the dashboard
+      clerkAuth.ts               Fail-closed admin-role check for Clerk public metadata
       routes.ts                  Single source of truth for sidebar, breadcrumb and titles
       PageHeader.tsx             Shared page heading + action slot
       InquiriesPage.tsx          /admin/inquiries
@@ -258,31 +259,19 @@ devices, and is cleared with site data. This demonstrates the workflow; it is no
 shipped backend. **The contact form tells the business nothing** — it writes to the
 submitter's own browser. Say so before a demo.
 
-## The dashboard gate
+## Admin sign-in
 
-`/admin` is behind a **client-side sign-in gate** (`src/admin/auth.ts`), added
-2026-09-26 in `e622315`. The client asked for a username and password with a secure
-implementation rather than a literal comparison, and this is the smallest thing that
-answers the request.
+The `/admin` route lazy-loads Clerk React sign-in and requires both an invited account
+and `publicMetadata.role === "admin"`. Set the Clerk instance's Access mode to
+**Invite-only**, invite each admin, and assign the role through Clerk's trusted dashboard
+or backend. The Clerk Vercel integration supplies the public publishable key;
+`vite.config.ts` maps it to Vite without exposing `CLERK_SECRET_KEY`.
 
-- **Neither credential is in the bundle.** The password is a salted PBKDF2-HMAC-SHA-256
-  digest at 210,000 iterations; the username is a salted SHA-256. Grepping the built
-  JavaScript for either finds nothing.
-- **The session lives in `sessionStorage`** under a key deliberately *outside* the
-  `call-indigo:v1:` namespace, so "Reset demo data" does not sign the operator out. It
-  expires after 12 hours and dies with the tab.
-- **The guard wraps the layout**, not the pages — a stranger never sees the sidebar, and
-  there is no `/admin/login` route to loop through.
-
-**It is not access control, and nothing in this repo may imply that it is.** There is no
-server, so there is nowhere for a secret to hide from the browser: anyone who can open
-devtools can set the session flag by hand. What it buys is that the dashboard is off the
-public internet while the client is showing it around. Four in-app surfaces say so on
-screen, and `tests/auth.mjs` fails if any of them reverts.
-
-Threat model, rotation procedure, risk register and the verification evidence:
-**[docs/60-reference/admin-gate.md](./docs/60-reference/admin-gate.md)**. A server-issued
-session is PRD §16.2 F1 and lands before this dashboard is pointed at anything real.
+This is still a client-rendered Vite SPA with browser-local demo data. The Clerk role
+check controls which dashboard UI is shown; it does not protect data with server-side
+authorization. The app needs an authenticated backend before shared or sensitive data is
+stored. See [the current Clerk decision](./docs/40-project/decisions/0005-clerk-admin-identity.md)
+and [security posture](./docs/30-operations/security.md).
 
 ## Parity
 
@@ -315,9 +304,9 @@ vs 488, 29 shared) and the CSS re-implemented in Tailwind, **but 59 of the 95 im
 
 ## Known limitations
 
-- **The gate is client-side.** See [The dashboard gate](#the-dashboard-gate). It keeps
-  `/admin` off the public internet; it is not access control, and a server-issued session
-  is still owed (PRD §16.2 F1).
+- **Admin data has no server authorization.** Clerk authenticates the browser and the
+  role check gates the UI; current dashboard data remains local to each browser.
+  See [Admin sign-in](#admin-sign-in) and [the data layer](#data-layer).
 - **No real backend.** See [Data layer](#data-layer). The contact form writes to the
   submitter's browser and the business never receives it.
 - **Content management is deferred** (F4). The marketing pages carry their copy inline,

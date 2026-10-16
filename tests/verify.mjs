@@ -1262,6 +1262,22 @@ export async function run() {
     return [...new Set(out)]
   })
 
+  check("the privacy policy discloses Clerk's admin authentication cookies", () => {
+    const out = []
+    for (const t of policyText) {
+      if (!/public marketing pages do not set cookies/i.test(t)) {
+        out.push("the policy does not limit its no-cookie statement to public marketing pages")
+      }
+      if (!/private admin dashboard uses Clerk for operator sign-in/i.test(t)) {
+        out.push("the policy does not disclose Clerk on the private admin route")
+      }
+      if (!/Clerk sets cookies needed to maintain an authentication session/i.test(t)) {
+        out.push("the policy does not disclose Clerk authentication cookies")
+      }
+    }
+    return [...new Set(out)]
+  })
+
   check("the policy does not promise to collect an address the form never asks for", () => {
     const form = readFileSync(path.join(ROOT, "src/marketing/pages/ContactPage.tsx"), "utf8")
     const names = [...form.matchAll(/name="([a-zA-Z-]+)"/g)].map((m) => m[1])
