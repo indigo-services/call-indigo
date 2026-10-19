@@ -110,7 +110,15 @@ function PrimaryRow({
   // not have to be a valid colour on every keystroke. Only a complete hex is
   // pushed up, which is what stops the site flickering through invalid values.
   const [text, setText] = useState(value)
-  useEffect(() => setText(value), [value])
+  const [lastValue, setLastValue] = useState(value)
+  // Adjusting state when the incoming colour changes, done during render so it
+  // lands in the same commit. `useEffect(() => setText(value), [value])` was a
+  // synchronous setState in an effect (react-hooks/set-state-in-effect) and
+  // rendered the previous colour once after every commit from the palette.
+  if (value !== lastValue) {
+    setLastValue(value)
+    setText(value)
+  }
 
   const onText = (next: string) => {
     setText(next)

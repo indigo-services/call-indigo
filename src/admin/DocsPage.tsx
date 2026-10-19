@@ -117,30 +117,39 @@ function DocRow({ entry }: { entry: DocEntry }) {
 
 function DocView({ path }: { path: string }) {
   const entry = findDoc(path)
-  const [loaded, setLoaded] = useState<LoadedDoc | null>(null)
-  const [state, setState] = useState<"loading" | "ready" | "missing">("loading")
+  const [settled, setSettled] = useState<{
+    path: string
+    state: "ready" | "missing"
+    doc: LoadedDoc | null
+  } | null>(null)
 
   useEffect(() => {
     let live = true
-    setState("loading")
-    setLoaded(null)
     loadDoc(path).then(
       (result) => {
         if (!live) return
-        if (result === null) setState("missing")
-        else {
-          setLoaded(result)
-          setState("ready")
-        }
+        setSettled(
+          result === null
+            ? { path, state: "missing", doc: null }
+            : { path, state: "ready", doc: result },
+        )
       },
       () => {
-        if (live) setState("missing")
+        if (live) setSettled({ path, state: "missing", doc: null })
       },
     )
     return () => {
       live = false
     }
   }, [path])
+
+  // The result carries the path it was loaded for, so a previous document can
+  // never be shown under a new one. Resetting in the effect instead would be a
+  // synchronous setState in an effect (react-hooks/set-state-in-effect), and
+  // would paint the old body once before the new one arrives.
+  const current = settled?.path === path ? settled : null
+  const state = current === null ? "loading" : current.state
+  const loaded = current?.doc ?? null
 
   if (!entry) {
     return (

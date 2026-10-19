@@ -5,7 +5,7 @@
 Every route the build serves, read out of `src/App.tsx` and `src/admin/routes.ts`.
 Regenerating is the only way to change this file.
 
-Generated 2026-10-16. `tests/policy.mjs` asserts that the router and the sidebar model
+Generated 2026-10-19. `tests/policy.mjs` asserts that the router and the sidebar model
 agree on every `/admin` page; this table is that agreement, printed.
 
 ---
@@ -36,7 +36,7 @@ sidebar, and no `/admin/login` route exists to loop through.
 | `profile` | `ProfilePage` | `src/admin/ProfilePage.tsx` | 142 |
 | `notifications` | `NotificationsPage` | `src/admin/NotificationsPage.tsx` | 234 |
 | `security` | `Suspense` | — | — |
-| `design` | `DesignSystemPage` | `src/admin/DesignSystemPage.tsx` | 405 |
+| `design` | `DesignSystemPage` | `src/admin/DesignSystemPage.tsx` | 413 |
 | `assets` | `AssetsPage` | `src/admin/AssetsPage.tsx` | 167 |
 | `components` | `ComponentsPage` | `src/admin/ComponentsPage.tsx` | 165 |
 | `docs` | `DocsRoute` | — | — |
@@ -93,4 +93,4 @@ and each page's title. It is the file to edit when adding a page.
 
 ---
 
-*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `dbdd365`.*
+*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `520397a`.*

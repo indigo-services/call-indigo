@@ -18,7 +18,7 @@
  * `JSON.stringify` is used for both because the records here are small, flat and
  * JSON-shaped — the same things the store already round-trips through.
  */
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 
 export interface UseDraftResult<T> {
   draft: T | null
@@ -32,15 +32,18 @@ export interface UseDraftResult<T> {
 export function useDraft<T>(source: T | null): UseDraftResult<T> {
   const serialized = source === null ? null : JSON.stringify(source)
   const [draft, setDraftState] = useState<T | null>(null)
-  const baseRef = useRef<string | null>(null)
+  const [base, setBase] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (serialized === null) return
-    baseRef.current = serialized
+  // Adjusting state when the loaded value changes. This is the pattern React
+  // documents for deriving state from a prop: compare during render and set
+  // both pieces of state there, so the reset lands in the same commit as the
+  // new value. An effect would render the stale draft once first.
+  if (serialized !== null && serialized !== base) {
+    setBase(serialized)
     setDraftState(JSON.parse(serialized) as T)
-  }, [serialized])
+  }
 
-  const dirty = draft !== null && baseRef.current !== null && JSON.stringify(draft) !== baseRef.current
+  const dirty = draft !== null && base !== null && JSON.stringify(draft) !== base
 
   return {
     draft,
@@ -51,7 +54,7 @@ export function useDraft<T>(source: T | null): UseDraftResult<T> {
       }),
     dirty,
     reset: () => {
-      if (baseRef.current !== null) setDraftState(JSON.parse(baseRef.current) as T)
+      if (base !== null) setDraftState(JSON.parse(base) as T)
     },
   }
 }
