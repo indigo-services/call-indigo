@@ -25,8 +25,19 @@ export interface UseApiDataResult<T> extends AsyncState<T> {
 
 export function useApiData<T>(key: string, load: () => Promise<T>): UseApiDataResult<T> {
   const version = useSyncExternalStore(subscribeToChanges, getVersion, getVersion)
-  const [state, setState] = useState<AsyncState<T>>({ data: null, loading: true, error: null })
   const [nonce, setNonce] = useState(0)
+
+  // The identity of the read that is in flight. `loading` is DERIVED from it
+  // rather than set at the top of the effect: a synchronous setState inside an
+  // effect commits twice for every read (react-hooks/set-state-in-effect), and
+  // deriving it also removes the one-frame window where a new key rendered
+  // against the previous read's `loading: false`.
+  const requestId = `${key}:${version}:${nonce}`
+  const [settled, setSettled] = useState<{
+    id: string
+    data: T | null
+    error: Error | null
+  } | null>(null)
 
   // Keep the latest loader without making it an effect dependency. Declared
   // before the fetch effect so it is always current when that effect runs.
@@ -37,16 +48,15 @@ export function useApiData<T>(key: string, load: () => Promise<T>): UseApiDataRe
 
   useEffect(() => {
     let cancelled = false
-    setState((prev) => ({ ...prev, loading: true, error: null }))
     loadRef.current().then(
       (data) => {
-        if (!cancelled) setState({ data, loading: false, error: null })
+        if (!cancelled) setSettled({ id: requestId, data, error: null })
       },
       (err: unknown) => {
         if (!cancelled) {
-          setState({
+          setSettled({
+            id: requestId,
             data: null,
-            loading: false,
             error: err instanceof Error ? err : new Error(String(err)),
           })
         }
@@ -55,8 +65,18 @@ export function useApiData<T>(key: string, load: () => Promise<T>): UseApiDataRe
     return () => {
       cancelled = true
     }
-    // `version` is the global mutation counter; `nonce` is a manual reload.
-  }, [key, version, nonce])
+    // `requestId` is `key`, `version` (the global mutation counter) and
+    // `nonce` (a manual reload) collapsed into one comparable string.
+  }, [requestId])
 
-  return { ...state, reload: () => setNonce((n) => n + 1) }
+  const loading = settled === null || settled.id !== requestId
+
+  return {
+    data: settled?.data ?? null,
+    loading,
+    // A stale error must not survive the start of the next read, which is what
+    // the old `setState(prev => ({ ...prev, loading: true, error: null }))` did.
+    error: loading ? null : (settled?.error ?? null),
+    reload: () => setNonce((n) => n + 1),
+  }
 }

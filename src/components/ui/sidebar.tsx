@@ -604,10 +604,10 @@ function SidebarMenuSkeleton({
 }: React.ComponentProps<"div"> & {
   showIcon?: boolean
 }) {
-  // Random width between 50 to 90%.
-  const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`
-  }, [])
+  // A fixed width. This was `Math.random()` inside a `useMemo`, which is an
+  // impure call during render (react-hooks/purity) and made the bar change
+  // width on every remount for no benefit — the randomness was decorative.
+  const width = "70%"
 
   return (
     <div
