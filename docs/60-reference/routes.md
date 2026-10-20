@@ -14,9 +14,9 @@ agree on every `/admin` page; this table is that agreement, printed.
 
 | Path | Renders | Source | Lines |
 |---|---|---|---:|
-| `/` | `HomePage` | `src/marketing/pages/HomePage.tsx` | 1174 |
-| `/residential` | `ResidentialPage` | `src/marketing/pages/ResidentialPage.tsx` | 714 |
-| `/commercial` | `CommercialPage` | `src/marketing/pages/CommercialPage.tsx` | 695 |
+| `/` | `HomePage` | `src/marketing/pages/HomePage.tsx` | 1175 |
+| `/residential` | `ResidentialPage` | `src/marketing/pages/ResidentialPage.tsx` | 715 |
+| `/commercial` | `CommercialPage` | `src/marketing/pages/CommercialPage.tsx` | 696 |
 | `/contact` | `ContactPage` | `src/marketing/pages/ContactPage.tsx` | 653 |
 
 The first three are the marketing pages ported from `valvoro-prototype/`.
@@ -93,4 +93,4 @@ and each page's title. It is the file to edit when adding a page.
 
 ---
 
-*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `be9afcb`.*
+*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `89b6dfc`.*

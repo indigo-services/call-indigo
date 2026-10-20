@@ -36,7 +36,10 @@
  *      `md` and the icon was left alone, which is what the client reported.
  *
  * Footer
- *   5. the admin link in the bottom bar (PRD §12.2)
+ *   5. the admin link in the bottom bar is **gone** (issue #71). It moved to the
+ *      header as a Login button, on all four pages — see `HEADER_LOGIN`. A footer
+ *      link to a sign-in page is a thing operators hunt for; a header button is
+ *      where a visitor of any other site already looks for it.
  *   6. the inquiry link in the Contact column, now that /contact is a real page
  *   7. the copyright line — the prototype's "prototype reconstruction for demo
  *      purposes" is scaffolding language, not something to publish
@@ -112,9 +115,6 @@ const HEADER_PHONE_FIXED =
 
 /* ── Footer ──────────────────────────────────────────────────────────────── */
 
-const ADMIN_LINK = '<a href="/admin" class="transition-colors hover:text-sky">Admin</a>'
-const ADMIN_LINK_ANCHOR =
-  '<button type="button" class="legal-link" data-legal="privacy">Privacy Policy</button>'
 const INQUIRY_LINK = '<a href="/contact" class="block py-1 hover:text-sky">Send an inquiry →</a>'
 const INQUIRY_LINK_ANCHOR =
   '<a href="mailto:support@call-indigo.com" class="block py-1 hover:text-sky">support@call-indigo.com</a>'
@@ -144,6 +144,42 @@ const FOOTER_BONDED =
   '<p>Licensed, bonded and insured home and facility services. One call covers plumbing,'
 const FOOTER_BONDED_FIXED =
   '<p>Licensed and insured home and facility services. One call covers plumbing,'
+
+/* ── Login (issue #71) ───────────────────────────────────────────────────── */
+
+/**
+ * The header's Login button — the dashboard's front door, and since the footer
+ * entry was retired, the ONLY `/admin` link on a public page.
+ *
+ * Injected here rather than written into `chrome-markup.ts`, because that file is
+ * sliced from the prototype and says so at the top: anything written into it is
+ * lost the next time it is regenerated. Every departure from the prototype in
+ * this build follows the same rule.
+ *
+ * ⚠️ **The `md` gate is measured, not stylistic.** At 375px the header row has
+ * 39px of slack and this button needs ~64px, so showing it below `md` pushes the
+ * burger out of the card. Measured across 9 widths on all four pages
+ * (`.preview/measure-header.mjs`): 768px has 234px of slack, 1024px has 183px.
+ * Mobile reaches the same destination from the drawer — see `drawerLogin()`.
+ */
+const HEADER_LOGIN =
+  '<a href="/admin" class="ml-[10px] hidden shrink-0 items-center whitespace-nowrap rounded-[10px] border border-line px-3.5 py-[9px] text-[13px] font-bold leading-none text-ink transition hover:border-sky hover:text-brand md:inline-flex">Login</a>\n      '
+
+/**
+ * Anchored on the phone block's closing tag plus the CTA comment that follows it,
+ * so the button lands between the phone number and "Schedule Online" and cannot
+ * match the footer's `tel:` anchor by accident.
+ */
+const HEADER_PHONE_END = `        <span>(512) 608-4999</span>
+      </a>
+`
+
+const DRAWER_LOGIN =
+  '\n    <a href="/admin" class="mt-5 inline-flex items-center self-start rounded-[10px] border border-white/25 px-5 py-3 text-[14px] font-bold text-white transition hover:border-sky hover:text-sky">Login</a>'
+
+/** The drawer's phone link, the last child before `</nav>`. */
+const DRAWER_PHONE_END = `      <img src="/assets/images/call-icon.png" alt="" class="size-5 object-contain"> (512) 608-4999
+    </a>`
 
 /* ── Legal ───────────────────────────────────────────────────────────────── */
 
@@ -182,10 +218,9 @@ export const TOPBAR_HTML = RAW_TOPBAR_HTML.replace(TOPBAR_SERVICES_SPAN, "")
   .replace(TOPBAR_COUNTIES_ANCHOR, TOPBAR_COUNTIES_FIXED)
   .replace(TOPBAR_TYPE, TOPBAR_TYPE_FIXED)
 
-/** The site footer: the two React-only links plus the copy corrections. */
+/** The site footer: the React-only inquiry link plus the copy corrections. */
 export const FOOTER_HTML = withHomeAnchors(
-  RAW_FOOTER_HTML.replace(ADMIN_LINK_ANCHOR, `${ADMIN_LINK_ANCHOR}\n          ${ADMIN_LINK}`)
-    .replace(INQUIRY_LINK_ANCHOR, `${INQUIRY_LINK_ANCHOR}\n        ${INQUIRY_LINK}`)
+  RAW_FOOTER_HTML.replace(INQUIRY_LINK_ANCHOR, `${INQUIRY_LINK_ANCHOR}\n        ${INQUIRY_LINK}`)
     .replace(COPYRIGHT, COPYRIGHT_FIXED)
     .replace(LICENCE_LINE, "")
     .replace(SERVICE_AREA_LINE, "")
@@ -243,17 +278,19 @@ export function drawerNav(active: NavKey): string {
   return NAV_ITEMS.map((i) => link(i, active, DRAWER_ACTIVE_CLASS, DRAWER_PLAIN_CLASS)).join("\n    ")
 }
 
-/** The sticky header, with the current page marked. */
+/** The sticky header, with the current page marked and the Login button added. */
 export function headerHtml(active: NavKey): string {
   return withInquiryCta(
-    HEADER_TEMPLATE.replace(HEADER_NAV_SLOT, headerNav(active)).replace(
-      HEADER_PHONE,
-      HEADER_PHONE_FIXED,
-    ),
+    HEADER_TEMPLATE.replace(HEADER_NAV_SLOT, headerNav(active))
+      .replace(HEADER_PHONE, HEADER_PHONE_FIXED)
+      .replace(HEADER_PHONE_END, `${HEADER_PHONE_END}      ${HEADER_LOGIN}`),
   )
 }
 
-/** The off-canvas mobile drawer, with the current page marked. */
+/** The off-canvas mobile drawer, with the current page marked and Login added. */
 export function drawerHtml(active: NavKey): string {
-  return DRAWER_TEMPLATE.replace(DRAWER_NAV_SLOT, drawerNav(active))
+  return DRAWER_TEMPLATE.replace(DRAWER_NAV_SLOT, drawerNav(active)).replace(
+    DRAWER_PHONE_END,
+    `${DRAWER_PHONE_END}${DRAWER_LOGIN}`,
+  )
 }

@@ -187,12 +187,71 @@ export async function run() {
     return out
   })
 
-  check("exactly one /admin link per public page (PRD §12.4)", () =>
+  /*
+   * The /admin link, re-stated for issue #71.
+   *
+   * The old check counted `/admin` hrefs across the whole page and required
+   * exactly 1 — which was true while the only one lived in the footer. It moved
+   * to the header, and the drawer carries one for mobile, so a flat count of 1
+   * is now the wrong instrument: it would either fail on a correct page or be
+   * "fixed" by relaxing the number, which is how a check stops being one.
+   *
+   * Split into the three things that actually matter, each of which can fail
+   * independently:
+   *   · the footer link is RETIRED — this is what #71 asked for, and it is the
+   *     assertion that would have caught a half-done edit (1 of 4 surfaces);
+   *   · the header carries exactly one, on every page;
+   *   · the drawer carries exactly one, on every page, because below `md` the
+   *     header button is hidden and the drawer is the only way to reach it.
+   */
+  check("the footer Admin link is retired on every public page (issue #71)", () =>
     pages
-      .map((p) => [p, attr(p.clean, "href").filter((h) => h === "/admin").length])
-      .filter(([, n]) => n !== 1)
-      .map(([p, n]) => `${p.route} — ${n} /admin link(s)`),
+      .map((p) => [p, siteFooter(p.clean) ?? ""])
+      .filter(([, footer]) => footer.includes('href="/admin"'))
+      .map(([p]) => `${p.route} — the footer still links to /admin`),
   )
+
+  check("each public page carries exactly one header and one drawer Login", () => {
+    const out = []
+    for (const p of pages) {
+      for (const [where, block] of [
+        ["header", element(p.clean, 'id="top"')],
+        ["drawer", element(p.clean, 'id="menu-panel"')],
+      ]) {
+        if (!block) {
+          out.push(`${p.route} — no ${where} found`)
+          continue
+        }
+        const links = attr(block, "href").filter((h) => h === "/admin")
+        if (links.length !== 1) out.push(`${p.route} — ${links.length} /admin link(s) in the ${where}`)
+        // The label, not just the destination: a link that says "Admin" is the
+        // footer entry this replaced.
+        if (links.length === 1 && !/>Login</.test(block)) {
+          out.push(`${p.route} — the ${where} /admin link is not labelled Login`)
+        }
+      }
+    }
+    return out
+  })
+
+  check("the header Login button is the only /admin link a desktop visitor can tab to", () => {
+    // Guards the measured layout decision: the button is `hidden` below `md` and
+    // the drawer covers that range. If someone removes the `md:` gate the header
+    // overflows at 1024 (measured: 2px before the padding was tightened), and no
+    // markup check would see it — so at least assert the gate is still declared.
+    const out = []
+    for (const p of pages) {
+      const header = element(p.clean, 'id="top"') ?? ""
+      const login = /<a href="\/admin"[^>]*>Login<\/a>/.exec(header)?.[0] ?? ""
+      if (!login) {
+        out.push(`${p.route} — no header Login anchor`)
+        continue
+      }
+      if (!/md:inline-flex/.test(login)) out.push(`${p.route} — the header Login lost its md: gate`)
+      if (!/(^|\s)hidden(\s|$)/.test(login)) out.push(`${p.route} — the header Login is not hidden by default`)
+    }
+    return out
+  })
 
   check("each nav presentation marks exactly one current page (PRD §5.1)", () => {
     const out = []
@@ -229,9 +288,14 @@ export async function run() {
         continue
       }
       const a = attr(header, "href").map((h) => navTarget(h, p.route))
+      // `/admin` is excluded from the drawer side, and only from the drawer side.
+      // It is not a nav destination — it is the Login button, which the drawer
+      // carries because the header button is hidden below `md` (issue #71). The
+      // four real destinations still have to agree in order, which is what this
+      // check is for; the Login is asserted on its own, in both presentations.
       const b = attr(drawer, "href")
         .map((h) => navTarget(h, p.route))
-        .filter((h) => h.startsWith("/") && KNOWN_ROUTES.has(h))
+        .filter((h) => h.startsWith("/") && KNOWN_ROUTES.has(h) && h !== "/admin")
       if (a.join("|") !== b.join("|")) {
         out.push(`${p.route} — header [${a.join(", ")}] vs drawer [${b.join(", ")}]`)
       }
