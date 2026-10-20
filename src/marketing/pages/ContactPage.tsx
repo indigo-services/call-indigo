@@ -137,14 +137,28 @@ function Field({ label, htmlFor, error, hint, children }: FieldProps) {
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
 
-export default function ContactPage() {
+interface ContactPageProps {
+  /**
+   * Renders the post-submit state on the first paint.
+   *
+   * The router never passes this, so the shipped page always starts on the form.
+   * It exists because the success state is otherwise **unreachable from a static
+   * render** — no submit happens, so `renderToStaticMarkup` can only ever see the
+   * unsent page, and the bug this replaces was precisely a success-state layout
+   * defect that no test could see. `tests/verify.mjs` § "Contact form success
+   * state" renders both states through this seam.
+   */
+  initialReference?: string | null
+}
+
+export default function ContactPage({ initialReference = null }: ContactPageProps = {}) {
   const uid = useId()
   const [values, setValues] = useState<FormValues>(INITIAL)
   const [errors, setErrors] = useState<Errors>({})
   const [submitted, setSubmitted] = useState(false)
   const [pending, setPending] = useState(false)
   const [failure, setFailure] = useState<string | null>(null)
-  const [reference, setReference] = useState<string | null>(null)
+  const [reference, setReference] = useState<string | null>(initialReference)
   const [captchaError, setCaptchaError] = useState(false)
 
   const captchaInputRef = useRef<HTMLInputElement>(null)
@@ -223,6 +237,23 @@ export default function ContactPage() {
     }
   }
 
+  /**
+   * Back to an empty form — the only route out of the confirmation.
+   *
+   * The form is unmounted while the confirmation is up, so it remounts here and
+   * `formRef.current` is a *different* node from the one that was focused before.
+   * Focus therefore has to move after the commit, not before it: without the
+   * `requestAnimationFrame` the browser drops focus to `<body>` and a keyboard
+   * user restarts at the top of the document.
+   */
+  function sendAnother() {
+    setReference(null)
+    setFailure(null)
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>("input, select, textarea")?.focus()
+    })
+  }
+
   return (
     <SiteChrome active="contact">
       {/* ── Heading band ─────────────────────────────────────────────── */}
@@ -275,9 +306,14 @@ export default function ContactPage() {
       {/* ── The form ─────────────────────────────────────────────────── */}
       <div className="pad-rl">
         <section className="mbox slab pad-140">
-          <div className="shell grid gap-12 lg:grid-cols-[1.35fr_.65fr] lg:gap-[70px]">
-            {/* Confirmation replaces nothing — it sits above the form, so the
-                user can send a second inquiry without a navigation. */}
+          {/* The two-column split describes the UNSENT state: form on the left,
+              facts on the right. On success the form is unmounted, so the split
+              goes with it and the confirmation takes the full width — a lone
+              panel held to the 0.65fr column reads like an error message rather
+              than a receipt. */}
+          <div
+            className={`shell grid gap-12 ${reference ? "" : "lg:grid-cols-[1.35fr_.65fr] lg:gap-[70px]"}`}
+          >
             {reference ? (
               <div
                 ref={successRef}
@@ -301,7 +337,7 @@ export default function ContactPage() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => setReference(null)}
+                  onClick={sendAnother}
                   className="pill mt-6"
                 >
                   <span>Send another</span>
@@ -312,8 +348,7 @@ export default function ContactPage() {
                   </span>
                 </button>
               </div>
-            ) : null}
-
+            ) : (
             <form ref={formRef} noValidate onSubmit={onSubmit} className="grid gap-6">
               <div>
                 <span className="eyebrow">Request Service</span>
@@ -557,8 +592,14 @@ export default function ContactPage() {
                 </p>
               </div>
             </form>
+            )}
 
             {/* ── Facts column ───────────────────────────────────────── */}
+            {/* Also unsent-only. "What happens next" restates what the
+                confirmation already says, and "The details" is address and
+                licence — the confirmation carries the phone number, which is
+                the one thing worth keeping within reach. */}
+            {reference ? null : (
             <aside className="grid content-start gap-6">
               <div className="rounded-panel border border-line bg-mist p-6">
                 <h3 className="text-[17px] font-bold text-ink">What happens next</h3>
@@ -600,6 +641,7 @@ export default function ContactPage() {
                 </dl>
               </div>
             </aside>
+            )}
           </div>
         </section>
       </div>

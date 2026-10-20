@@ -1765,4 +1765,76 @@ export async function run() {
     }
     return out
   })
+
+  /* ── The contact form's two states ─────────────────────────────────────────
+   *
+   * Issue #63 was a *success-state* layout defect: the thank-you rendered in the
+   * first grid cell and the still-mounted form in the second, so a visitor who
+   * had just submitted was invited to submit again. Every check in this file
+   * rendered the unsent page, so none of them could see it — the form's presence
+   * after submit is not a thing a source grep can answer either.
+   *
+   * `ContactPage` therefore takes an `initialReference` prop that the router
+   * never passes. These checks render **both** states through it, so the
+   * assertion is on markup that actually gets rendered rather than on a string
+   * in a file.
+   */
+  suite("Contact form success state", "tests/verify.mjs")
+
+  const contact = await load("src/marketing/pages/ContactPage.tsx", "contact-states")
+  const { createElement } = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const unsentHtml = renderToStaticMarkup(createElement(contact.default))
+  const sentHtml = renderToStaticMarkup(
+    createElement(contact.default, { initialReference: "inq_0b1e4f2a-test" }),
+  )
+
+  check("the unsent page renders exactly one form (positive control)", () => {
+    // Without this the "no form after submit" check below would pass on a page
+    // that renders no form at all — which is what a broken import looks like.
+    const n = tags(stripComments(unsentHtml), "form").length
+    if (n !== 1) return [`the unsent page renders ${n} <form> elements, expected exactly 1`]
+    return []
+  })
+
+  check("after a submit the page renders no form at all", () => {
+    const n = tags(stripComments(sentHtml), "form").length
+    if (n !== 0) {
+      return [`the success state still renders ${n} <form> element(s) — the visitor can send a second inquiry from the confirmation`]
+    }
+    return []
+  })
+
+  check("the confirmation is the only thing in the card, at every breakpoint", () => {
+    const out = []
+    const text = textOf(sentHtml)
+    // `textOf` leaves React's `&#x27;` alone, so the apostrophe is matched
+    // loosely rather than copied out of the source.
+    if (!/with our team\./.test(text)) out.push("the confirmation heading is missing")
+    if (!/inq_0b1e4f2a-test/.test(text)) out.push("the reference number is not shown")
+    // The facts column is unsent-only. Both markers are unique to it — the
+    // street address and the licence number also appear in the footer chrome,
+    // so asserting on those would report the aside as present on every page.
+    if (/What happens next/i.test(text)) out.push('the "What happens next" column is still rendered')
+    if (/Approved work is scheduled/.test(text)) out.push('the "What happens next" list is still rendered')
+    // The two-column split is the unsent layout. Leaving it on would hold the
+    // confirmation to the 0.65fr column — the "reads like an error" failure the
+    // issue asked to be decided before the CSS moved.
+    const split = "lg:grid-cols-[1.35fr_.65fr]"
+    if (!classTokens(unsentHtml).has(split)) {
+      out.push(`the unsent page lost ${split} — the check below would be vacuous`)
+    }
+    if (classTokens(sentHtml).has(split)) {
+      out.push(`the success state still carries ${split}, so the confirmation is not full width`)
+    }
+    return out
+  })
+
+  check("the confirmation still offers the way back to the form", () => {
+    // "Send another" is the ONLY route back now that the form is unmounted, so
+    // its disappearance would strand the visitor with no second inquiry.
+    const text = textOf(sentHtml)
+    if (!/Send another/.test(text)) return ["the success state has no \"Send another\" control"]
+    return []
+  })
 }
