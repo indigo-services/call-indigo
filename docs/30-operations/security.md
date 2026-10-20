@@ -21,7 +21,7 @@ The former shared-credential prototype is retained only as a historical record i
 | **Clerk publishable key** | Public key mapped from Vercel's `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` to Vite | `vite.config.ts` |
 | **Vercel environment scopes** | Development has the Marketplace publishable and secret keys; Production has the encrypted Production publishable key; Preview has no Clerk key | Vercel project environment-variable metadata |
 | **Clerk access mode** | Development and Production are both verified as Invite-only; Production has one user with the admin role and zero pending invitations | Clerk Dashboard (verified 2026-10-16) |
-| **Production deployment** | Latest Production deployment is the September 29 release; the Clerk-enabled working tree is not deployed | Vercel deployment metadata |
+| **Production deployment** | **The Clerk-enabled build is live.** Corrected 2026-10-20: the deployed `AdminArea` chunk carries a `pk_live_` key and the `publicMetadata` check, so the September 29 claim below is stale. Which commit is deployed remains unverified. | `curl https://call-indigo.com/` → entry chunk → `assets/AdminArea-*.js`; [`../40-project/audit-backend-and-clerk-readiness-2026-10-20.md`](../40-project/audit-backend-and-clerk-readiness-2026-10-20.md) F6 |
 | **Cookies and browser auth state** | Clerk sets authentication cookies when users interact with sign-in; the app does not implement its own auth storage | `@clerk/react`; [Clerk cookie documentation](https://clerk.com/docs/guides/how-clerk-works/cookies) |
 | **Third-party runtime scripts** | Clerk's authentication UI/runtime loads from Clerk; no analytics or advertising scripts | Clerk React SDK; app source |
 | **Dependencies** | Watched by Dependabot | `.github/dependabot.yml` |
