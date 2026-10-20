@@ -10,7 +10,7 @@
  */
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
 import path from "node:path"
-import { ROOT, check, suite } from "./harness.mjs"
+import { ROOT, check, load, suite } from "./harness.mjs"
 
 function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {
@@ -37,7 +37,7 @@ function stripJsComments(src) {
   return src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^[ \t]*\/\/.*$/gm, " ")
 }
 
-export function run() {
+export async function run() {
   const srcFiles = walk(path.join(ROOT, "src"))
   const adminFiles = srcFiles.filter((f) => rel(f).startsWith("src/admin/"))
   const uiFiles = srcFiles.filter((f) => rel(f).startsWith("src/components/ui/"))
@@ -175,6 +175,91 @@ export function run() {
     if (!star) return ['no path="*" inside /admin']
     if (star[1] !== "Navigate") return [`/admin catch-all renders <${star[1]}>, not a redirect`]
     return []
+  })
+
+  /* ── External links (issue #70) ──────────────────────────────────────────
+   *
+   * The sidebar now carries a group that leaves the app. Two things could go
+   * wrong silently, and neither is visible in a source read:
+   *
+   *   1. an external URL ends up in `ADMIN_ROUTES`, where the breadcrumb looks
+   *      it up by pathname — the crumb would read "Not found" on every page;
+   *   2. an external item is rendered as a router `Link`, which pushes a path
+   *      onto this app's history and renders the admin shell at a URL that is
+   *      not ours.
+   *
+   * (1) is asserted against the real `findAdminRoute`; (2) against the rendered
+   * anchor. A grep for `target="_blank"` would pass on a comment.
+   */
+  suite("External nav (issue #70)", "tests/policy.mjs")
+
+  const routesModel = await load("src/admin/routes.ts", "admin-routes")
+  const externalNav = await load("src/admin/ExternalNav.tsx", "external-nav")
+  const externalItems = routesModel.ADMIN_EXTERNAL_NAV.flatMap((g) => g.items)
+  const externalHtml = await (async () => {
+    const { renderToStaticMarkup } = await import("react-dom/server")
+    const { createElement } = await import("react")
+    return renderToStaticMarkup(createElement(externalNav.ExternalNavLinks))
+  })()
+
+  check("every external nav item is an absolute https URL", () => {
+    if (externalItems.length === 0) return ["ADMIN_EXTERNAL_NAV is empty — this check would pass vacuously"]
+    return externalItems
+      .filter((i) => !/^https:\/\/[a-z0-9.-]+\.[a-z]{2,}(?:[/?#]|$)/i.test(i.href))
+      .map((i) => `${i.title} — href "${i.href}" is not an absolute https URL`)
+  })
+
+  check("no external href is a router path, so the breadcrumb cannot match one", () => {
+    // The breadcrumb resolves `findAdminRoute(location.pathname)`. An external
+    // item must be invisible to it: present in ADMIN_ROUTES and the crumb reads
+    // "Not found" for a page that is not ours.
+    const out = []
+    for (const item of externalItems) {
+      const hit = routesModel.findAdminRoute(item.href)
+      if (hit) out.push(`${item.title} — ${item.href} resolves as the admin route "${hit.title}"`)
+    }
+    // Positive control: the resolver DOES find real routes, so an empty result
+    // above is "no external collisions", not "the resolver is broken".
+    if (!routesModel.findAdminRoute("/admin/inquiries")) {
+      out.push("findAdminRoute() cannot resolve /admin/inquiries — the check above proves nothing")
+    }
+    return out
+  })
+
+  check("external items render as new-tab anchors, not router links", () => {
+    const out = []
+    const anchors = [...externalHtml.matchAll(/<a\b[^>]*>/g)].map((m) => m[0])
+    if (anchors.length !== externalItems.length) {
+      out.push(`rendered ${anchors.length} anchors for ${externalItems.length} items`)
+    }
+    for (const item of externalItems) {
+      const tag = anchors.find((a) => a.includes(`href="${item.href}"`))
+      if (!tag) {
+        out.push(`${item.title} — no anchor with href="${item.href}"`)
+        continue
+      }
+      if (!/target="_blank"/.test(tag)) out.push(`${item.title} — missing target="_blank"`)
+      if (!/rel="noopener noreferrer"/.test(tag)) out.push(`${item.title} — missing rel="noopener noreferrer"`)
+      if (!/>[^<]*$/.test(tag) && !tag.endsWith(">")) out.push(`${item.title} — malformed anchor`)
+    }
+    // A router `Link` renders an anchor with a resolved `href` and no `target`,
+    // so the target check above already catches it. This asserts the component
+    // does not import the router at all — a `Link` used for a *different* item
+    // in the same file would otherwise slip past.
+    const src = read(path.join(ROOT, "src", "admin", "ExternalNav.tsx"))
+    if (/from\s+["']react-router/.test(src)) out.push("ExternalNav.tsx imports react-router")
+    return out
+  })
+
+  check("the sidebar renders the external group", () => {
+    // The one thing the two checks above cannot see: whether the group is
+    // mounted at all. A component that passes its own tests but is never
+    // rendered is the exact failure this repo has paid for before.
+    const sidebar = stripJsComments(read(path.join(ROOT, "src", "components", "app-sidebar.tsx")))
+    const out = []
+    if (!/<ExternalNavLinks\s*\/>/.test(sidebar)) out.push("app-sidebar.tsx does not render <ExternalNavLinks />")
+    if (!/ADMIN_NAV\.map/.test(sidebar)) out.push("app-sidebar.tsx no longer renders ADMIN_NAV — the internal groups are gone")
+    return out
   })
 
   check("Clerk owns admin identity while data authorization remains a backend responsibility", () => {

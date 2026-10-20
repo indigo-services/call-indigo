@@ -16,11 +16,14 @@ import {
   Bell,
   BookOpen,
   Component,
+  Fingerprint,
+  Github,
   Image,
   Inbox,
   Palette,
   Settings,
   Shield,
+  Triangle,
   User,
   type LucideIcon,
 } from "lucide-react"
@@ -126,3 +129,72 @@ export const ADMIN_ROUTES: readonly AdminNavItem[] = ADMIN_NAV.flatMap((g) => g.
 export function findAdminRoute(pathname: string): AdminNavItem | undefined {
   return ADMIN_ROUTES.find((r) => r.path === pathname)
 }
+
+/* ── External links (issue #70) ──────────────────────────────────────────── */
+
+/**
+ * A link that leaves the app.
+ *
+ * Deliberately NOT an `AdminNavItem` with optional fields. The two shapes differ
+ * in more than their property names, and merging them would put four meaningless
+ * combinations in the type (`path` + `href`, neither, both, an external item
+ * with a `description` that no surface renders):
+ *
+ *   · `AdminNavItem.path` is a **route**. It is resolved by `findAdminRoute()`,
+ *     compared against `useLocation().pathname` for the active pill, and matched
+ *     against `App.tsx` by `tests/policy.mjs`. An external URL in that field
+ *     would make the breadcrumb look for a route called `https://…` and would
+ *     fail the router/sidebar agreement check.
+ *   · An external item is never "current", never breadcrumbed, and never a
+ *     router destination. It opens a new tab.
+ *
+ * Keeping them apart is what lets `ADMIN_ROUTES` stay a complete list of the
+ * app's own pages — the property every check in `policy.mjs` depends on.
+ */
+export interface AdminExternalNavItem {
+  /** Sidebar label and the link's accessible name. */
+  title: string
+  /** Absolute URL. Validated as such by `tests/policy.mjs`. */
+  href: string
+  icon: LucideIcon
+}
+
+export interface AdminExternalNavGroup {
+  label: string
+  items: AdminExternalNavItem[]
+}
+
+/**
+ * The three dashboards an operator needs and this app does not host.
+ *
+ * **Hard-coded, not read from `VITE_*`.** These are not per-environment: the
+ * Clerk dashboard, the Vercel project and the GitHub repository are the same
+ * three addresses in local, preview and production. An env var would add three
+ * required configuration values to every deploy to express something that never
+ * varies, and a missing one would render a dead link instead of failing loudly.
+ * If a URL ever does need to vary, that is the moment to add the variable — and
+ * `tests/policy.mjs` asserts every href here is absolute, so the change cannot
+ * be made silently.
+ */
+export const ADMIN_EXTERNAL_NAV: readonly AdminExternalNavGroup[] = [
+  {
+    label: "Dashboards",
+    items: [
+      {
+        title: "Clerk",
+        href: "https://dashboard.clerk.com",
+        icon: Fingerprint,
+      },
+      {
+        title: "Vercel",
+        href: "https://vercel.com/indigo-projects",
+        icon: Triangle,
+      },
+      {
+        title: "GitHub",
+        href: "https://github.com/indigo-services/call-indigo",
+        icon: Github,
+      },
+    ],
+  },
+]
