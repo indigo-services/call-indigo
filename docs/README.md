@@ -12,7 +12,7 @@ those claims live.
 
 | | |
 |---|---|
-| **Library** | `docs/` — **61 documents**, in seven numbered domains |
+| **Library** | `docs/` — **62 documents**, in seven numbered domains |
 | **Front door** | this file |
 | **Start here instead if you are new** | [`../README.md`](../README.md) at the repo root |
 | **Read it as a website** | [**The project wiki**](https://github.com/indigo-services/call-indigo/wiki) — this directory, rendered. **A mirror: edit here, never there.** |
@@ -96,6 +96,7 @@ declares for itself — see `00-meta/conventions.md` §2.
 | [`40-project/artifacts.md`](./40-project/artifacts.md) | dated | Where generated things live, and what may be deleted |
 | [`40-project/client-disclosure.md`](./40-project/client-disclosure.md) | dated | **The client-facing full disclosure** — what was built, what it does with visitor data, what is licensed from whom, and what is still open |
 | [`40-project/proposal-backend-and-lead-handling-2026-09-29.md`](./40-project/proposal-backend-and-lead-handling-2026-09-29.md) | dated | **The client-facing proposal** — a real backend and multi-form lead handling ($1,000), with an optional product/service checkout ($1,500); scope, price, risks, acceptance criteria |
+| [`40-project/audit-backend-and-clerk-readiness-2026-10-20.md`](./40-project/audit-backend-and-clerk-readiness-2026-10-20.md) | dated | **The production-readiness audit** — per-subsystem production-ready vs demo-only, eight findings each with a `file:line` and a severity, and the four things it could not verify |
 | [`40-project/decisions/README.md`](./40-project/decisions/README.md) | index | The ADR index and its convention |
 | [`40-project/decisions/0001-evidence-based-documentation.md`](./40-project/decisions/0001-evidence-based-documentation.md) | dated | Why the repo wins over the document |
 | [`40-project/decisions/0002-client-side-admin-gate.md`](./40-project/decisions/0002-client-side-admin-gate.md) | dated | Why the gate is client-side, and what it is not |
