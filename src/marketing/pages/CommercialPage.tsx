@@ -139,6 +139,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
         <img src="/assets/images/call-icon.png" alt="" class="size-[22px] object-contain">
         <span>(512) 608-4999</span>
       </a>
+      <a href="/admin" class="ml-[10px] hidden shrink-0 items-center whitespace-nowrap rounded-[10px] border border-line px-3.5 py-[9px] text-[13px] font-bold leading-none text-ink transition hover:border-sky hover:text-brand md:inline-flex">Login</a>
       <!-- CTA: only shown when the full nav + phone also fit (lg and up). At md–lg
            the nav is present but the pill is dropped, so the row cannot overflow.
            Sized from the reference: the cyan pill measures 216 x 54 at x1452,
@@ -175,6 +176,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
     <a href="tel:+15126084999" class="mt-6 inline-flex items-center gap-3 font-bold text-sky">
       <img src="/assets/images/call-icon.png" alt="" class="size-5 object-contain"> (512) 608-4999
     </a>
+    <a href="/admin" class="mt-5 inline-flex items-center self-start rounded-[10px] border border-white/25 px-5 py-3 text-[14px] font-bold text-white transition hover:border-sky hover:text-sky">Login</a>
   </nav>
   <div id="menu-backdrop" class="pointer-events-none fixed inset-0 z-40 bg-[rgba(9,14,33,.6)] opacity-0 transition-opacity duration-300 [&.show]:pointer-events-auto [&.show]:opacity-100"></div>
 
@@ -450,7 +452,6 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
         <div class="flex flex-col items-center gap-2.5 md:flex-row md:flex-wrap md:justify-center md:gap-x-5 md:gap-y-2">
           <button type="button" class="legal-link" data-legal="terms">Terms of Service</button>
           <button type="button" class="legal-link" data-legal="privacy">Privacy Policy</button>
-          <a href="/admin" class="transition-colors hover:text-sky">Admin</a>
         </div>
       </div>
     </div>
