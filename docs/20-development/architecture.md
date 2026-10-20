@@ -171,8 +171,11 @@ the site, and it will look correct in a browser if you only open home.
 `src/admin/AdminArea.tsx` mounts `ClerkProvider` when the Vercel-supplied publishable key is present;
 the admin entry point is lazy-loaded so marketing visitors do not download Clerk.
 `src/admin/RequireAuth.tsx` waits for Clerk to load, requires a signed-in user, and then
-requires `publicMetadata.role === "admin"` before rendering `AdminLayout`. The role check
-fails closed. The sign-in page and account menu use Clerk's prebuilt React components.
+passes that user's organization memberships to `resolveAdminAccess()` in
+`src/admin/clerkAuth.ts` before rendering `AdminLayout`. Access requires an Admin
+membership of the `Indigo Services` organization; the role decides which feature areas
+the sidebar offers, and every check fails closed. The sign-in page and account menu use
+Clerk's prebuilt React components.
 
 The React guard controls the visible SPA only. It is not server authorization: all app
 code is public, and dashboard records remain in browser `localStorage`. The Clerk secret

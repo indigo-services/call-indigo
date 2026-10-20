@@ -28,6 +28,8 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
+import type { AdminFeature } from "@/admin/clerkAuth"
+
 export interface AdminNavItem {
   /** Sidebar label and breadcrumb leaf. */
   title: string
@@ -36,6 +38,12 @@ export interface AdminNavItem {
   icon: LucideIcon
   /** One line under the page heading. */
   description: string
+  /**
+   * The access area this page belongs to. The sidebar filters on it with
+   * `can()`, so this field — not the group label — is what a role grants.
+   * Grouping may change (issue #73); the areas must not.
+   */
+  feature: AdminFeature
 }
 
 export interface AdminNavGroup {
@@ -50,6 +58,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       {
         title: "Inquiries",
         path: "/admin/inquiries",
+        feature: "inbox",
         icon: Inbox,
         description: "Every request submitted through the public inquiry form.",
       },
@@ -61,24 +70,28 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       {
         title: "General",
         path: "/admin/settings",
+        feature: "settings",
         icon: Settings,
         description: "Business details, used across the site and its documents.",
       },
       {
         title: "Profile",
         path: "/admin/profile",
+        feature: "settings",
         icon: User,
         description: "The signed-in operator's own details.",
       },
       {
         title: "Notifications",
         path: "/admin/notifications",
+        feature: "settings",
         icon: Bell,
         description: "What the team gets told about, and when.",
       },
       {
         title: "Security",
         path: "/admin/security",
+        feature: "settings",
         icon: Shield,
         description: "Clerk account and session controls.",
       },
@@ -90,18 +103,21 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       {
         title: "Design System",
         path: "/admin/design",
+        feature: "design",
         icon: Palette,
         description: "The brand tokens, read-only.",
       },
       {
         title: "Assets",
         path: "/admin/assets",
+        feature: "design",
         icon: Image,
         description: "The images the marketing pages serve.",
       },
       {
         title: "Components",
         path: "/admin/components",
+        feature: "design",
         icon: Component,
         description: "The primitives available to dashboard pages.",
       },
@@ -116,6 +132,7 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
       {
         title: "Documentation",
         path: "/admin/docs",
+        feature: "reference",
         icon: BookOpen,
         description: "The project's documentation library, read-only.",
       },

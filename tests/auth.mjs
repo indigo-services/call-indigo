@@ -26,6 +26,7 @@ export async function run() {
   const pkg = JSON.parse(read("package.json"))
   const lock = JSON.parse(read("package-lock.json"))
   const clerkAuth = await load("src/admin/clerkAuth.ts", "clerkAuth")
+  const routesModel = await load("src/admin/routes.ts", "admin-routes")
 
   check("the React Core 3 SDK is a direct runtime dependency", () => {
     const spec = pkg.dependencies?.["@clerk/react"]
@@ -66,22 +67,106 @@ export async function run() {
     return out
   })
 
-  check("admin role matching fails closed for missing or non-admin metadata", () => {
+  /* ── Access resolution (issue #74) ───────────────────────────────────────
+   *
+   * One resolver, so this is the only place the rules can be wrong. The cases
+   * below are the rules themselves, not examples of them: the retired flat flag
+   * must grant nothing, and an admin of some OTHER organization must not pass.
+   */
+
+  check("admin access comes only from a membership of the pinned organization", () => {
+    const org = clerkAuth.ADMIN_ORG_ID
+    const membership = (role, id = org) => ({ organization: { id }, role })
     const cases = [
-      [null, false],
-      [undefined, false],
-      [{}, false],
-      [{ publicMetadata: null }, false],
-      [{ publicMetadata: {} }, false],
-      [{ publicMetadata: { role: "member" } }, false],
-      [{ publicMetadata: { role: "Admin" } }, false],
-      [{ publicMetadata: { role: "admin" } }, true],
+      ["no user at all", null, false],
+      ["an undefined user", undefined, false],
+      ["a user object with no memberships field", {}, false],
+      ["an empty membership list", { memberships: [] }, false],
+      ["a null membership list", { memberships: null }, false],
+      // If the retired flag still granted access, the organization model would be
+      // decoration and this whole change would be cosmetic.
+      ["the retired flat role flag on its own", { memberships: [], publicMetadata: { role: "admin" } }, false],
+      // Pinning. Clerk's creator_role on this instance is org:admin, so "any
+      // organization where I am an admin" is reachable by anyone who can create
+      // one. Comparing the id is what makes the role mean something.
+      ["admin of a DIFFERENT organization", { memberships: [membership("org:admin", "org_someone_elses_org")] }, false],
+      ["member of the right organization", { memberships: [membership("org:member")] }, true],
+      ["admin of the right organization", { memberships: [membership("org:admin")] }, true],
+      ["a custom role in the right organization", { memberships: [membership("org:auditor")] }, false],
+      ["a role differing only in case", { memberships: [membership("org:Admin")] }, false],
+      // The active session is the same fact from a second endpoint, not a second
+      // rule — and it is trusted only for the pinned organization.
+      ["the active session for the right organization", { activeOrgId: org, activeOrgRole: "org:admin" }, true],
+      ["the active session for a different organization", { activeOrgId: "org_elsewhere", activeOrgRole: "org:admin" }, false],
+      ["the active session with no role", { activeOrgId: org, activeOrgRole: null }, false],
     ]
-    return cases.flatMap(([user, expected]) =>
-      clerkAuth.hasAdminRole(user) === expected
-        ? []
-        : [`hasAdminRole(${JSON.stringify(user)}) returned ${clerkAuth.hasAdminRole(user)}, expected ${expected}`],
-    )
+    return cases.flatMap(([label, subject, expected]) => {
+      const got = clerkAuth.resolveAdminAccess(subject)
+      return got.allowed === expected ? [] : [`${label}: allowed=${got.allowed}, expected ${expected}`]
+    })
+  })
+
+  check("the reason for a denial distinguishes no membership from a wrong role", () => {
+    // The two produce different instructions on screen. Reporting one as the
+    // other sends the operator to ask for the wrong thing.
+    const org = clerkAuth.ADMIN_ORG_ID
+    const out = []
+    const missing = clerkAuth.resolveAdminAccess({ memberships: [] })
+    const wrongRole = clerkAuth.resolveAdminAccess({ memberships: [{ organization: { id: org }, role: "org:auditor" }] })
+    if (missing.reason !== "no-membership") out.push(`no membership reports reason "${missing.reason}"`)
+    if (wrongRole.reason !== "insufficient-role") out.push(`a custom role reports reason "${wrongRole.reason}"`)
+    if (missing.role !== null || wrongRole.role !== null) out.push("a denied result carries a role")
+    if (missing.features.size !== 0 || wrongRole.features.size !== 0) out.push("a denied result carries features")
+    return out
+  })
+
+  check("a member gets the inbox and settings, and nothing else", () => {
+    const access = clerkAuth.resolveAdminAccess({
+      memberships: [{ organization: { id: clerkAuth.ADMIN_ORG_ID }, role: "org:member" }],
+    })
+    const visible = clerkAuth.ALL_ADMIN_FEATURES.filter((f) => clerkAuth.can(access, f))
+    const out = []
+    if (!visible.includes("inbox")) out.push("a member cannot see the inbox — the page the role exists for")
+    if (!visible.includes("settings")) out.push("a member cannot see settings, which holds their own profile and security")
+    if (visible.includes("design")) out.push("a member can see the brand system")
+    if (visible.includes("reference")) out.push("a member can see the engineering documentation")
+    if (visible.length !== 2) out.push(`a member sees ${visible.length} areas (${visible.join(", ")}), expected exactly 2`)
+    return out
+  })
+
+  check("an admin sees every page the nav model declares, and a member does not", () => {
+    const admin = clerkAuth.resolveAdminAccess({
+      memberships: [{ organization: { id: clerkAuth.ADMIN_ORG_ID }, role: "org:admin" }],
+    })
+    const member = clerkAuth.resolveAdminAccess({
+      memberships: [{ organization: { id: clerkAuth.ADMIN_ORG_ID }, role: "org:member" }],
+    })
+    const out = []
+    // Without this, a typo in an item's `feature` would hide that page from
+    // everyone — including the role that is supposed to see all of it — and
+    // nothing else in the suite looks at feature values.
+    if (routesModel.ADMIN_ROUTES.length === 0) out.push("ADMIN_ROUTES is empty — this check would pass vacuously")
+    for (const item of routesModel.ADMIN_ROUTES) {
+      if (!clerkAuth.can(admin, item.feature)) {
+        out.push(`${item.path} is hidden from an admin (feature "${item.feature}") — unknown area, or no role grants it`)
+      }
+    }
+    const memberPaths = routesModel.ADMIN_ROUTES.filter((i) => clerkAuth.can(member, i.feature)).map((i) => i.path)
+    if (memberPaths.length === 0) out.push("a member sees no pages at all")
+    for (const path of ["/admin/design", "/admin/assets", "/admin/components", "/admin/docs"]) {
+      if (memberPaths.includes(path)) out.push(`a member can reach ${path}`)
+    }
+    return out
+  })
+
+  check("the retired flat role flag is read nowhere under src/", () => {
+    // The one thing a per-case test cannot see: a second gate somewhere else
+    // that still trusts the old flag. Nothing in src/ may name it — including
+    // comments, which is why the resolver describes it in prose instead.
+    const files = walkFiles(path.join(ROOT, "src")).filter((f) => /\.(?:ts|tsx)$/.test(f))
+    return files
+      .filter((f) => readFileSync(f, "utf8").includes("publicMetadata"))
+      .map((f) => `${path.relative(ROOT, f).split(path.sep).join("/")} still reads the retired flag`)
   })
 
   check("the guard waits for Clerk, checks identity and role, then renders the shell", () => {
@@ -90,8 +175,15 @@ export async function run() {
     if (!/useAuth\(\)/.test(src) || !/useUser\(\)/.test(src)) out.push("RequireAuth does not read Clerk auth and user state")
     if (!/if \(!isLoaded \|\| \(isSignedIn && !isUserLoaded\)\)/.test(src)) out.push("RequireAuth does not wait for both Clerk states to load")
     if (!/if \(!isSignedIn\) return <LoginPage \/>/.test(src)) out.push("signed-out visitors do not receive the Clerk sign-in page")
-    if (!/if \(!hasAdminRole\(user\)\)/.test(src)) out.push("the role check does not deny users without admin metadata")
-    if (!/return <>\{children\}<\/>/.test(src)) out.push("the protected children are not rendered after authorization")
+    if (!/if \(!access\.allowed\)/.test(src)) out.push("the guard does not deny when the resolver refuses")
+    if (!/resolveAdminAccess\(\{/.test(src)) out.push("the guard does not call the single access resolver")
+    if (!/memberships: user\?\.organizationMemberships/.test(src)) out.push("the guard does not pass the organization memberships")
+    if (!/activeOrgId: orgId,/.test(src) || !/activeOrgRole: orgRole/.test(src)) {
+      out.push("the guard does not pass the session's active organization, so an admin who has not selected one is locked out")
+    }
+    if (!/<AdminAccessContext\.Provider value=\{access\}>\{children\}<\/AdminAccessContext\.Provider>/.test(src)) {
+      out.push("the resolved access is not provided to the shell")
+    }
     if (!/Admin sign-in is not configured/.test(src)) out.push("missing environment keys have no clear admin setup state")
     return out
   })
@@ -152,7 +244,12 @@ export async function run() {
     const adr = read("docs/40-project/decisions/0005-clerk-admin-identity.md")
     const out = []
     if (!/Invite-only/.test(environments)) out.push("environment runbook does not require Clerk Invite-only mode")
-    if (!/publicMetadata\.role\s*=\s*[\"']admin/.test(environments)) out.push("environment runbook does not specify the trusted admin role")
+    // The runbook must name what actually grants access. Until #74 it said to set
+    // the public metadata role — an instruction that would now lock an operator
+    // out while they believed they had followed every step.
+    if (!/Admin members? of the/.test(environments) || !/Indigo Services/.test(environments)) {
+      out.push("environment runbook does not say that an Admin membership of the Indigo Services organization is what grants access")
+    }
     if (!/invitation by itself does not/i.test(environments)) out.push("environment runbook does not distinguish invitation from admin role")
     if (!/Invite-only/.test(adr)) out.push("ADR does not record the invited-admin access policy")
     return out
