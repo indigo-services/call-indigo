@@ -88,9 +88,13 @@ The risk is not data loss — it is a person believing they are looking at real 
 
 ### F3 — "Admin-only" means "hidden from the UI" — **S2**
 
-`src/admin/clerkAuth.ts:14` is `user?.publicMetadata?.role === "admin"`, evaluated in
-JavaScript delivered to the browser. The file says so itself at `:4` — *"it is not server
-authorization"* — and `RequireAuth.tsx:35` is the only place it is enforced.
+`src/admin/clerkAuth.ts` holds the whole rule, in `resolveAdminAccess()`: access is an
+Admin membership of the `Indigo Services` organization. It is evaluated in JavaScript
+delivered to the browser. (At the time of writing it was a flat
+`publicMetadata.role === "admin"` flag; issue #74 replaced it the same day — see the
+amendment in [ADR 0005](./decisions/0005-clerk-admin-identity.md).) The file says so
+itself — *"it is not server authorization"* — and `RequireAuth.tsx` is the only place it
+is enforced.
 
 With no server, there is nothing to authorize: the data is in the browser and the source is
 public. **This is not a vulnerability in the current architecture; it is a limit that

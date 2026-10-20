@@ -268,8 +268,12 @@ export async function run() {
     const guard = read(path.join(ROOT, "src", "admin", "RequireAuth.tsx"))
     const helper = read(path.join(ROOT, "src", "admin", "clerkAuth.ts"))
     if (!/@clerk\/react/.test(adminArea) || !/ClerkProvider/.test(adminArea)) out.push("AdminArea.tsx does not mount ClerkProvider")
-    if (!/useAuth\(\)/.test(guard) || !/hasAdminRole\(user\)/.test(guard)) out.push("RequireAuth does not gate the admin UI with Clerk identity and role")
-    if (!/publicMetadata\?\.role === "admin"/.test(helper)) out.push("the admin role is not read from Clerk public metadata")
+    if (!/useAuth\(\)/.test(guard) || !/resolveAdminAccess\(/.test(guard)) out.push("RequireAuth does not gate the admin UI with Clerk identity and the single access resolver")
+    // The organization must be PINNED, not merely read: `creator_role` is
+    // org:admin on this instance, so a check that accepted any organization's
+    // admin would let anyone who can create one grant themselves access.
+    if (!/membership\?\.organization\?\.id === ADMIN_ORG_ID/.test(helper)) out.push("the access resolver does not pin the organization that grants access")
+    if (/publicMetadata/.test(helper)) out.push("the access resolver still reads the retired flat role flag")
     if (!/not server authorization/i.test(guard)) out.push("the client-only authorization limit is not stated in the guard")
     if (existsSync(path.join(ROOT, "src", "admin", "auth.ts"))) out.push("the removed shared credential implementation still exists")
     return out

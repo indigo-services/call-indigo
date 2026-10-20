@@ -1,14 +1,19 @@
 /**
- * RequireAuth — the identity and admin-role gate around the `/admin` shell.
+ * RequireAuth — the identity and role gate around the `/admin` shell.
  *
  * This is a client-rendered Vite app. The guard controls which UI is shown; it
  * is not server authorization. Admin data remains in this browser's
  * localStorage until the app has an authenticated backend.
+ *
+ * Access is decided by `resolveAdminAccess()` and nowhere else — this component
+ * only supplies it with the two things Clerk knows: the user's organization
+ * memberships, and the organization selected in this session.
  */
 import type { ReactNode } from "react"
 import { useAuth, useClerk, useUser } from "@clerk/react"
 import { Button } from "@/components/ui/button"
-import { hasAdminRole } from "@/admin/clerkAuth"
+import { ADMIN_ORG_NAME, resolveAdminAccess, type AdminAccess } from "@/admin/clerkAuth"
+import { AdminAccessContext } from "@/admin/access-context"
 import LoginPage from "@/admin/LoginPage"
 
 function AuthMessage({ title, children }: { title: string; children: ReactNode }) {
@@ -23,7 +28,7 @@ function AuthMessage({ title, children }: { title: string; children: ReactNode }
 }
 
 function ClerkAuthBoundary({ children }: { children: ReactNode }) {
-  const { isLoaded, isSignedIn } = useAuth()
+  const { isLoaded, isSignedIn, orgId, orgRole } = useAuth()
   const { isLoaded: isUserLoaded, user } = useUser()
 
   if (!isLoaded || (isSignedIn && !isUserLoaded)) {
@@ -32,22 +37,41 @@ function ClerkAuthBoundary({ children }: { children: ReactNode }) {
 
   if (!isSignedIn) return <LoginPage />
 
-  if (!hasAdminRole(user)) {
-    return <AccessDenied />
-  }
+  const access = resolveAdminAccess({
+    memberships: user?.organizationMemberships,
+    activeOrgId: orgId,
+    activeOrgRole: orgRole,
+  })
 
-  return <>{children}</>
+  if (!access.allowed) return <AccessDenied access={access} />
+
+  return <AdminAccessContext.Provider value={access}>{children}</AdminAccessContext.Provider>
 }
 
-function AccessDenied() {
+function AccessDenied({ access }: { access: AdminAccess }) {
   const { signOut } = useClerk()
 
+  // Two different problems, two different instructions. "Not a member" and
+  // "a member without the right role" both end in the same screen, and telling
+  // someone to request the wrong thing is how a support round-trip starts.
   return (
     <AuthMessage title="Admin access required">
-      <p>Your account is signed in but is not assigned the admin role.</p>
-      <p className="mt-2">
-        Ask an administrator to assign <code>publicMetadata.role = "admin"</code> in Clerk.
-      </p>
+      {access.reason === "insufficient-role" ? (
+        <>
+          <p>You are a member of {ADMIN_ORG_NAME}, but your role does not include the dashboard.</p>
+          <p className="mt-2">
+            Ask an administrator to change your role to <strong>Admin</strong> in Clerk.
+          </p>
+        </>
+      ) : (
+        <>
+          <p>Your account is signed in but is not a member of {ADMIN_ORG_NAME}.</p>
+          <p className="mt-2">
+            Ask an administrator to add you to that organization in Clerk with the{" "}
+            <strong>Admin</strong> role.
+          </p>
+        </>
+      )}
       <Button className="mt-5" variant="outline" onClick={() => void signOut({ redirectUrl: "/" })}>
         Sign out
       </Button>

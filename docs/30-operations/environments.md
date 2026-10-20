@@ -17,7 +17,7 @@ is a defect that only appears after a merge.
 | **Server** | Vite dev server | Vercel CDN | Vercel CDN |
 | **SPA rewrite** | Vite's own fallback | `vercel.json` | `vercel.json` |
 | **Data** | `localStorage`, seeded on first run | **the visitor's own** `localStorage` | same |
-| **Clerk admin UI** | On with a configured key | Setup message until Preview key is configured | Sign-in UI loads; the Production account has `publicMetadata.role = "admin"` and organization Admin membership, but has not signed in yet |
+| **Clerk admin UI** | On with a configured key | Setup message until Preview key is configured | Sign-in UI loads; the Production accounts are Admin members of the `Indigo Services` organization — the only thing that grants dashboard access — but have not signed in yet |
 | **Clerk publishable key** | Pull from Vercel Development or set locally | Not configured | Production instance key is set in Vercel Production as an encrypted variable |
 | **Analytics** | none | **none** | **none** |
 | **Authentication state** | Clerk-managed when configured; auth cookies are set during sign-in | Clerk-managed when configured; auth cookies are set during sign-in | Clerk-managed when configured; auth cookies are set during sign-in |
@@ -43,11 +43,12 @@ Marketplace configuration. Preview has no Clerk key. When the public key is abse
 app keeps the marketing site available and shows an admin setup message on `/admin`.
 
 The requested access policy is **invited admins only**. Both the Development and
-Production instances are verified as **Invite-only**. Production currently has one user,
-no pending invitations, and a trusted `publicMetadata.role = "admin"` marker for that
-user. The user also has Clerk organization Admin membership. Invite-only prevents
-self-sign-up; the public role marker separately controls whether the app renders the
-admin shell. An invitation by itself does not assign the admin role. See
+Production instances are verified as **Invite-only**. Production has two users and no
+pending invitations, and both are **Admin members of the `Indigo Services`
+organization**. Invite-only prevents self-sign-up; that organization membership is what
+separately controls whether the app renders the admin shell, and its role decides which
+feature areas the sidebar offers. An invitation by itself does not assign the admin
+role. See
 Clerk's [access restriction guide](https://clerk.com/docs/guides/secure/restricting-access)
 and [invitation guide](https://clerk.com/docs/guides/users/inviting).
 

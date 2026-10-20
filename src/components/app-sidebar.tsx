@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/sidebar"
 import { ADMIN_NAV } from "@/admin/routes"
 import { ExternalNavLinks } from "@/admin/ExternalNav"
+import { can } from "@/admin/clerkAuth"
+import { useAdminAccess } from "@/admin/access-context"
 import { api } from "@/lib/data/api"
 import { useApiData } from "@/lib/data/hooks"
 
@@ -36,6 +38,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation()
   const { signOut } = useClerk()
   const { user } = useUser()
+  // Resolved once by <RequireAuth>. Reading it here rather than calling
+  // resolveAdminAccess() again keeps the nav and the gate on one answer.
+  const access = useAdminAccess()
   const inquiries = useApiData("sidebar-inquiries", () => api.listInquiries())
 
   const unread = inquiries.data?.filter((i) => i.status === "new").length ?? 0
@@ -80,32 +85,40 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
-        {ADMIN_NAV.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-            <SidebarMenu>
-              {group.items.map((item) => {
-                const isActive = location.pathname === item.path
-                const showBadge = item.path === "/admin/inquiries" && unread > 0
-                return (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
-                      <Link to={item.path}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                    {showBadge ? (
-                      <SidebarMenuBadge aria-label={`${unread} new inquiries`}>
-                        {unread}
-                      </SidebarMenuBadge>
-                    ) : null}
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroup>
-        ))}
+        {ADMIN_NAV.map((group) => {
+          // Filtered per ITEM, not per group. Issue #73 moves Design and
+          // Reference into Settings sub-panes, so a group-level check would
+          // either hand a member the whole group or hide all of it.
+          const items = group.items.filter((item) => can(access, item.feature))
+          if (items.length === 0) return null
+
+          return (
+            <SidebarGroup key={group.label}>
+              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              <SidebarMenu>
+                {items.map((item) => {
+                  const isActive = location.pathname === item.path
+                  const showBadge = item.path === "/admin/inquiries" && unread > 0
+                  return (
+                    <SidebarMenuItem key={item.path}>
+                      <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
+                        <Link to={item.path}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                      {showBadge ? (
+                        <SidebarMenuBadge aria-label={`${unread} new inquiries`}>
+                          {unread}
+                        </SidebarMenuBadge>
+                      ) : null}
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroup>
+          )
+        })}
 
         {/* Clerk, Vercel and GitHub — the three dashboards this app does not
             host. They are `<a target="_blank">`, not `Link`: see

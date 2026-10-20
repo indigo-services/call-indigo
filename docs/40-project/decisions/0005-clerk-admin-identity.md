@@ -1,7 +1,7 @@
 # ADR 0005 — Clerk identity for the admin UI, with an explicit server-authorization boundary
 
-**Kind:** dated · **Status:** accepted · **Date:** 2026-10-16 ·
-**Last verified:** 2026-10-16 in the uncommitted working tree · **Deciders:** the repo
+**Kind:** dated · **Status:** accepted, amended 2026-10-20 · **Date:** 2026-10-16 ·
+**Last verified:** 2026-10-20 on `main` after the #74 merge · **Deciders:** the repo
 
 ---
 
@@ -56,3 +56,42 @@ The lazy `/admin` entry point uses `@clerk/react` with a route-scoped `ClerkProv
 ## Reversibility
 
 **Moderate.** The Clerk UI integration is contained in the provider, route guard, sign-in page, and sidebar. Moving to server authorization requires a backend to verify Clerk sessions and roles, moving data out of browser storage, and enforcing permissions on every data operation.
+
+---
+
+## Amendment — 2026-10-20: access comes from an organization role
+
+**Issue:** #74. **Supersedes:** the *source* of the role in the Decision section above.
+Everything about where the gate runs, and about what it does not authorize, stands
+unchanged.
+
+The flat `publicMetadata.role = "admin"` marker is **retired**. Access is now an Admin
+membership of the `Indigo Services` organization (`org_3KmfJ9xVJNIs6N6uNmJSsD5SqHb`),
+resolved in one function — `resolveAdminAccess()` in `src/admin/clerkAuth.ts` — which
+returns *which feature areas* a role may see rather than a single boolean.
+
+Why the source moved:
+
+- A single boolean cannot express per-feature access, and organization roles were already
+  enabled on the instance.
+- **Measured before changing**, against the Production instance: organizations are enabled,
+  there is exactly one organization, and both existing users were already `org:admin` in
+  it. So this is a code change, not a re-provisioning — and there was therefore no reason
+  to keep the old flag as a fallback, which would have been a second grant path that
+  nothing exercises.
+- The organization is **pinned by id**. Clerk's `creator_role` on this instance is
+  `org:admin`, so a check that accepted "any organization where the user is an admin"
+  would let anyone able to create an organization grant themselves access.
+
+Roles: `org:admin` sees every feature area; `org:member` sees the inbox and settings —
+including the member's own profile, notifications and security — but not the brand system
+or the engineering documentation. Custom roles are not accepted.
+
+The gate reads `user.organizationMemberships` **and** the session's active organization,
+because a user can hold an Admin membership without having selected that organization in
+the current session. Requiring the active organization alone would lock a legitimate
+operator out on every fresh sign-in.
+
+**What has not changed.** This is still a client-side UI gate inside a public bundle, and
+it still authorizes nothing. When a backend lands, the same membership has to be
+re-checked there.

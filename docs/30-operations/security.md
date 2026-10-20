@@ -12,9 +12,9 @@ The former shared-credential prototype is retained only as a historical record i
 
 | Surface | State | Evidence |
 |---|---|---|
-| **`/admin` identity** | Clerk Invite-only mode is active; the Production user has both organization Admin membership and `publicMetadata.role = "admin"`. Sign-in still awaits deployment of the Clerk-enabled build. | Clerk Dashboard; `src/admin/AdminArea.tsx`, `src/admin/RequireAuth.tsx`, `src/admin/clerkAuth.ts` |
+| **`/admin` identity** | Clerk Invite-only mode is active; both Production users are Admin members of the `Indigo Services` organization, and that membership is the only thing that grants dashboard access. Sign-in still awaits deployment of this build. | Clerk Dashboard; `src/admin/AdminArea.tsx`, `src/admin/RequireAuth.tsx`, `src/admin/clerkAuth.ts` |
 | **Admin authorization** | Client-side UI gate only. There is no server or authenticated data API | Vite SPA; `src/lib/data/backend.ts` |
-| **Role assignment** | Set `role: "admin"` through Clerk's trusted dashboard/backend; missing roles fail closed | `hasAdminRole()` and `RequireAuth` |
+| **Role assignment** | Add the operator to the `Indigo Services` organization with the Admin role in Clerk's dashboard; a missing membership or a lower role fails closed | `resolveAdminAccess()` and `RequireAuth` |
 | **Dashboard data** | `localStorage`; per-browser, not shared, not a database, and not protected by Clerk | `src/lib/data/backend.ts` |
 | **The contact form** | Writes to the visitor's own `localStorage`; the business does not receive it | `src/lib/data/api.ts` → `createInquiry` |
 | **Clerk secret** | Vercel's Development environment has `CLERK_SECRET_KEY`; Production has only the publishable key. The Vite client does not read or bundle the secret | Vercel environment metadata; `vite.config.ts` loads only `VITE_*` and `NEXT_PUBLIC_*` values |
