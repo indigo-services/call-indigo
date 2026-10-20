@@ -107,3 +107,13 @@ archive/**/*.html.bak2
 .cache/
 .temp/
 tmp/
+
+# ── Local platform state and secrets ───────────────────────────
+# `.vercel/` is written by `vercel link` and `vercel env pull`.
+# `.env*` covers the file `vercel env pull` writes (`.env.local`), which holds the
+# Neon/Resend/Clerk/Stripe secrets in plaintext. The negation is load-bearing:
+# without it `.env.example` — the tracked template — is also matched, and the next
+# person to delete and recreate it silently loses it from the repo.
+.vercel/
+.env*
+!.env.example
