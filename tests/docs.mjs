@@ -598,6 +598,74 @@ export function run() {
       }
     }
 
+    /* The sidebar model in §3, asserted against the nav source.
+     *
+     * This is the half that was missing. The generator parses ADMIN_NAV with a
+     * regex, so a misparse agrees with itself perfectly: measured on #79, an empty
+     * `### Dashboards` section shipped — a table of routes that do not exist —
+     * and every check passed, because only the public and admin route tables were
+     * compared. Comparing the DOCUMENT's headings and rows against the SOURCE is
+     * what makes a misparse visible.
+     *
+     * ⚠️ Sliced to the ADMIN_NAV declaration, for the same reason the generator is:
+     * ADMIN_EXTERNAL_NAV has the same label/items shape and is not a set of routes.
+     */
+    const navSrc = read(path.join(ROOT, "src", "admin", "routes.ts"))
+    const navStart = navSrc.indexOf("export const ADMIN_NAV")
+    if (navStart < 0) {
+      problems.push("src/admin/routes.ts has no ADMIN_NAV declaration")
+    } else {
+      const navRest = navSrc.slice(navStart + 1)
+      const navEnd = navRest.indexOf("\nexport ")
+      const navBlock = navEnd < 0 ? navRest : navRest.slice(0, navEnd)
+
+      const srcGroups = [...navBlock.matchAll(/label:\s*"([^"]+)",\s*items:\s*\[([\s\S]*?)\n    \]/g)].map(
+        (m) => ({
+          label: m[1],
+          paths: [...m[2].matchAll(/path:\s*"([^"]+)"/g)].map((x) => x[1]),
+        }),
+      )
+
+      const section = (doc.split(/^## 3\./m)[1] ?? "").split(/^## 4\./m)[0]
+      const headings = [...section.matchAll(/^### (.+)$/gm)]
+      const docGroups = headings.map((m, i) => {
+        const from = m.index + m[0].length
+        const to = i + 1 < headings.length ? headings[i + 1].index : section.length
+        return {
+          label: m[1].trim(),
+          paths: [...section.slice(from, to).matchAll(/^\| [^|]+ \| `([^`]+)`/gm)].map((x) => x[1]),
+        }
+      })
+
+      // POSITIVE CONTROL: a parse that found nothing would agree with itself.
+      if (srcGroups.length === 0) problems.push("no nav groups parsed from ADMIN_NAV — this check would pass vacuously")
+
+      const srcLabels = srcGroups.map((g) => g.label)
+      const docLabels = docGroups.map((g) => g.label)
+      if (docLabels.join(", ") !== srcLabels.join(", ")) {
+        problems.push(
+          `routes.md §3 groups [${docLabels.join(", ")}] do not match ADMIN_NAV [${srcLabels.join(", ")}] — regenerate`,
+        )
+      }
+      for (const g of srcGroups) {
+        const d = docGroups.find((x) => x.label === g.label)
+        if (!d) continue
+        if (d.paths.join(", ") !== g.paths.join(", ")) {
+          problems.push(
+            `routes.md §3 "${g.label}" lists [${d.paths.join(", ")}] but ADMIN_NAV has [${g.paths.join(", ")}] — regenerate`,
+          )
+        }
+        // A nav entry the router does not serve is a dead sidebar link.
+        for (const navPath of g.paths) {
+          const rel = navPath.replace(/^\/admin\//, "")
+          // The admin table writes each path in backticks, as the public table does.
+          if (!adm.some((r) => r.path === "`" + rel + "`")) {
+            problems.push(`${navPath} is in ADMIN_NAV but not in the admin route table`)
+          }
+        }
+      }
+    }
+
     return problems
   })
 }

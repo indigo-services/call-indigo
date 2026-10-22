@@ -262,6 +262,69 @@ export async function run() {
     return out
   })
 
+  /* ── The nav shape (issue #73) ────────────────────────────────────────────
+   *
+   * Regrouping is presentation, so the risk is not that the sidebar looks wrong —
+   * it is that a path quietly stops being reachable, or that a page moves from one
+   * permission area to another while the labels are being shuffled. Both are
+   * invisible in a screenshot of the sidebar.
+   */
+
+  const navModel = await load("src/admin/routes.ts", "admin-routes")
+
+  check("the sidebar is Inbox plus Settings, and every admin page is still reachable", () => {
+    const out = []
+    const labels = navModel.ADMIN_NAV.map((g) => g.label)
+    // Positive control: an empty model would satisfy every loop below.
+    if (navModel.ADMIN_ROUTES.length !== 9) {
+      out.push(`ADMIN_ROUTES has ${navModel.ADMIN_ROUTES.length} pages, expected 9`)
+    }
+    if (labels.join(", ") !== "Inbox, Settings") {
+      out.push(`ADMIN_NAV groups are [${labels.join(", ")}], expected [Inbox, Settings]`)
+    }
+    const settings = navModel.ADMIN_NAV.find((g) => g.label === "Settings")
+    if (!settings || settings.items.length !== 8) {
+      out.push(`Settings holds ${settings?.items.length ?? 0} sub-panes, expected 8`)
+    }
+    // Reachability, per path, through the resolver the breadcrumb uses — not by
+    // counting the array, which would pass even if every path were duplicated.
+    for (const item of navModel.ADMIN_ROUTES) {
+      const hit = navModel.findAdminRoute(item.path)
+      if (!hit) out.push(`${item.path} is in the nav but findAdminRoute() cannot resolve it`)
+      else if (hit.title !== item.title) out.push(`${item.path} resolves to "${hit.title}", nav says "${item.title}"`)
+    }
+    const paths = navModel.ADMIN_ROUTES.map((i) => i.path)
+    if (new Set(paths).size !== paths.length) out.push("a path appears twice in ADMIN_ROUTES")
+    return out
+  })
+
+  check("regrouping did not move a page between permission areas", () => {
+    // Issue #73 moves Design and Reference UNDER Settings. That is a label change.
+    // #74 grants access by `feature`, so if a regroup also retagged an item, the
+    // sidebar would look right while access changed underneath it.
+    const EXPECTED = {
+      "/admin/inquiries": "inbox",
+      "/admin/settings": "settings",
+      "/admin/profile": "settings",
+      "/admin/notifications": "settings",
+      "/admin/security": "settings",
+      "/admin/design": "design",
+      "/admin/assets": "design",
+      "/admin/components": "design",
+      "/admin/docs": "reference",
+    }
+    const out = []
+    if (Object.keys(EXPECTED).length !== navModel.ADMIN_ROUTES.length) {
+      out.push(`the expectation lists ${Object.keys(EXPECTED).length} paths but the nav has ${navModel.ADMIN_ROUTES.length}`)
+    }
+    for (const item of navModel.ADMIN_ROUTES) {
+      const want = EXPECTED[item.path]
+      if (!want) out.push(`${item.path} is not in the expectation — add it deliberately`)
+      else if (item.feature !== want) out.push(`${item.path} has feature "${item.feature}", expected "${want}"`)
+    }
+    return out
+  })
+
   check("Clerk owns admin identity while data authorization remains a backend responsibility", () => {
     const out = []
     const adminArea = read(path.join(ROOT, "src", "admin", "AdminArea.tsx"))

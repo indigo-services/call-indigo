@@ -1,10 +1,12 @@
 /**
  * AdminLayout — the shadcn sidebar shell that wraps every `/admin` page.
  *
- * One inset sidebar containing three menu groups (Inbox, Settings, Design),
- * following registry block sidebar-08 (PRD §9.2). The breadcrumb's leaf comes
- * from the shared nav model in `routes.ts`, so a page cannot be added to the
- * sidebar without also getting a correct breadcrumb.
+ * One inset sidebar containing two menu groups — Inbox, and Settings with its
+ * eight sub-panes — following registry block sidebar-08 (PRD §9.2). It was four
+ * groups until issue #73; Design and Reference are sub-panes now, because four
+ * top-level labels made a nine-page dashboard read as four products. The
+ * breadcrumb's leaf comes from the shared nav model in `routes.ts`, so a page
+ * cannot be added to the sidebar without also getting a correct breadcrumb.
  */
 import { Link, Outlet, useLocation } from "react-router-dom"
 import {

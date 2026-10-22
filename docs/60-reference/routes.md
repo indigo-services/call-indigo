@@ -5,7 +5,7 @@
 Every route the build serves, read out of `src/App.tsx` and `src/admin/routes.ts`.
 Regenerating is the only way to change this file.
 
-Generated 2026-10-20. `tests/policy.mjs` asserts that the router and the sidebar model
+Generated 2026-10-22. `tests/policy.mjs` asserts that the router and the sidebar model
 agree on every `/admin` page; this table is that agreement, printed.
 
 ---
@@ -65,19 +65,9 @@ and each page's title. It is the file to edit when adding a page.
 | Profile | `/admin/profile` | The signed-in operator's own details. |
 | Notifications | `/admin/notifications` | What the team gets told about, and when. |
 | Security | `/admin/security` | Clerk account and session controls. |
-
-### Design
-
-| Title | Path | Description |
-|---|---|---|
 | Design System | `/admin/design` | The brand tokens, read-only. |
 | Assets | `/admin/assets` | The images the marketing pages serve. |
 | Components | `/admin/components` | The primitives available to dashboard pages. |
-
-### Reference
-
-| Title | Path | Description |
-|---|---|---|
 | Documentation | `/admin/docs` | The project's documentation library, read-only. |
 
 ## 4. Adding a route
@@ -93,4 +83,4 @@ and each page's title. It is the file to edit when adding a page.
 
 ---
 
-*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `89b6dfc`.*
+*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `938870c`.*
