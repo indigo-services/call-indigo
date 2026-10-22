@@ -8,6 +8,162 @@ with pre-release tags for release candidates.
 
 ---
 
+## [v2.1.0] — 2026-10-22
+
+A **capability release**. `/admin` stops being a demonstration of itself: sign-in is
+real (Clerk), the back office is one Settings group instead of four, three vendor
+dashboards are one click away, and the contact form no longer shows a thank-you
+beside the form it just submitted.
+
+**One thing did not change, and it is the most important line in this entry.** A
+contact-form submission is still written to the visitor's own browser and never
+reaches Indigo — `api.ts:95` writes through `backend.writeInquiries`, and
+`backend.ts:2` is a `localStorage` engine. v2.1.0 makes the dashboard honest about
+*who is looking at it*; it does not put a back end behind it. That is #68, and it is
+the next thing worth paying for. Measured, not assumed, in the audit below.
+
+Seven merges since v2.0.2:
+
+| PR | Merge | What it does |
+|---|---|---|
+| #62 | `84a129f` | Clerk user auth installed and configured; `/admin` is gated |
+| #76 | `be9afcb` | The form unmounts on success; the confirmation stands alone |
+| #77 | `89b6dfc` | Backend and Clerk readiness audit — every finding carries a `file:line` |
+| #78 | `2b68bfb` | Header Login button; the footer Admin link retired — in all **four** places |
+| #79 | `72e8a7e` | A Dashboards group linking Clerk, Vercel and GitHub, in new tabs |
+| #80 | `938870c` | Access resolved from Clerk organization roles, **per feature** |
+| #81 | `c5a7ae5` | Design and Reference collapsed into Settings sub-panes |
+
+### Added
+
+**Sign-in, and a gate that is honest about what it is.** `@clerk/react` 6.17 with
+`@clerk/themes` and `@clerk/ui`; `ClerkProvider` at the root; `RequireAuth` in front
+of the whole admin shell. It is still a **client-side** gate — ADR 0002 stands, and
+ADR 0005 records why that is a deliberate ceiling rather than an oversight: with no
+server, "admin-only" means "not rendered", and nothing more.
+
+`vite.config.ts` maps `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` — the name Vercel's Clerk
+integration injects — onto `import.meta.env.VITE_CLERK_PUBLISHABLE_KEY`. Without
+that mapping a correctly configured deployment renders a sign-in that cannot start,
+which reads exactly like a broken key.
+
+**A Login button in the header, and the footer Admin link gone from every place it
+lived.** The link was in **four** locations, one of which is generated: the three
+mirror pages carry their own footer inline, so editing `chrome.ts` alone reaches one
+page of four. The button is injected from `chrome.ts` rather than written into
+`chrome-markup.ts`, which is sliced from the prototype and says so at the top.
+
+It is gated at `md` on measurement, not preference: at 375px the header row has 39px
+of slack and the button needs 65px, so showing it there pushes the burger out of the
+card. The drawer carries the same destination for mobile. Adding it produced a real
+2px overflow at 1024 — a spill past the card edge, not a rounding artefact — which is
+why the padding is `ml-[10px] px-3.5`. Measured at 9 widths × 4 pages, before and
+after: **0 overflow at every width.**
+
+**A Dashboards group for the three dashboards this app does not host.** Clerk,
+Vercel and GitHub, as `<a target="_blank" rel="noopener noreferrer">` rather than
+router `Link`s — a Link would push a path onto this app's history and render the
+admin shell at a URL that is not ours. `noopener` stops the opened page reaching back
+through `window.opener`; `noreferrer` also withholds the Referer, so a vendor does
+not learn which internal admin page was open.
+
+### Changed
+
+**Access is per feature, not per boolean.** The flat `publicMetadata.role === "admin"`
+flag is retired. One function, `resolveAdminAccess()`, returns *which areas* a role
+sees — `inbox`, `settings`, `design`, `reference` — and the sidebar filters on it.
+An `org:admin` of the Indigo Services organization sees all four; an `org:member`
+sees the inbox and settings; anything else sees `AccessDenied`, which now
+distinguishes "not a member" from "a member without the role", because the two need
+different instructions.
+
+The organization is pinned **by id** (`org_3KmfJ9xVJNIs6N6uNmJSsD5SqHb`), not by
+"any organization where I am an admin" — this instance's `creator_role` is
+`org:admin`, so the loose form is reachable by anyone who can create an organization.
+Both the membership list and the session's active organization are read, because a
+user can hold an Admin membership without having selected it; a gate that only looked
+at `orgId` would lock a legitimate operator out of every fresh sign-in.
+
+Access is resolved once in `RequireAuth` and passed down by context, so the gate and
+the nav cannot disagree mid-render.
+
+**The back office is two groups, not four.** Design System, Assets, Components and
+Documentation are Settings sub-panes now. **Not one of the nine paths moved** —
+a regroup that 404s a bookmarked URL is the failure mode, so reachability is asserted
+per path through `findAdminRoute()`, the resolver the breadcrumb already uses.
+`feature` stays declared per nav **item**, so a label change cannot move a page
+between permission areas; nine path→feature pairs are pinned by name.
+
+**eslint 10, and the React Compiler rules that came with it.** The eslint bump could
+not land alone — `eslint-plugin-react-hooks` 5 peers eslint ≤9, so Dependabot's
+eslint 10 PR failed at `npm ci` with ERESOLVE rather than at lint. v7 supports 10 and
+turns the compiler rules on, which found **14 real problems in six files**. Every fix
+is a behavioural simplification, not a suppression: `use-draft` read a ref during
+render, so `dirty` could be one commit stale; `hooks.ts` set `loading` at the top of
+an effect, leaving a one-frame window where a new key rendered against the previous
+read; `use-mobile` now uses `useSyncExternalStore` over `matchMedia` instead of
+returning `false` on first render and correcting itself.
+
+`sonner` 1.7 → 2.0, `globals` 15 → 17, `@types/node` 22 → 26.
+
+**The legacy prototype is archived, and `PRD.md` stays at the root.** The archive
+move took `PRD.md` with it as collateral; no file in the tree ever referenced
+`docs/PRD.md`, and `docs/README.md` lists it as a root document because §16.2's F-items
+are cited from across the tree. Moved back.
+
+`.env*` is ignored, with `!.env.example` — the obvious pattern also matches the
+tracked template, so the next person to delete and recreate it would silently lose
+it. `vercel env pull` writes every Neon/Resend/Clerk/Stripe secret in plaintext to
+`.env.local`, which was not ignored before this release.
+
+### Fixed
+
+**The contact form stayed on screen after a successful submit.** The confirmation at
+`ContactPage.tsx:281` was a **sibling grid cell**, not a replacement, so at `lg` the
+thank-you took column 1 and the still-mounted form took column 2 — exactly the
+screenshot in #63. The comment there claimed the confirmation "sits above the form";
+it described the intent, not the output, and nothing could see the difference.
+
+The form now renders only when no reference is held. "Send another" is the sole way
+back and moves focus into the first control *after* the commit — the form has
+remounted by then, so a pre-commit focus would land on `<body>`.
+
+`renderToStaticMarkup` cannot submit, which is why the defect shipped: the success
+state was unreachable from every existing check. `ContactPage` takes an
+`initialReference` prop the router never passes, and four checks render **both**
+states through it.
+
+### Found, and not fixed
+
+The audit (#77) exists to stop the next release from being prioritised on assumptions:
+
+- **Clerk Billing is off.** `GET /v1/billing/plans` → `403 billing_not_enabled`, and
+  `/v1/commerce/plans` is deprecated in API 2025-11-10+. There is no billing data to
+  read, so the membership catalogue (#69) must be a local typed constant, and it is
+  not in this release.
+- **`security.md` was wrong** — it claimed the Clerk-enabled build was not deployed.
+  It is: the deployed `AdminArea` chunk carries a `pk_live_` key and the role check.
+  Read from the live bytes, not the repo.
+- **Whether `/api/*` survives the SPA rewrite is unverified.** That needs a deployed
+  function, which is #68's first step.
+
+### Verification
+
+`npm test` (build + suite) → **163 checks passed**, up from 147. Entry JS 756.02 kB
+(217.38 kB gzip) / 131.15 kB CSS; `AdminArea` 16.39 → 17.96 kB. CI `Gates` green on
+every merge and on `main` at `c5a7ae5`; Vercel production deploy success on the same
+commit.
+
+Every new check in this release was falsified before it was trusted — the form
+restored, one footer link restored, the `md:` gate dropped, a route made to collide,
+`rel` shortened, a permission retagged, and the docs generator's whole-file parse put
+back. The last of those is the one worth remembering: it produced an **empty
+`### Dashboards` section** in `routes.md` — a table of routes that do not exist — and
+every check passed, because nothing compared the document against the source that
+generated it. That comparison is now a check.
+
+---
+
 ## [v2.0.2] — 2026-09-29
 
 A **copy release**. Every change is text, and the client asked for all of them.

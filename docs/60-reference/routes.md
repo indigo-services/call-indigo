@@ -83,4 +83,4 @@ and each page's title. It is the file to edit when adding a page.
 
 ---
 
-*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `938870c`.*
+*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `c5a7ae5`.*
