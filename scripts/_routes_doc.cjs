@@ -56,7 +56,26 @@ function stripComments(src) {
 }
 
 const appCode = stripComments(appSrc)
-const navCode = stripComments(navSrc)
+
+/**
+ * Only the `ADMIN_NAV` declaration — sliced, not the whole file.
+ *
+ * ⚠️ `ADMIN_EXTERNAL_NAV` (issue #70) uses the same `label` / `items` shape for
+ * links that leave the app, and the group regex below cannot tell the two apart.
+ * Measured on #79: regenerating this document produced an empty `### Dashboards`
+ * section — a table of routes that do not exist — and nothing failed, because
+ * check 14 only asserted the public and admin route tables. Slicing to the one
+ * declaration is what makes the parse mean what it says.
+ */
+const navCode = stripComments(
+  (() => {
+    const start = navSrc.indexOf("export const ADMIN_NAV")
+    if (start < 0) throw new Error("no ADMIN_NAV declaration in src/admin/routes.ts")
+    const rest = navSrc.slice(start + 1)
+    const end = rest.indexOf("\nexport ")
+    return end < 0 ? rest : rest.slice(0, end)
+  })(),
+)
 
 /* ── the router ─────────────────────────────────────────────────────────────── */
 

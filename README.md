@@ -90,10 +90,10 @@ producer attached to it and nothing failed when it drifted.
 |---|---|---|
 | Type check | `npm run typecheck` | **0 errors** |
 | Lint | `npm run lint` | **0 errors, 4 warnings** — `react-refresh/only-export-components` in `src/components/ui/{badge,button,sidebar,tabs}.tsx` (registry files, pre-existing) |
-| Build | `npm run build` | **1871 modules** — 752.50 kB entry JS (216.62 kB gzip) / 130.75 kB CSS (23.38 kB gzip) / 1.53 kB HTML. The main entry still triggers Vite's >500 kB chunk warning |
-| Verification | `npm run test:only` | **161 checks passed** |
+| Build | `npm run build` | **1883 modules** — 756.02 kB entry JS (217.38 kB gzip) / 131.15 kB CSS (23.41 kB gzip) / 1.53 kB HTML. The main entry still triggers Vite's >500 kB chunk warning |
+| Verification | `npm run test:only` | **163 checks passed** |
 
-*Measured 2026-10-16 in the uncommitted working tree, Vite 8.3.1.* **One row here is machine-checked
+*Measured 2026-10-22 in the uncommitted working tree, Vite 8.3.1.* **One row here is machine-checked
 and three are a snapshot.** The check count cannot drift: `tests/run.mjs` compares it
 against the run that just happened and fails when the two disagree. The build figures
 are a snapshot — **editing any `src/` file moves the JS byte count** (this row read

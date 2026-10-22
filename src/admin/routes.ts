@@ -65,6 +65,15 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
     ],
   },
   {
+    // One label for the whole back office. Design and Reference were groups of
+    // their own until issue #73; they are sub-panes here now, because the person
+    // who changes the business phone number and the person who changes a brand
+    // colour are the same person on the same errand, and four top-level groups
+    // made a nine-page dashboard look like four products.
+    //
+    // ⚠️ `feature` is what access grants — NOT this label. A member sees four of
+    // these eight, and #74's permission model reads the item, never the group.
+    // Keep it that way: regrouping must not move a permission.
     label: "Settings",
     items: [
       {
@@ -95,11 +104,6 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
         icon: Shield,
         description: "Clerk account and session controls.",
       },
-    ],
-  },
-  {
-    label: "Design",
-    items: [
       {
         title: "Design System",
         path: "/admin/design",
@@ -121,14 +125,6 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
         icon: Component,
         description: "The primitives available to dashboard pages.",
       },
-    ],
-  },
-  {
-    // The docs mirror. Its own group rather than a fourth item under "Design",
-    // because it is reference material rather than something about the brand —
-    // and because `docs/60-reference/` is the domain it renders.
-    label: "Reference",
-    items: [
       {
         title: "Documentation",
         path: "/admin/docs",
