@@ -29,6 +29,13 @@ the plan.
 continuously. **Phase 4 depends on Phase 3**, because a wiki generated from a
 half-restructured tree gets generated twice.
 
+> **The `Release` column is the plan's original label, not a tag that exists.**
+> Phases 2–4 shipped inside the `v2.0.x` releases, and the repository has no
+> `v2.2.0` tag. **`v2.1.0` (2026-10-22) is the product release** — Clerk sign-in, the
+> per-feature admin access model, the contact-form fix — not this milestone's phase 2.
+> Read the column as "which release the plan expected this to land in"; read
+> [`CHANGELOG.md`](../../CHANGELOG.md) for what actually shipped.
+
 ### 1.1 Phase status
 
 | Phase | Status | Evidence |
