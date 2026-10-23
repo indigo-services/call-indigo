@@ -61,9 +61,26 @@ export function subscribeToChanges(listener: () => void): () => void {
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 
-/** Newest first — the inbox's default order. */
-function byNewest(a: Inquiry, b: Inquiry): number {
-  return b.createdAt.localeCompare(a.createdAt)
+/**
+ * A Clerk session token, supplied by the admin shell.
+ *
+ * Passed in rather than imported so this module keeps knowing nothing about React or
+ * Clerk: `src/marketing` imports it too, and the public form has no session. The
+ * server decides what the token is worth — this only carries it.
+ */
+export type TokenGetter = () => Promise<string | null>
+
+async function withAuth(token: TokenGetter | undefined, init: RequestInit = {}): Promise<RequestInit> {
+  const value = token ? await token() : null
+  if (!value) return init
+  return { ...init, headers: { ...(init.headers as Record<string, string> | undefined), Authorization: `Bearer ${value}` } }
+}
+
+/** Read a JSON body, or throw with the status — never return a plausible empty value. */
+async function readJson<T>(res: Response): Promise<T> {
+  const data = (await res.json().catch(() => null)) as T | null
+  if (!res.ok || data === null) throw new Error(`API ${res.status}`)
+  return data
 }
 
 /* ── The API ─────────────────────────────────────────────────────────────── */
@@ -71,12 +88,17 @@ function byNewest(a: Inquiry, b: Inquiry): number {
 export const api = {
   /* ── Inquiries ── */
 
-  async listInquiries(): Promise<Inquiry[]> {
-    return delay([...backend.readInquiries()].sort(byNewest))
+  async listInquiries(token?: TokenGetter): Promise<Inquiry[]> {
+    const res = await fetch("/api/inquiries", await withAuth(token))
+    const { inquiries } = await readJson<{ inquiries: Inquiry[] }>(res)
+    return inquiries
   },
 
-  async getInquiry(id: string): Promise<Inquiry | null> {
-    return delay(backend.readInquiries().find((r) => r.id === id) ?? null)
+  async getInquiry(id: string, token?: TokenGetter): Promise<Inquiry | null> {
+    const res = await fetch(`/api/inquiries?id=${encodeURIComponent(id)}`, await withAuth(token))
+    if (res.status === 404) return null
+    const { inquiry } = await readJson<{ inquiry: Inquiry }>(res)
+    return inquiry
   },
 
   /** Called by the public inquiry form. */
@@ -112,28 +134,34 @@ export const api = {
     }
   },
 
-  async updateInquiry(id: string, patch: Partial<Omit<Inquiry, "id">>): Promise<Inquiry> {
-    const rows = backend.readInquiries()
-    const index = rows.findIndex((r) => r.id === id)
-    if (index === -1) throw new Error(`No inquiry with id ${id}`)
-
-    const updated: Inquiry = {
-      ...rows[index],
-      ...patch,
-      id,
-      updatedAt: new Date().toISOString(),
-    }
-    const next = [...rows]
-    next[index] = updated
-    backend.writeInquiries(next)
+  async updateInquiry(
+    id: string,
+    patch: Partial<Omit<Inquiry, "id">>,
+    token?: TokenGetter,
+  ): Promise<Inquiry> {
+    // Only the two fields the server accepts. Sending the whole record would let a
+    // stale row overwrite a newer one field by field.
+    const res = await fetch(
+      "/api/inquiries",
+      await withAuth(token, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: patch.status, notes: patch.notes }),
+      }),
+    )
+    const { inquiry } = await readJson<{ inquiry: Inquiry }>(res)
     bump()
-    return delay(updated)
+    return inquiry
   },
 
-  async deleteInquiry(id: string): Promise<void> {
-    backend.writeInquiries(backend.readInquiries().filter((r) => r.id !== id))
+  async deleteInquiry(id: string, token?: TokenGetter): Promise<void> {
+    const res = await fetch(
+      `/api/inquiries?id=${encodeURIComponent(id)}`,
+      await withAuth(token, { method: "DELETE" }),
+    )
+    // 204 carries no body, so `readJson` would be wrong here.
+    if (!res.ok) throw new Error(`API ${res.status}`)
     bump()
-    await delay(null)
   },
 
   /* ── Settings ── */

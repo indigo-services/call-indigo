@@ -147,18 +147,18 @@ the seam is for, and it is PRD §16.2 **F2**.
 
 ## 9. The server, since 2026-10-22 (#68)
 
-**Added, and wired at one end.** There is a server: `api/` holds Vercel functions,
+**Added, and wired at both ends.** There is a server: `api/` holds Vercel functions,
 `api/_lib/` holds the code they share, and `db/migrations/` holds the schema. The
-public form **POSTs to `api/inquiry`**, so a lead is stored in Postgres and emailed
-to the address in `notification_settings`. **The dashboard still reads `localStorage`**
-(§8.2), so a lead that arrives by email is not visible in `/admin` until proposal A2 —
-the email is the channel that carries it today. `api.createInquiry()` in
-`src/lib/data/api.ts` returns a *receipt* (the new id), not the stored row.
+public form **POSTs to `api/inquiry`**, and the admin inbox **reads and writes
+`api/inquiries`** — so a lead is stored in Postgres, emailed to the address in
+`notification_settings`, and visible in `/admin` from any device. `api.createInquiry()`
+in `src/lib/data/api.ts` returns a *receipt* (the new id), not the stored row.
 
 | Piece | File | What it does |
 |---|---|---|
 | Endpoint | `api/inquiry.ts` | `POST` → validate, insert, email. Store first, notify second |
 | Endpoint | `api/notification-settings.ts` | `GET`/`PUT` the four delivery fields, admin-only |
+| Endpoint | `api/inquiries.ts` | `GET`/`PATCH`/`DELETE` the inbox, admin-only, authorises before it reads |
 | Shared | `api/_lib/validate.ts` | The same rules the form applies, restated for a caller that is not the form |
 | Shared | `api/_lib/db.ts` | Neon SQL-over-HTTP. No `pg`, no pool |
 | Shared | `api/_lib/notifications.ts` | Reads the settings row per send, then Resend |
@@ -182,11 +182,13 @@ any browser's storage. A "To:" field beside "Business name" would look like it
 configured delivery while the sender kept its own value — so those four live in the
 `notification_settings` row and the page reads them back through the API.
 
-**Two things the server does not do yet**, named so they are not assumed:
+**What the server does not do yet**, named so it is not assumed:
 
-1. **The dashboard does not read the server.** `listInquiries()` is still
-   `localStorage`, so a lead that arrives by email is not in `/admin` until the
-   dashboard is moved (proposal A2).
+1. **Only the inquiry domain moved.** `listInquiries`, `getInquiry`, `updateInquiry`
+   and `deleteInquiry` read and write `/api/inquiries`; the inbox, the sidebar counts
+   and the notifications page are server data. **Settings, profile, notifications
+   prefs, security and the design/reference panes still read `localStorage`** — they
+   are single-tenant configuration, not lead data, and moving them is the rest of A2.
 2. **Spam protection is still the client-side captcha.** The honeypot is now also
    checked on the server, which stops naive bots; a determined one is unaffected.
    That is proposal A6 and it is not in this change.

@@ -48,6 +48,25 @@ export function bearer(req: ApiRequest): string {
   return match ? match[1] : ""
 }
 
+/**
+ * One query-string parameter, from whichever place the platform put it.
+ *
+ * Vercel parses `req.query` for a function in `api/`; the offline harness drives a
+ * handler directly and may only have `req.url`. Reading both means the same handler
+ * works in both, instead of a parameter that is silently empty under test.
+ */
+export function queryParam(req: ApiRequest, name: string): string {
+  const parsed = req.query?.[name]
+  if (typeof parsed === "string" && parsed) return parsed
+  if (Array.isArray(parsed) && parsed[0]) return parsed[0]
+  if (!req.url) return ""
+  try {
+    return new URL(req.url, "http://localhost").searchParams.get(name) ?? ""
+  } catch {
+    return ""
+  }
+}
+
 export function methodNotAllowed(res: ApiResponse, allowed: string): void {
   res.setHeader("Allow", allowed)
   res.status(405).json({ error: "method_not_allowed", allowed })

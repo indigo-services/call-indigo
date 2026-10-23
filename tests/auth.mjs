@@ -207,7 +207,14 @@ export async function run() {
   check("the sidebar displays Clerk identity and exposes account management and sign-out", () => {
     const src = read("src/components/app-sidebar.tsx")
     const out = []
-    if (!/UserButton, useClerk, useUser/.test(src)) out.push("sidebar does not use Clerk account controls")
+    // Checked per name rather than as one literal string: the import list gained
+    // `useAuth` when the inbox moved to the server (A2), and an assertion on the
+    // exact text would call a correct change a regression.
+    for (const name of ["UserButton", "useClerk", "useUser"]) {
+      if (!new RegExp(`import \\{[^}]*\\b${name}\\b[^}]*\\} from "@clerk/react"`).test(src)) {
+        out.push(`sidebar does not import ${name} from @clerk/react`)
+      }
+    }
     if (!/user\?\.fullName/.test(src)) out.push("sidebar does not show the Clerk user's name")
     if (!/<UserButton\s*\/>/.test(src)) out.push("sidebar has no Clerk account menu")
     if (!/signOut\(\{ redirectUrl: "\/" \}\)/.test(src)) out.push("sidebar has no Clerk sign-out action")

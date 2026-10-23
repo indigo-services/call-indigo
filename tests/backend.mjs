@@ -320,6 +320,54 @@ export async function run() {
     return out
   })
 
+  check("the inquiries endpoint authorises before it touches the database", () => {
+    // This endpoint can read every lead and delete any of them, so the order matters:
+    // a handler that parses the query or the body first does work for a caller it is
+    // about to refuse, and one that queries first has already leaked the answer.
+    const src = readFileSync(path.join(ROOT, "api", "inquiries.ts"), "utf8")
+    const code = src.replace(/^\s*\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
+    const out = []
+
+    const authAt = code.indexOf("await requireAdmin(req)")
+    if (authAt === -1) return ["inquiries.ts never calls requireAdmin — every method would be public"]
+    for (const call of ["listInquiries(", "getInquiry(", "updateInquiry(", "deleteInquiry(", "queryParam(", "body<"]) {
+      const at = code.indexOf(call)
+      if (at !== -1 && at < authAt) out.push(`${call} runs before the authorization check`)
+    }
+    if (!/const ALLOWED = "GET, PATCH, DELETE"/.test(code)) {
+      out.push("the 405 Allow header no longer names GET, PATCH and DELETE")
+    }
+    // One gate for all methods: if the check sat inside a branch, a new method would
+    // arrive unguarded.
+    if ((code.match(/await requireAdmin\(/g) ?? []).length !== 1) {
+      out.push("requireAdmin is not called exactly once — a per-method gate can be bypassed")
+    }
+    return out
+  })
+
+  check("the dashboard sends the session token with every inquiry read and write", () => {
+    const apiSrc = readFileSync(path.join(ROOT, "src", "lib", "data", "api.ts"), "utf8")
+    const out = []
+    // The header is built in exactly one place, so there is one thing to get right.
+    if (!/Authorization: `Bearer \$\{value\}`/.test(apiSrc)) {
+      out.push("api.ts no longer sends an Authorization header")
+    }
+    const tokenised = (apiSrc.match(/token\?: TokenGetter/g) ?? []).length
+    if (tokenised < 4) out.push(`only ${tokenised} of the four inquiry methods accept a token`)
+
+    // And every page that reads or writes them has to hand one over.
+    for (const file of [
+      "src/admin/InquiriesPage.tsx",
+      "src/admin/NotificationsPage.tsx",
+      "src/components/app-sidebar.tsx",
+    ]) {
+      const src = readFileSync(path.join(ROOT, file), "utf8")
+      if (!/useAuth\(\)/.test(src)) out.push(`${file} does not read the Clerk session`)
+      if (!/getToken/.test(src)) out.push(`${file} never passes the session token to the api`)
+    }
+    return out
+  })
+
   check("no file under api/ imports a VALUE from outside api/", () => {
     // Code outside `api/` is not part of the function's bundle, so a value import
     // across that boundary is a load-time failure that no build reports.

@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { PageHeader } from "@/admin/PageHeader"
 import { api } from "@/lib/data/api"
+import { useAuth } from "@clerk/react"
 import { useApiData } from "@/lib/data/hooks"
 import { useDraft } from "@/lib/data/use-draft"
 import type { NotificationPrefs } from "@/lib/data/types"
@@ -37,9 +38,10 @@ function hourLabel(h: number): string {
 }
 
 export default function NotificationsPage() {
+  const { getToken } = useAuth()
   const { data, loading } = useApiData("admin-notifications", () => api.getNotifications())
   const { draft, setDraft, dirty, reset } = useDraft<NotificationPrefs>(data)
-  const inquiries = useApiData("notifications-inquiries", () => api.listInquiries())
+  const inquiries = useApiData("notifications-inquiries", () => api.listInquiries(getToken))
 
   const rows = inquiries.data ?? []
 
