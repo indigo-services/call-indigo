@@ -15,7 +15,7 @@
  * copy against the source, so a service added to the form cannot silently stop
  * being accepted here. Only the *types* are imported, and those are erased.
  */
-import type { MemberAnswer, NewInquiry, PropertyType, Service, Urgency } from "../../src/lib/data/types"
+import type { MemberAnswer, NewInquiry, PropertyType, Service, Urgency } from "../../src/lib/data/types.js"
 
 /** Must equal `SERVICES` in `src/lib/data/types.ts` — asserted by tests/backend.mjs. */
 export const SERVICES: readonly string[] = [

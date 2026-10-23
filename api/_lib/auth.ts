@@ -19,7 +19,7 @@
  *     legitimate operator out of every fresh sign-in.
  */
 import { createClerkClient, verifyToken } from "@clerk/backend"
-import { bearer, type ApiRequest } from "./http"
+import { bearer, type ApiRequest } from "./http.js"
 
 /** Indigo Services. Pinned, not discovered — see the docblock. */
 const ORGANIZATION_ID = "org_3KmfJ9xVJNIs6N6uNmJSsD5SqHb"

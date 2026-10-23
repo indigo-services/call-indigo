@@ -251,15 +251,19 @@ export async function run() {
   })
 
   check("no file under api/ imports a VALUE from outside api/", () => {
-    // The defect this encodes, measured 2026-10-23: `api/inquiry.ts` imported
-    // `../server/http`, the build reported the deployment as ready, and every
-    // endpoint answered FUNCTION_INVOCATION_FAILED — the sibling directory is not
-    // part of the function's bundle. `api/health.ts` was written to prove it: it
-    // imports nothing, and it was the only endpoint that answered.
+    // Code outside `api/` is not part of the function's bundle, so a value import
+    // across that boundary is a load-time failure that no build reports.
+    //
+    // ⚠️ Measured 2026-10-23: this check was written as the *diagnosis* of a
+    // production FUNCTION_INVOCATION_FAILED, and that diagnosis was wrong. The
+    // runtime log said `Cannot find module '/var/task/api/_lib/http' imported from
+    // /var/task/api/inquiry.js` — a missing `.js` extension, not a missing
+    // directory. The boundary is still worth enforcing (it is a real failure mode),
+    // but it is not what broke that deploy; the next check is.
     //
     // `import type` is allowed to cross the boundary because it is erased before
     // the bundle exists — that is why the type imports from `src/lib/data/types`
-    // are harmless and the value import was not.
+    // are harmless and a value import would not be.
     const out = []
     const files = []
     const walk = (dir) => {
@@ -285,6 +289,50 @@ export async function run() {
         }
       }
     }
+    return out
+  })
+
+  check("every relative import under api/ carries its .js extension", () => {
+    // The defect this encodes, measured in production 2026-10-23:
+    //
+    //   Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/api/_lib/http'
+    //     imported from /var/task/api/inquiry.js
+    //
+    // `package.json` has `"type": "module"`, so Vercel compiles each `api/*.ts` to
+    // an ESM `.js` file and copies the specifier through unchanged. Node's ESM
+    // resolver requires an extension; `./_lib/http` never resolves, while
+    // `./_lib/http.js` does. TypeScript accepts both, the build accepts both, and
+    // `tsc -b` cannot see the difference — the only place it fails is at runtime,
+    // where it costs a round trip through a deploy to notice.
+    //
+    // This covers `import type` too, even though it is erased: one rule is easier
+    // to hold than "which of these survives the compiler".
+    const out = []
+    const files = []
+    const walk = (dir) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name)
+        if (entry.isDirectory()) walk(full)
+        else if (entry.name.endsWith(".ts")) files.push(full)
+      }
+    }
+    walk(path.join(ROOT, "api"))
+    if (files.length === 0) return ["no .ts files under api/ — this check would pass vacuously"]
+
+    let seen = 0
+    for (const file of files) {
+      const src = readFileSync(file, "utf8")
+      for (const m of src.matchAll(/^\s*import\s+[^;\n]*?from\s+"([^"]+)"/gm)) {
+        const spec = m[1]
+        if (!spec.startsWith(".")) continue
+        seen += 1
+        if (!spec.endsWith(".js") && !spec.endsWith(".json")) {
+          out.push(`${rel(file)} imports "${spec}" without an extension — Node ESM will not resolve it in the deployed function`)
+        }
+      }
+    }
+    // A check that finds nothing to inspect passes for the wrong reason.
+    if (seen === 0) out.push("no relative imports found under api/ — this check would pass vacuously")
     return out
   })
 

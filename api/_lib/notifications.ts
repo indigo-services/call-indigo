@@ -11,8 +11,8 @@
  * send rather than cached: a serverless instance may be minutes or days old, and a
  * cached address is how a destination change appears to work and does not.
  */
-import type { Inquiry, NotificationSettings } from "../../src/lib/data/types"
-import { sql } from "./db"
+import type { Inquiry, NotificationSettings } from "../../src/lib/data/types.js"
+import { sql } from "./db.js"
 
 /** Verified on the Resend account. Overridable for a staging sender. */
 const fromAddress = (): string => process.env.INQUIRY_FROM ?? "Call Indigo <inquiries@call-indigo.com>"
