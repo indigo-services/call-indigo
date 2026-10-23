@@ -23,6 +23,9 @@ import { ROOT, check, load, suite } from "./harness.mjs"
 
 const ORG = "org_3KmfJ9xVJNIs6N6uNmJSsD5SqHb"
 
+/** Repo-relative path with forward slashes, for messages that can be grepped. */
+const rel = (abs) => path.relative(ROOT, abs).split(path.sep).join("/")
+
 const valid = {
   name: "Dana Reyes",
   email: "dana@example.com",
@@ -56,11 +59,11 @@ function callHandler(handler, method, { token, body } = {}) {
 }
 
 export async function run() {
-  suite("Backend (#68)", "server/ · api/ · vercel.json")
+  suite("Backend (#68)", "api/ · vercel.json")
 
-  const validate = await load("server/validate.ts", "server-validate")
-  const auth = await load("server/auth.ts", "server-auth")
-  const notify = await load("server/notifications.ts", "server-notify")
+  const validate = await load("api/_lib/validate.ts", "server-validate")
+  const auth = await load("api/_lib/auth.ts", "server-auth")
+  const notify = await load("api/_lib/notifications.ts", "server-notify")
   const settings = await load("api/notification-settings.ts", "api-settings")
   const inquiry = await load("api/inquiry.ts", "api-inquiry")
 
@@ -244,6 +247,44 @@ export async function run() {
     }
     if (/JSON\.stringify\(\s*process\.env/.test(src)) out.push("health.ts serialises the whole environment")
     if (/res\.json\(\s*process\.env/.test(src)) out.push("health.ts sends process.env directly")
+    return out
+  })
+
+  check("no file under api/ imports a VALUE from outside api/", () => {
+    // The defect this encodes, measured 2026-10-23: `api/inquiry.ts` imported
+    // `../server/http`, the build reported the deployment as ready, and every
+    // endpoint answered FUNCTION_INVOCATION_FAILED — the sibling directory is not
+    // part of the function's bundle. `api/health.ts` was written to prove it: it
+    // imports nothing, and it was the only endpoint that answered.
+    //
+    // `import type` is allowed to cross the boundary because it is erased before
+    // the bundle exists — that is why the type imports from `src/lib/data/types`
+    // are harmless and the value import was not.
+    const out = []
+    const files = []
+    const walk = (dir) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name)
+        if (entry.isDirectory()) walk(full)
+        else if (entry.name.endsWith(".ts")) files.push(full)
+      }
+    }
+    walk(path.join(ROOT, "api"))
+    if (files.length === 0) return ["no .ts files under api/ — this check would pass vacuously"]
+
+    for (const file of files) {
+      const src = readFileSync(file, "utf8")
+      for (const m of src.matchAll(/^\s*import\s+(type\s+)?[^;\n]*?from\s+"([^"]+)"/gm)) {
+        const isTypeOnly = Boolean(m[1]) || /^\s*import\s+type\s/.test(m[0])
+        const spec = m[2]
+        if (!spec.startsWith(".")) continue
+        if (isTypeOnly) continue
+        const resolved = path.resolve(path.dirname(file), spec)
+        if (!resolved.startsWith(path.join(ROOT, "api") + path.sep)) {
+          out.push(`${rel(file)} imports "${spec}" as a value — it is outside api/ and will not be bundled`)
+        }
+      }
+    }
     return out
   })
 
