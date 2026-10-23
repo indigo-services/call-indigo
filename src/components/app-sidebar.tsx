@@ -12,7 +12,7 @@
  * dashboard pages is client-side and keeps the localStorage-backed state warm.
  */
 import { Link, useLocation } from "react-router-dom"
-import { UserButton, useClerk, useUser } from "@clerk/react"
+import { UserButton, useAuth, useClerk, useUser } from "@clerk/react"
 
 import {
   Sidebar,
@@ -38,10 +38,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation()
   const { signOut } = useClerk()
   const { user } = useUser()
+  const { getToken } = useAuth()
   // Resolved once by <RequireAuth>. Reading it here rather than calling
   // resolveAdminAccess() again keeps the nav and the gate on one answer.
   const access = useAdminAccess()
-  const inquiries = useApiData("sidebar-inquiries", () => api.listInquiries())
+  const inquiries = useApiData("sidebar-inquiries", () => api.listInquiries(getToken))
 
   const unread = inquiries.data?.filter((i) => i.status === "new").length ?? 0
   const displayName = user?.fullName ?? user?.primaryEmailAddress?.emailAddress ?? "Admin account"

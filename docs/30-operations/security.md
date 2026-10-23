@@ -40,14 +40,17 @@ data operation.
 The previous `auth.ts` credential and its hashes have been removed. The former security
 settings mock has also been replaced with Clerk-managed account controls. See [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md).
 
-**Since 2026-10-22 there is one real server-side check** — `api/_lib/auth.ts`, used by
-`/api/notification-settings`. It verifies the Clerk session token with the official
-server SDK, then requires `org:admin` in the pinned organization, falling back to a
-membership lookup when the token carries no active-organization claim. It exists
-because that endpoint decides **where every future lead is emailed**: an
-unauthenticated write would let anyone redirect the business's inquiries to an inbox
-they control. The rest of the dashboard is still gated only in the browser, and this
-does not change that.
+**Since 2026-10-22 there is one real server-side check** — `api/_lib/auth.ts`. It
+verifies the Clerk session token with the official server SDK, then requires
+`org:admin` in the pinned organization, falling back to a membership lookup when the
+token carries no active-organization claim. It guards two endpoints:
+`/api/notification-settings`, which decides **where every future lead is emailed** —
+an unauthenticated write would let anyone redirect the business's inquiries to an
+inbox they control — and, since 2026-10-23, `/api/inquiries`, which can read every
+lead and delete any of them. Both call it **before** parsing a query, reading a body
+or touching the database, so a caller who is about to be refused causes no work and
+learns nothing. The rest of the dashboard is still gated only in the browser, and
+this does not change that.
 
 ## 3. Other current limits
 

@@ -31,10 +31,10 @@ sidebar, and no `/admin/login` route exists to loop through.
 |---|---|---|---:|
 | `/admin` | `Suspense` | — | — |
 | `(index)` | redirect → /admin/inquiries | — | — |
-| `inquiries` | `InquiriesPage` | `src/admin/InquiriesPage.tsx` | 428 |
+| `inquiries` | `InquiriesPage` | `src/admin/InquiriesPage.tsx` | 436 |
 | `settings` | `SettingsPage` | `src/admin/SettingsPage.tsx` | 126 |
 | `profile` | `ProfilePage` | `src/admin/ProfilePage.tsx` | 142 |
-| `notifications` | `NotificationsPage` | `src/admin/NotificationsPage.tsx` | 234 |
+| `notifications` | `NotificationsPage` | `src/admin/NotificationsPage.tsx` | 236 |
 | `security` | `Suspense` | — | — |
 | `design` | `DesignSystemPage` | `src/admin/DesignSystemPage.tsx` | 413 |
 | `assets` | `AssetsPage` | `src/admin/AssetsPage.tsx` | 167 |
@@ -83,4 +83,4 @@ and each page's title. It is the file to edit when adding a page.
 
 ---
 
-*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `9307ef7`.*
+*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `a36b130`.*

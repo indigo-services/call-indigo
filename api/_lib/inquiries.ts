@@ -90,6 +90,11 @@ export async function getInquiry(id: string): Promise<(Inquiry & { source: strin
 
 const STATUSES: readonly InquiryStatus[] = ["new", "contacted", "quoted", "won", "lost"]
 
+/** One rule, used by the update path and by the endpoint's own validation. */
+export function isInquiryStatus(value: unknown): value is InquiryStatus {
+  return typeof value === "string" && (STATUSES as readonly string[]).includes(value)
+}
+
 export interface InquiryPatch {
   status?: InquiryStatus
   notes?: string
@@ -99,7 +104,7 @@ export async function updateInquiry(
   id: string,
   patch: InquiryPatch,
 ): Promise<(Inquiry & { source: string }) | null> {
-  if (patch.status !== undefined && !STATUSES.includes(patch.status)) {
+  if (patch.status !== undefined && !isInquiryStatus(patch.status)) {
     throw new Error(`unknown status: ${patch.status}`)
   }
   // COALESCE keeps this to one statement, because the endpoint runs one at a time.
@@ -113,4 +118,10 @@ export async function updateInquiry(
     [id, patch.status ?? null, patch.notes ?? null],
   )
   return rows[0] ? toInquiry(rows[0]) : null
+}
+
+/** Returns whether a row was actually removed — a missing id is not a success. */
+export async function deleteInquiry(id: string): Promise<boolean> {
+  const rows = await sql<{ id: string }>(`delete from inquiries where id = $1 returning id`, [id])
+  return rows.length > 0
 }

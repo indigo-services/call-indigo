@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { PageHeader } from "@/admin/PageHeader"
+import { useAuth } from "@clerk/react"
 import { api } from "@/lib/data/api"
 import { useApiData } from "@/lib/data/hooks"
 import {
@@ -98,7 +99,11 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: str
 /* ── Page ────────────────────────────────────────────────────────────────── */
 
 export default function InquiriesPage() {
-  const { data, loading, error } = useApiData("admin-inquiries", () => api.listInquiries())
+  // The inbox is server data now (proposal A2), so every read and write carries the
+  // session token. `getToken` is passed rather than imported into the data layer:
+  // `src/lib/data` stays free of React and Clerk, because `src/marketing` uses it too.
+  const { getToken } = useAuth()
+  const { data, loading, error } = useApiData("admin-inquiries", () => api.listInquiries(getToken))
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<InquiryStatus | "all">("all")
   const [openId, setOpenId] = useState<string | null>(null)
@@ -267,6 +272,9 @@ export default function InquiriesPage() {
 /* ── Detail sheet ────────────────────────────────────────────────────────── */
 
 function InquiryDetail({ inquiry, onClose }: { inquiry: Inquiry | null; onClose: () => void }) {
+  // The drawer writes, so it needs the token too — it is a separate component, and
+  // a hook cannot be reached across that boundary.
+  const { getToken } = useAuth()
   const [notes, setNotes] = useState("")
   const [notesFor, setNotesFor] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
@@ -279,19 +287,19 @@ function InquiryDetail({ inquiry, onClose }: { inquiry: Inquiry | null; onClose:
 
   async function setStatus(status: InquiryStatus) {
     if (!inquiry) return
-    await api.updateInquiry(inquiry.id, { status })
+    await api.updateInquiry(inquiry.id, { status }, getToken)
     toast.success(`Marked as ${statusLabel(status)}`)
   }
 
   async function saveNotes() {
     if (!inquiry) return
-    await api.updateInquiry(inquiry.id, { notes })
+    await api.updateInquiry(inquiry.id, { notes }, getToken)
     toast.success("Notes saved")
   }
 
   async function remove() {
     if (!inquiry) return
-    await api.deleteInquiry(inquiry.id)
+    await api.deleteInquiry(inquiry.id, getToken)
     setConfirming(false)
     onClose()
     toast.success("Inquiry deleted")
