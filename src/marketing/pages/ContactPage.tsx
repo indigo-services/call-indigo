@@ -7,10 +7,11 @@
  * comes from `SiteChrome`; the form itself is bespoke, which PRD §8 permits on
  * the marketing side — the registry-only rule (§7) scopes to `/admin`.
  *
- * Submissions go through `api.createInquiry()`. Because that writes to the same
- * store the dashboard reads, an inquiry submitted here appears immediately in
- * `/admin/inquiries` — the two pages are connected by the data layer, not by a
- * page knowing about the other.
+ * Submissions go through `api.createInquiry()`, which POSTs to `/api/inquiry`: the
+ * server validates, stores the lead and emails it. **It does not appear in
+ * `/admin/inquiries` yet** — the dashboard still reads `localStorage` (proposal A2),
+ * so the email is the channel that carries a lead today. A failed POST is surfaced to
+ * the visitor with a phone number rather than swallowed.
  *
  * Validation is deliberately inline and dependency-free: the field count is
  * small, and a form library would be the only thing in the marketing bundle

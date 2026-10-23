@@ -147,11 +147,13 @@ the seam is for, and it is PRD §16.2 **F2**.
 
 ## 9. The server, since 2026-10-22 (#68)
 
-**Added, and not yet wired.** There is a server for the first time: `api/` holds
-Vercel functions, `api/_lib/` holds the code they share, and `db/migrations/` holds
-the schema. **The public form still calls `api.createInquiry()` → `localStorage`**,
-so the limitation in §8.2 above is still true of the running site. What exists is
-the destination, proven, waiting for the arrow.
+**Added, and wired at one end.** There is a server: `api/` holds Vercel functions,
+`api/_lib/` holds the code they share, and `db/migrations/` holds the schema. The
+public form **POSTs to `api/inquiry`**, so a lead is stored in Postgres and emailed
+to the address in `notification_settings`. **The dashboard still reads `localStorage`**
+(§8.2), so a lead that arrives by email is not visible in `/admin` until proposal A2 —
+the email is the channel that carries it today. `api.createInquiry()` in
+`src/lib/data/api.ts` returns a *receipt* (the new id), not the stored row.
 
 | Piece | File | What it does |
 |---|---|---|
