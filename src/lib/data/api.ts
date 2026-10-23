@@ -16,6 +16,7 @@
  * `createInquiry` deliberately does **not** bump: it writes nothing here.
  */
 import { backend } from "@/lib/data/backend"
+import { DEFAULT_NOTIFICATIONS, DEFAULT_PROFILE, DEFAULT_SETTINGS } from "@/lib/data/seed"
 import type {
   AdminProfile,
   Inquiry,
@@ -164,40 +165,73 @@ export const api = {
     bump()
   },
 
-  /* ── Settings ── */
+  /* ── Settings, profile, notification preferences ── */
 
-  async getSettings(): Promise<SiteSettings> {
-    return delay(backend.readSettings())
+  /**
+   * Read one record and fall back to the shipped defaults.
+   *
+   * The server returns `null` for a key that has never been written, rather than
+   * seeding itself on a GET — a read that writes is a read you cannot cache or retry
+   * safely. The defaults are constants in `seed.ts`, so a fresh install renders.
+   */
+  async getSettings(token?: TokenGetter): Promise<SiteSettings> {
+    const res = await fetch("/api/settings?key=site", await withAuth(token))
+    const { value } = await readJson<{ value: Partial<SiteSettings> | null }>(res)
+    return { ...DEFAULT_SETTINGS, ...(value ?? {}) }
   },
 
-  async saveSettings(value: SiteSettings): Promise<SiteSettings> {
-    backend.writeSettings(value)
+  async saveSettings(value: SiteSettings, token?: TokenGetter): Promise<SiteSettings> {
+    const res = await fetch(
+      "/api/settings?key=site",
+      await withAuth(token, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(value),
+      }),
+    )
+    const stored = await readJson<{ value: SiteSettings }>(res)
     bump()
-    return delay(value)
+    return stored.value
   },
 
-  /* ── Profile ── */
-
-  async getProfile(): Promise<AdminProfile> {
-    return delay(backend.readProfile())
+  async getProfile(token?: TokenGetter): Promise<AdminProfile> {
+    const res = await fetch("/api/settings?key=profile", await withAuth(token))
+    const { value } = await readJson<{ value: Partial<AdminProfile> | null }>(res)
+    return { ...DEFAULT_PROFILE, ...(value ?? {}) }
   },
 
-  async saveProfile(value: AdminProfile): Promise<AdminProfile> {
-    backend.writeProfile(value)
+  async saveProfile(value: AdminProfile, token?: TokenGetter): Promise<AdminProfile> {
+    const res = await fetch(
+      "/api/settings?key=profile",
+      await withAuth(token, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(value),
+      }),
+    )
+    const stored = await readJson<{ value: AdminProfile }>(res)
     bump()
-    return delay(value)
+    return stored.value
   },
 
-  /* ── Notification preferences ── */
-
-  async getNotifications(): Promise<NotificationPrefs> {
-    return delay(backend.readNotifications())
+  async getNotifications(token?: TokenGetter): Promise<NotificationPrefs> {
+    const res = await fetch("/api/settings?key=notifications", await withAuth(token))
+    const { value } = await readJson<{ value: Partial<NotificationPrefs> | null }>(res)
+    return { ...DEFAULT_NOTIFICATIONS, ...(value ?? {}) }
   },
 
-  async saveNotifications(value: NotificationPrefs): Promise<NotificationPrefs> {
-    backend.writeNotifications(value)
+  async saveNotifications(value: NotificationPrefs, token?: TokenGetter): Promise<NotificationPrefs> {
+    const res = await fetch(
+      "/api/settings?key=notifications",
+      await withAuth(token, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(value),
+      }),
+    )
+    const stored = await readJson<{ value: NotificationPrefs }>(res)
     bump()
-    return delay(value)
+    return stored.value
   },
 
   /* ── Security ── */

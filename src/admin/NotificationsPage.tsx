@@ -39,7 +39,7 @@ function hourLabel(h: number): string {
 
 export default function NotificationsPage() {
   const { getToken } = useAuth()
-  const { data, loading } = useApiData("admin-notifications", () => api.getNotifications())
+  const { data, loading } = useApiData("admin-notifications", () => api.getNotifications(getToken))
   const { draft, setDraft, dirty, reset } = useDraft<NotificationPrefs>(data)
   const inquiries = useApiData("notifications-inquiries", () => api.listInquiries(getToken))
 
@@ -78,7 +78,7 @@ export default function NotificationsPage() {
 
   async function onSave() {
     if (!draft) return
-    await api.saveNotifications(draft)
+    await api.saveNotifications(draft, getToken)
     toast.success("Notification preferences saved")
   }
 

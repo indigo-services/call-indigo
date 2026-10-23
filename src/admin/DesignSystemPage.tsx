@@ -4,28 +4,34 @@
  * The token tables below are display-only, as they always were. The **page
  * primaries** card is the exception: it authors the three marketing colours.
  *
- * HOW IT WORKS, AND WHAT IT CANNOT DO
+ * HOW IT WORKS, AND WHAT IT DOES NOW
  * Tailwind v4 compiles `bg-residential` to
  * `background-color: var(--color-residential)`, so writing that custom property
  * onto `:root` re-colours every surface that reads it — including the three
  * marketing pages, which are raw HTML strings rather than React components. The
  * preview is therefore real, and it is instant.
  *
- * What is *not* real is the reach. The `/admin` gate is client-side and this
- * build has no backend, so a saved value goes to `localStorage` and applies to
- * **this browser only**. Visitors keep seeing the shipped defaults until the
- * copied token block is committed to `src/index.css` and deployed. The card says
- * so in as many words, because a colour picker that looks like it published a
- * change to the live site — and did not — is worse than no picker.
+ * Saving is real too, as of 2026-10-23. The record goes to `admin_settings` and
+ * every page reads it back through `GET /api/settings?key=site`, so a colour
+ * picked here reaches visitors rather than only this browser. (Before that it
+ * went to `localStorage`, which made a visitor's own browser the owner of the
+ * site's colours.)
  *
- * That last step is deliberately a copy-paste rather than a button: publishing
- * means writing to the deployed stylesheet, which needs a real backend — a
- * signed-in Clerk operator is not enough to publish anything. See
- * `src/lib/theme.ts` and PRD §16.2 F2/F4.
+ * What is still not automatic is **first paint**: `index.css` carries the shipped
+ * default so the page is styled before any JS runs, so a newly saved colour
+ * arrives one frame late until the copied token block is committed. The card says
+ * exactly that, because a picker that looks like it published a change to the
+ * live site — and did not — is worse than no picker.
+ *
+ * Publishing to the stylesheet stays a copy-paste rather than a button: that file
+ * is a build artefact, so "publishing" from a request would mean the deployed
+ * stylesheet is mutable at runtime, which is a much larger change than a colour
+ * picker. See `src/lib/theme.ts` and PRD §16.2 F2/F4.
  */
 import { useEffect, useState } from "react"
 import { Copy, Check, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
+import { useAuth } from "@clerk/react"
 import { api } from "@/lib/data/api"
 import { useApiData } from "@/lib/data/hooks"
 import { useDraft } from "@/lib/data/use-draft"
@@ -168,7 +174,8 @@ function PrimaryRow({
 }
 
 export default function DesignSystemPage() {
-  const { data, loading, error } = useApiData("admin-settings", () => api.getSettings())
+  const { getToken } = useAuth()
+  const { data, loading, error } = useApiData("admin-settings", () => api.getSettings(getToken))
   const { draft, setDraft, dirty } = useDraft<SiteSettings>(data)
   const [copiedBlock, setCopiedBlock] = useState(false)
 
@@ -187,10 +194,13 @@ export default function DesignSystemPage() {
     applyTheme(document.documentElement, draft)
     if (!dirty) return
     const t = setTimeout(() => {
-      void api.saveSettings(draft)
+      void api.saveSettings(draft, getToken)
     }, 250)
     return () => clearTimeout(t)
-  }, [draft, dirty])
+    // `getToken` is Clerk's memoised token getter, so listing it does not restart
+    // the debounce on every render — but leaving it out would let the save fire
+    // with a stale session after a token refresh.
+  }, [draft, dirty, getToken])
 
   async function onResetToDefaults() {
     if (!draft) return
@@ -271,16 +281,16 @@ export default function DesignSystemPage() {
 
           <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
             <p className="font-semibold text-foreground">
-              Saving here changes this browser, not the live site.
+              Saving here reaches every visitor — one frame late.
             </p>
             <p className="mt-1 text-muted-foreground">
-              There is no backend — the <span className="font-mono text-xs">/admin</span> gate
-              is client-side — so a saved theme lives in this browser&rsquo;s local storage and
-              visitors keep seeing the shipped colours. To publish, use{" "}
+              The colour is stored on the server and read back by every page, so it applies
+              to the whole site, not just this browser. It arrives at runtime, though:{" "}
+              <span className="font-mono text-xs">src/index.css</span> holds the shipped colour
+              so the page is styled before any JS runs. To make it flash-free, use{" "}
               <span className="font-semibold text-foreground">Copy token block</span> and paste
               the result into <span className="font-mono text-xs">src/index.css</span>, then
-              commit. That is PRD §16.2 F2/F4: a real backend, and auth on this page, is what a
-              publish button would need.
+              commit. That is PRD §16.2 F2/F4.
             </p>
           </div>
         </CardContent>

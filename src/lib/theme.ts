@@ -9,13 +9,17 @@
  * marketing pages even though they are raw `BODY_HTML` strings rather than
  * React — they carry the class, the class reads the variable.
  *
- * ⚠️ WHAT "SAVE" CANNOT MEAN HERE
- * This build has no backend, and the `/admin` gate is client-side, so a saved
- * value lives in `localStorage` and is therefore **per-browser**. A visitor keeps
- * seeing the shipped defaults until the token block from `cssTokenBlock()` is
- * committed to `src/index.css` and deployed. That is a deliberate limitation, not
- * a bug to discover later — say it out loud on the page rather than implying the
- * site has changed for everyone.
+ * ⚠️ WHAT "SAVE" MEANS NOW
+ * Until 2026-10-23 a saved value lived in `localStorage` and was therefore
+ * **per-browser**: a visitor kept seeing the shipped defaults no matter what the
+ * operator picked. The record is now stored server-side (`admin_settings`, key
+ * `site`) and read back by every page through `GET /api/settings?key=site`, so a
+ * colour picked in `/admin/design` reaches every visitor on their next load.
+ *
+ * It is applied at **runtime**, though — `index.css` still holds the shipped
+ * default for first paint, before any JS runs. Pasting the block from
+ * `cssTokenBlock()` into `src/index.css` is therefore what removes the flash of
+ * the old colour, not what makes the new one take effect.
  *
  * WHY `default` IS DUPLICATED WITH `index.css`
  * The stylesheet needs a value for first paint, before any JS runs; the picker
@@ -70,7 +74,9 @@ const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i
  *
  * Returns `null` rather than throwing or falling back to a default: a bad value
  * must be *dropped*, not written. `applyTheme` skipping an invalid entry is what
- * stops a malformed localStorage value from painting the whole site black.
+ * stops a malformed record — a half-typed input, or a row edited by hand — from
+ * painting the whole site black. The server validates the same way, but the
+ * client is the thing that paints, so it does not take the server's word for it.
  */
 export function normaliseHex(value: unknown): string | null {
   if (typeof value !== "string") return null

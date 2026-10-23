@@ -3,7 +3,7 @@
  *
  * The other half of the public form: everything submitted on `/contact` lands
  * here. The two pages never reference each other — they are joined by the data
- * layer, which is what makes swapping localStorage for a real API a change to
+ * layer, which is what made swapping `localStorage` for the real API a change to
  * one module rather than to every page.
  *
  * Reading is `useApiData`, writing is `api.updateInquiry` / `api.deleteInquiry`.

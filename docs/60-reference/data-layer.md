@@ -1,6 +1,6 @@
 # Data layer
 
-**Kind:** dated · **Owner:** `src/lib/data/` · **Last verified:** 2026-10-16 in the uncommitted working tree
+**Kind:** dated · **Owner:** `src/lib/data/` · **Last verified:** 2026-10-23 in the working tree
 
 The full surface. The *reasoning* is in
 [`../40-project/decisions/0003-localstorage-behind-an-async-seam.md`](../40-project/decisions/0003-localstorage-behind-an-async-seam.md);
@@ -16,19 +16,20 @@ This document is the lookup table.
 *Figure 1 — The async seam: pages call `api.ts`, which calls `backend.ts`, which reads from `localStorage`. Replacing the storage means replacing one file.*
 
 ```
-pages  →  api.ts  →  backend.ts  →  localStorage
+pages  →  api.ts  ─┬→  backend.ts  →  localStorage   (the `security` record only)
+                    └→  fetch       →  /api/*       →  Postgres
             ↑
    the only seam; async on purpose
 ```
 
 | File | Lines | Owns |
 |---|---:|---|
-| `types.ts` | 164 | The domain types, storage-agnostic |
-| `seed.ts` | 199 | First-run fixtures |
-| `backend.ts` | 136 | **The only file that knows where data physically lives** |
-| `api.ts` | 180 | **The seam.** Every method `async` |
-| `hooks.ts` | 62 | `useApiData` — the single read path |
-| `use-draft.ts` | 57 | Draft state that survives a background refresh |
+| `types.ts` | 189 | The domain types, storage-agnostic |
+| `seed.ts` | 199 | The shipped `DEFAULT_*` records, and the first-run fixtures |
+| `backend.ts` | 136 | The browser store. Since A2 it holds one record |
+| `api.ts` | 257 | **The seam.** Every method `async`; the only module a page may import |
+| `hooks.ts` | 82 | `useApiData` — the single read path |
+| `use-draft.ts` | 60 | Draft state that survives a background refresh |
 
 [M: `src/lib/data/` owns app data; Clerk authentication is managed separately by `@clerk/react`.]
 
@@ -61,12 +62,20 @@ Every method returns a promise. **`api.ts` is the only module a page may import.
 
 ### Settings, profile, notifications, security
 
-| Method | Returns |
-|---|---|
-| `getSettings()` / `saveSettings(v)` | `SiteSettings` |
-| `getProfile()` / `saveProfile(v)` | `AdminProfile` |
-| `getNotifications()` / `saveNotifications(v)` | `NotificationPrefs` |
-| `getSecurity()` / `saveSecurity(v)` | `SecurityState` |
+Every one of these takes an optional `TokenGetter` as its last argument and sends the
+result as `Authorization: Bearer …`; the server — not the page — decides whether the
+caller is an admin.
+
+| Method | Returns | Storage since 2026-10-23 |
+|---|---|---|
+| `getSettings()` / `saveSettings(v)` | `SiteSettings` | `/api/settings?key=site` — **the read is public**, the write is admin-only |
+| `getProfile()` / `saveProfile(v)` | `AdminProfile` | `/api/settings?key=profile`, admin-only |
+| `getNotifications()` / `saveNotifications(v)` | `NotificationPrefs` | `/api/settings?key=notifications`, admin-only |
+| `getSecurity()` / `saveSecurity(v)` | `SecurityState` | `localStorage` — **no callers**; see §8 |
+
+A key the server has never been written for comes back as `value: null` and the client
+merges the `DEFAULT_*` record from `seed.ts`. The server does not seed itself on a
+`GET`: a read that writes is a read that cannot be cached or retried safely.
 
 ### Housekeeping
 
@@ -127,21 +136,40 @@ UI whose loading state is untested.
 | **`crypto.randomUUID` absent** | Falls back to a timestamp + random id | Older browsers |
 | **A write fails** | **It can fail silently.** This is the cost of the two fallbacks above | ⚠️ The deliberate trade: resilience over loudness |
 
-## 8. The limitations, stated plainly
+## 8. What is still browser-only, stated plainly
 
-1. **`localStorage` is not a database.** Data is per-browser, is not shared between users
-   or devices, and is cleared with site data.
-2. **The contact form tells the business nothing.** `/contact` writes to the
-   **submitter's own** `localStorage`. A demo where the client fills in the form and
-   checks their inbox will find nothing. **Say this out loud before a demo.**
-3. **No migration is possible.** A real backend starts empty. Acceptable now because
-   there is nothing worth migrating — and it will not be true after the first real
-   inquiry.
-4. **No server authorization on the data.** The browser-only Clerk role check controls the
-   admin UI, but anything in the namespace is readable by code running on the origin.
+The seam did its job: replacing the storage was a change to `api.ts` and a handful of
+call sites, and no page learned what a `fetch` is. What is left in `localStorage` is
+one record.
 
-**Replacing `localStorage` with `fetch` is a change to `api.ts` alone** — that is what
-the seam is for, and it is PRD §16.2 **F2**.
+| Record | Where it lives now | Since |
+|---|---|---|
+| Inquiries | `inquiries` (Postgres) | 2026-10-22 (#68) |
+| Notification delivery | `notification_settings` (Postgres) | 2026-10-22 (#68) |
+| `site`, `profile`, `notifications` | `admin_settings` (Postgres) | 2026-10-23 (A2) |
+| `security` | `localStorage` | — |
+
+**`security` is a placeholder, not a setting.** `getSecurity`/`saveSecurity` have no
+callers, and the Security page manages the account through Clerk instead. It is listed
+rather than deleted because removing it is a decision about the Security pane, not
+about this layer.
+
+**The four limitations this used to state, and where they went:**
+
+1. *"`localStorage` is not a database."* Still true of the one record left, and no
+   longer true of anything anyone cares about.
+2. *"The contact form tells the business nothing."* **Fixed 2026-10-22.** `/contact`
+   POSTs, the row is stored, the email is sent, and `/admin/inquiries` reads the same
+   row from any device.
+3. *"No migration is possible."* Moot: the server started empty on purpose, and the
+   only browser data worth carrying was the seeded demo inbox.
+4. *"No server authorization on the data."* **Fixed.** `api/inquiries.ts` and
+   `api/settings.ts` both call `requireAdmin` before they touch the database, so the
+   browser-only Clerk check is a UI courtesy rather than the boundary.
+
+**One consequence worth naming:** `use-theme` reads `GET /api/settings?key=site`, which
+is the only un-gated settings read. Before this, a visitor's own `localStorage` decided
+the site's colours — two visitors could see two different sites.
 
 ---
 
@@ -159,11 +187,14 @@ in `src/lib/data/api.ts` returns a *receipt* (the new id), not the stored row.
 | Endpoint | `api/inquiry.ts` | `POST` → validate, insert, email. Store first, notify second |
 | Endpoint | `api/notification-settings.ts` | `GET`/`PUT` the four delivery fields, admin-only |
 | Endpoint | `api/inquiries.ts` | `GET`/`PATCH`/`DELETE` the inbox, admin-only, authorises before it reads |
+| Endpoint | `api/settings.ts` | `GET`/`PUT ?key=site\|profile\|notifications. Only the `site` read is un-gated |
+| Shared | `api/_lib/adminSettings.ts` | The field spec for the three records, and their read/write |
 | Shared | `api/_lib/validate.ts` | The same rules the form applies, restated for a caller that is not the form |
 | Shared | `api/_lib/db.ts` | Neon SQL-over-HTTP. No `pg`, no pool |
 | Shared | `api/_lib/notifications.ts` | Reads the settings row per send, then Resend |
 | Shared | `api/_lib/auth.ts` | Clerk session token → admin, against the pinned organization |
 | Schema | `db/migrations/0001_*.sql` | `inquiries`, `notification_settings`, `schema_migrations` |
+| Schema | `db/migrations/0002_*.sql` | `admin_settings` — one `jsonb` row per key |
 | Runner | `scripts/_db_migrate.cjs` | Applies pending files; `--check` for the gate |
 
 **Every relative import under `api/` ends in `.js`.** `package.json` sets
@@ -176,20 +207,23 @@ visible in the runtime log. One check enforces the rule for value *and* type
 imports, because one rule is easier to hold than "which of these survives the
 compiler".
 
-**Why the notification settings are not in `SiteSettings`.** `SiteSettings` lives in
-`localStorage`, which is per-browser; the function that sends the email cannot read
-any browser's storage. A "To:" field beside "Business name" would look like it
-configured delivery while the sender kept its own value — so those four live in the
-`notification_settings` row and the page reads them back through the API.
+**Why the notification settings are not in `SiteSettings`.** Delivery is
+server-owned: the function that sends the email reads `notification_settings`
+directly, so a "To:" field in the `site` record would look like it configured
+delivery while the sender kept its own value. `SiteSettings` is about how the site
+looks and says who to call; those four are about where mail goes.
 
 **What the server does not do yet**, named so it is not assumed:
 
-1. **Only the inquiry domain moved.** `listInquiries`, `getInquiry`, `updateInquiry`
-   and `deleteInquiry` read and write `/api/inquiries`; the inbox, the sidebar counts
-   and the notifications page are server data. **Settings, profile, notifications
-   prefs, security and the design/reference panes still read `localStorage`** — they
-   are single-tenant configuration, not lead data, and moving them is the rest of A2.
-2. **Spam protection is still the client-side captcha.** The honeypot is now also
+1. **One record is still browser-only.** `security` (`getSecurity`/`saveSecurity`) has
+   no callers and no table — the Security page manages the account through Clerk. It is
+   dead surface, not a plan.
+2. **`SiteSettings.notificationEmail` is a second copy of a delivery address.** It is
+   shown on the Settings page and read by nothing that sends mail, while
+   `notification_settings.to` is the one that matters. They agree today because both
+   were seeded with the same address; they can disagree. Reconciling them needs a UI
+   for the real setting first, which is why the duplicate is still there.
+3. **Spam protection is still the client-side captcha.** The honeypot is now also
    checked on the server, which stops naive bots; a determined one is unaffected.
    That is proposal A6 and it is not in this change.
 

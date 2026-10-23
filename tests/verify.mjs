@@ -1690,8 +1690,14 @@ export async function run() {
      report a green tick while asserting nothing. Note this renders in the page's
      loading state — `renderToStaticMarkup` does not run effects, so `useApiData`
      never fires and the picker rows are skeletons. The caveat text sits outside
-     that branch, which is why it is the thing worth asserting here. */
-  const designHtml = await render("src/admin/DesignSystemPage.tsx", "design-system")
+     that branch, which is why it is the thing worth asserting here.
+
+     `stubClerk` because the page reads the session (`useAuth`) to send a token
+     with a save, and Clerk's hooks throw outside a `<ClerkProvider>` — which this
+     gate has none of. See the note on `load` in `tests/harness.mjs`. */
+  const designHtml = await render("src/admin/DesignSystemPage.tsx", "design-system", {
+    stubClerk: true,
+  })
 
   check("the theme module's defaults match the stylesheet", () => {
     const out = []
@@ -1815,17 +1821,28 @@ export async function run() {
     return out
   })
 
-  check("the design page says a saved theme is per-browser", () => {
-    // Not decoration: the picker rethemes the real pages the moment a colour
-    // moves, so without this the page reads as though it published the change to
-    // the live site. If the caveat is ever deleted, the UI becomes a lie.
+  check("the design page says a saved theme reaches visitors, and when it does not", () => {
+    // This assertion changed meaning on 2026-10-23, and the change is the point.
+    // The picker used to write `localStorage`, so the page said the colour was
+    // "this browser, not the live site". The record now lives on the server and
+    // every visitor reads it, which makes the old caveat a lie in the *opposite*
+    // direction — it would tell an operator their change reached nobody.
+    //
+    // Both halves are asserted: the new claim present, the old one gone. Only the
+    // negative would pass against an empty card.
     const text = textOf(designHtml).replace(/\s+/g, " ")
     const out = []
-    if (!/this browser, not the live site/i.test(text)) {
-      out.push("the per-browser limitation is not stated")
+    if (!/stored on the server/i.test(text)) {
+      out.push("the page no longer says the colour is stored server-side")
     }
-    if (!/local storage|localStorage/i.test(text)) {
-      out.push("the page does not say where a saved theme is stored")
+    if (!/not just this browser|every visitor/i.test(text)) {
+      out.push("the page no longer says the change reaches visitors")
+    }
+    if (!/index\.css/.test(text)) {
+      out.push("the page no longer names the file that holds the first-paint colour")
+    }
+    if (/this browser, not the live site/i.test(text)) {
+      out.push("the page still claims a saved theme is per-browser — that stopped being true")
     }
     return out
   })

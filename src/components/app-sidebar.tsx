@@ -9,7 +9,8 @@
  *     reflected here without a reload
  *
  * Navigation uses react-router `Link` rather than `<a href>` so moving between
- * dashboard pages is client-side and keeps the localStorage-backed state warm.
+ * dashboard pages is client-side and keeps the loaded state warm instead of
+ * re-fetching every page's data on each click.
  */
 import { Link, useLocation } from "react-router-dom"
 import { UserButton, useAuth, useClerk, useUser } from "@clerk/react"

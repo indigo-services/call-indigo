@@ -105,7 +105,11 @@ export interface SiteSettings {
    * System page's colour picker writes. Because Tailwind v4 emits
    * `background-color:var(--color-residential)`, setting the matching custom
    * property re-colours every surface that reads it — see `src/marketing/theme.ts`
-   * for the token map and for why a saved value is per-browser.
+   * for the token map.
+   *
+   * Since 2026-10-23 the record is stored server-side and read by
+   * `GET /api/settings?key=site`, so a colour picked in `/admin/design` reaches
+   * every visitor rather than only the browser that picked it.
    */
   themeHome: string
   themeResidential: string
@@ -125,13 +129,13 @@ export interface AdminProfile {
 /**
  * Where a new inquiry is announced — **server-owned**.
  *
- * ⚠️ This is deliberately NOT part of `SiteSettings`, which lives in
- * `localStorage` and is therefore per-browser. The thing that sends the email is
- * a serverless function, which cannot read any visitor's storage; a "To:" field
- * next to "Business name" would look like it configured delivery while the sender
- * kept using its own value. So these four live in the `notification_settings`
- * table, the admin page reads and writes them through `/api/notification-settings`,
- * and `server/notifications.ts` reads the same row when a lead arrives.
+ * ⚠️ This is deliberately NOT part of `SiteSettings`. That record is read by the
+ * public site (`GET /api/settings?key=site`) and is about how the site looks; a
+ * "To:" field sitting next to "Business name" would look like it configured
+ * delivery while the sender kept using its own value. So these four live in the
+ * `notification_settings` table, the admin page reads and writes them through
+ * `/api/notification-settings`, and `api/_lib/notifications.ts` reads the same row
+ * when a lead arrives.
  */
 export interface NotificationSettings {
   to: string

@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import { PageHeader } from "@/admin/PageHeader"
+import { useAuth } from "@clerk/react"
 import { api } from "@/lib/data/api"
 import { useApiData } from "@/lib/data/hooks"
 import { useDraft } from "@/lib/data/use-draft"
@@ -19,12 +20,13 @@ import type { AdminProfile } from "@/lib/data/types"
 import { initials } from "@/lib/format"
 
 export default function ProfilePage() {
-  const { data, loading } = useApiData("admin-profile", () => api.getProfile())
+  const { getToken } = useAuth()
+  const { data, loading } = useApiData("admin-profile", () => api.getProfile(getToken))
   const { draft, setDraft, dirty, reset } = useDraft<AdminProfile>(data)
 
   async function onSave() {
     if (!draft) return
-    await api.saveProfile(draft)
+    await api.saveProfile(draft, getToken)
     toast.success("Profile saved")
   }
 
