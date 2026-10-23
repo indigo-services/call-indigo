@@ -164,6 +164,16 @@ the destination, proven, waiting for the arrow.
 | Schema | `db/migrations/0001_*.sql` | `inquiries`, `notification_settings`, `schema_migrations` |
 | Runner | `scripts/_db_migrate.cjs` | Applies pending files; `--check` for the gate |
 
+**Every relative import under `api/` ends in `.js`.** `package.json` sets
+`"type": "module"`, so Vercel compiles each `api/*.ts` to an ESM `.js` file and
+copies the specifier through unchanged. Node's ESM resolver requires an
+extension: `./_lib/http` never resolves, `./_lib/http.js` does. TypeScript
+accepts both, `tsc -b` accepts both, and the build reports success — the first
+symptom is `FUNCTION_INVOCATION_FAILED` in production, with the reason only
+visible in the runtime log. One check enforces the rule for value *and* type
+imports, because one rule is easier to hold than "which of these survives the
+compiler".
+
 **Why the notification settings are not in `SiteSettings`.** `SiteSettings` lives in
 `localStorage`, which is per-browser; the function that sends the email cannot read
 any browser's storage. A "To:" field beside "Business name" would look like it
@@ -194,17 +204,39 @@ unknown `/api/*` path returned 404 — registered, routed, crashing on load.
 `/api/health` was written to separate the two possible causes, and it answered: the
 runtime was fine, and **the module graph was not**.
 
-**A runtime import of a `.ts` file outside `api/` does not survive the function
-build.** `api/_lib/validate.ts` imported `SERVICES` from `src/lib/data/types.ts`; every
-endpoint that shared it failed, and the one that imports nothing worked. The server
-now keeps its own copy, and `tests/backend.mjs` compares it against the form's list,
-so a service added to the form cannot silently stop being accepted. Only `import
-type` crosses the boundary now, and those are erased.
+**Two plausible diagnoses were wrong, and each cost a deploy.**
+
+1. *"It imports a `.ts` file from `src/` at runtime."* Plausible, and false. The
+   lists were copied into the server so only `import type` crossed the boundary.
+   The endpoints still failed.
+2. *"Vercel only bundles `api/`, so the sibling `server/` tree is missing."* Also
+   plausible, also false. The shared code moved to `api/_lib/`. The endpoints
+   still failed.
+
+**The actual cause was the extension.** `package.json` sets `"type": "module"`,
+so Vercel compiles each `api/*.ts` to ESM and leaves the specifier alone. Node
+refuses to resolve `./_lib/http` without a `.js`. The runtime log said it in one
+line:
+
+```
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/api/_lib/http'
+  imported from /var/task/api/inquiry.js
+```
+
+`tsc -b` passed, the build passed, the deployment reported `Ready`, and the
+module did not load. **A green build cannot see this**, which is why
+`tests/backend.mjs` now asserts the extension on every relative import under
+`api/`.
+
+**Read the runtime log, not the deployment status.** `vercel inspect <dpl>
+--logs` printed an empty body here; `vercel logs <deployment-url>` returned the
+stack trace immediately. Reach for the second one first.
 
 **`/api/health` is the diagnostic, and it stays.** It reports presence, never values,
 and answers 503 when the database is unreachable rather than claiming health it
 cannot verify. It is also the fastest way to find out that an environment variable
-exists in Development and not in Production — which is what it found next.
+exists in Development and not in Production — which is what it found next:
+Production has `RESEND_API_KEY` but not `DATABASE_URL` or `CLERK_SECRET_KEY`.
 
 ---
 

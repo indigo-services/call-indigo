@@ -11,10 +11,10 @@
  * the defect class this project has paid for repeatedly, so the row lives in
  * Postgres and the page reads it back from here.
  */
-import { methodNotAllowed, body, type ApiRequest, type ApiResponse } from "./_lib/http"
-import { requireAdmin } from "./_lib/auth"
-import { DEFAULT_SUBJECT, readNotificationSettings, writeNotificationSettings } from "./_lib/notifications"
-import type { NotificationSettings } from "../src/lib/data/types"
+import { methodNotAllowed, body, type ApiRequest, type ApiResponse } from "./_lib/http.js"
+import { requireAdmin } from "./_lib/auth.js"
+import { DEFAULT_SUBJECT, readNotificationSettings, writeNotificationSettings } from "./_lib/notifications.js"
+import type { NotificationSettings } from "../src/lib/data/types.js"
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 

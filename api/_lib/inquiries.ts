@@ -6,9 +6,9 @@
  * column would have to be quoted at every use, and the first person to forget the
  * quotes gets a silent `column does not exist`.
  */
-import type { Inquiry, InquiryStatus } from "../../src/lib/data/types"
-import type { ValidInquiry } from "./validate"
-import { sql } from "./db"
+import type { Inquiry, InquiryStatus } from "../../src/lib/data/types.js"
+import type { ValidInquiry } from "./validate.js"
+import { sql } from "./db.js"
 
 interface Row {
   id: string

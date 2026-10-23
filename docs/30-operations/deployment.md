@@ -75,6 +75,13 @@ proxy or `vercel dev` is in place. The endpoint itself is exercised by driving t
 bundled handler directly (see `.preview/drive-inquiry.mjs`, and `tests/backend.mjs`
 for the offline half).
 
+⚠️ **A relative import under `api/` must end in `.js`.** `"type": "module"` makes
+Vercel emit ESM, and Node will not resolve `./_lib/http` — only `./_lib/http.js`.
+The build stays green and the deployment reports `Ready` while the function dies
+on load, so `vercel logs <deployment-url>` is the only place the reason appears
+(`vercel inspect --logs` printed nothing). `tests/backend.mjs` enforces the rule.
+Details in `docs/60-reference/data-layer.md` §9.1.
+
 ## 2. Hostnames
 
 | Hostname | Behaviour |

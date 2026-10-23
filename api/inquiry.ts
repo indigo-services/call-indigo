@@ -16,10 +16,10 @@
  * handler is never reached and the POST returns the SPA shell with a 200, which
  * looks exactly like success.
  */
-import { body, methodNotAllowed, type ApiRequest, type ApiResponse } from "./_lib/http"
-import { insertInquiry } from "./_lib/inquiries"
-import { readNotificationSettings, sendInquiryEmail } from "./_lib/notifications"
-import { validateInquiry } from "./_lib/validate"
+import { body, methodNotAllowed, type ApiRequest, type ApiResponse } from "./_lib/http.js"
+import { insertInquiry } from "./_lib/inquiries.js"
+import { readNotificationSettings, sendInquiryEmail } from "./_lib/notifications.js"
+import { validateInquiry } from "./_lib/validate.js"
 
 export default async function handler(req: ApiRequest, res: ApiResponse): Promise<void> {
   if (req.method !== "POST") return methodNotAllowed(res, "POST")
