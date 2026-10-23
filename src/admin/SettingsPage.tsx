@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PageHeader } from "@/admin/PageHeader"
+import { useAuth } from "@clerk/react"
 import { api } from "@/lib/data/api"
 import { useApiData } from "@/lib/data/hooks"
 import { useDraft } from "@/lib/data/use-draft"
@@ -41,12 +42,13 @@ const FIELDS: ReadonlyArray<{
 ]
 
 export default function SettingsPage() {
-  const { data, loading, error } = useApiData("admin-settings", () => api.getSettings())
+  const { getToken } = useAuth()
+  const { data, loading, error } = useApiData("admin-settings", () => api.getSettings(getToken))
   const { draft, setDraft, dirty, reset } = useDraft<SiteSettings>(data)
 
   async function onSave() {
     if (!draft) return
-    await api.saveSettings(draft)
+    await api.saveSettings(draft, getToken)
     toast.success("Settings saved")
   }
 

@@ -8,13 +8,15 @@
  *
  * `useApiData` is the whole change-propagation story. It re-runs on every global
  * API version bump, so saving on the Design System page repaints the marketing
- * pages without a reload and without either page knowing about the other. That
- * is the same mechanism an inquiry submitted on `/contact` already uses to
- * repaint the dashboard inbox.
+ * pages without a reload and without either page knowing about the other.
  *
- * ⚠️ The value this reads is whatever `localStorage` holds for THIS browser. It
- * is not fetched from a server, so it cannot differ between visitors — see the
- * note in `src/lib/theme.ts`.
+ * The record comes from `GET /api/settings?key=site` — **the one settings read that
+ * is not admin-gated**, because a theme colour and a phone number are public facts.
+ * Until 2026-10-23 it came from `localStorage`, which meant a visitor's own browser
+ * decided the site's colours; two visitors could see two different sites.
+ *
+ * A failed read is not a broken page: `data` stays null, `applyTheme` is never called,
+ * and the stylesheet's shipped defaults stand.
  */
 import { useEffect } from "react"
 import { api } from "@/lib/data/api"

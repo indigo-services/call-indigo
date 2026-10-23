@@ -32,10 +32,11 @@ The former shared-credential prototype is retained only as a historical record i
 
 Clerk authenticates the user and the app checks the admin role before rendering the
 dashboard. That check runs in JavaScript delivered to the browser, so it is not a server
-authorization boundary. The app's source and dashboard bundle are public, and the current
-records live in browser storage. Do not put shared or sensitive data in this app until an
-authenticated backend verifies Clerk sessions and enforces role permissions on every
-data operation.
+authorization boundary: the app's source and dashboard bundle are public, and hiding a
+control hides a button, not a record. **The boundary is the server** — every admin read
+and write is authorised again inside the function that serves it, below. One record
+(`security`) still lives in browser storage; it has no callers and is a placeholder, not
+a secret.
 
 The previous `auth.ts` credential and its hashes have been removed. The former security
 settings mock has also been replaced with Clerk-managed account controls. See [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md).
@@ -43,20 +44,28 @@ settings mock has also been replaced with Clerk-managed account controls. See [A
 **Since 2026-10-22 there is one real server-side check** — `api/_lib/auth.ts`. It
 verifies the Clerk session token with the official server SDK, then requires
 `org:admin` in the pinned organization, falling back to a membership lookup when the
-token carries no active-organization claim. It guards two endpoints:
-`/api/notification-settings`, which decides **where every future lead is emailed** —
-an unauthenticated write would let anyone redirect the business's inquiries to an
-inbox they control — and, since 2026-10-23, `/api/inquiries`, which can read every
-lead and delete any of them. Both call it **before** parsing a query, reading a body
-or touching the database, so a caller who is about to be refused causes no work and
-learns nothing. The rest of the dashboard is still gated only in the browser, and
-this does not change that.
+token carries no active-organization claim. It guards three endpoints:
+
+- `/api/notification-settings`, which decides **where every future lead is emailed** —
+  an unauthenticated write would let anyone redirect the business's inquiries to an
+  inbox they control;
+- `/api/inquiries` (2026-10-23), which can read every lead and delete any of them;
+- `/api/settings` (2026-10-23), for the `profile` and `notifications` keys and **every**
+  write. Its single exception is a `GET` of `key=site`, which is public on purpose: the
+  marketing pages read it for their colours and their phone number, and both are on
+  the page anyway.
+
+All three call it **before** parsing a query, reading a body or touching the database,
+so a caller who is about to be refused causes no work and learns nothing. The rest of
+the dashboard's UI is still gated only in the browser, and that is fine: what it gates
+is now a view of data the server has already refused to hand it.
 
 ## 3. Other current limits
 
-- **The form still writes to the visitor's own browser.** The server endpoint exists
-  (`POST /api/inquiry`) and is proven against the live database and mailer, but the
-  form does not call it yet. Until that is wired, the business receives nothing.
+- **The form posts to the server, and that is proven end to end.** `POST /api/inquiry`
+  stores the lead in Postgres and emails it; a real browser submission on 2026-10-23
+  landed in the inbox. A failed POST is shown to the visitor with a phone number rather
+  than swallowed.
 - **The captcha is local arithmetic.** It is not a bot defence. The server now also
   checks the form's hidden honeypot, which stops naive bots and nothing more.
 - **The repository is public.** Source, demo fixtures, and the localStorage shape are

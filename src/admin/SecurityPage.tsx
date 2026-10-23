@@ -16,7 +16,7 @@ export default function SecurityPage() {
     setResetting(true)
     try {
       await api.resetDemoData()
-      toast.success("Demo data reset to the seed fixtures")
+      toast.success("This browser's data cleared")
     } finally {
       setResetting(false)
     }
@@ -48,8 +48,9 @@ export default function SecurityPage() {
         <CardHeader>
           <CardTitle>Reset demo data</CardTitle>
           <CardDescription>
-            Clears the sample data saved in this browser and restores the seed fixtures. This does
-            not change your Clerk account or sign-in session.
+            Clears the preference records this browser still holds. Leads, settings and
+            notification delivery live on the server, so they are not affected — this does not
+            delete a real inquiry, and it does not change your Clerk account or sign-in session.
           </CardDescription>
         </CardHeader>
         <CardContent>

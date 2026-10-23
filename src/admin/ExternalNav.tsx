@@ -2,7 +2,7 @@
  * ExternalNav — the sidebar group that leaves the app.
  *
  * Every other sidebar entry is a react-router `Link`, because moving between
- * dashboard pages is client-side and keeps the localStorage-backed state warm.
+ * dashboard pages is client-side and keeps the loaded state warm.
  * These three are the opposite: they go to Clerk, Vercel and GitHub, which are
  * separate applications. A `Link` would push a path onto this router's history
  * and render the admin shell at a URL that is not ours.

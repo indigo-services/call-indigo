@@ -32,11 +32,11 @@ sidebar, and no `/admin/login` route exists to loop through.
 | `/admin` | `Suspense` | — | — |
 | `(index)` | redirect → /admin/inquiries | — | — |
 | `inquiries` | `InquiriesPage` | `src/admin/InquiriesPage.tsx` | 436 |
-| `settings` | `SettingsPage` | `src/admin/SettingsPage.tsx` | 126 |
-| `profile` | `ProfilePage` | `src/admin/ProfilePage.tsx` | 142 |
+| `settings` | `SettingsPage` | `src/admin/SettingsPage.tsx` | 128 |
+| `profile` | `ProfilePage` | `src/admin/ProfilePage.tsx` | 144 |
 | `notifications` | `NotificationsPage` | `src/admin/NotificationsPage.tsx` | 236 |
 | `security` | `Suspense` | — | — |
-| `design` | `DesignSystemPage` | `src/admin/DesignSystemPage.tsx` | 413 |
+| `design` | `DesignSystemPage` | `src/admin/DesignSystemPage.tsx` | 423 |
 | `assets` | `AssetsPage` | `src/admin/AssetsPage.tsx` | 167 |
 | `components` | `ComponentsPage` | `src/admin/ComponentsPage.tsx` | 165 |
 | `docs` | `DocsRoute` | — | — |
@@ -83,4 +83,4 @@ and each page's title. It is the file to edit when adding a page.
 
 ---
 
-*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `a36b130`.*
+*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `d13dd7d`.*

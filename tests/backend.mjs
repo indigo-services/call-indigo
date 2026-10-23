@@ -472,4 +472,171 @@ export async function run() {
     }
     return out
   })
+
+  /* ── Admin settings, moved out of the browser (A2) ─────────────────────────
+   *
+   * `site`, `profile` and `notifications` used to live in `localStorage`. Two
+   * things were wrong with that and only one of them is visible in a screenshot:
+   * an operator who edited the business phone number changed it for themselves
+   * alone, and `use-theme` reads the `site` record, so **a visitor's own browser
+   * decided the site's theme colours**.
+   *
+   * The validator is exercised for real here — it is a pure function over a plain
+   * object, so importing it is cheap and a behaviour test beats a grep. The
+   * endpoint's *ordering* can only be asserted from the source, because calling it
+   * needs a Clerk token and a database.
+   */
+  suite("Admin settings on the server (A2)", "api/settings.ts")
+
+  const settingsLib = await load("api/_lib/adminSettings.ts", "admin-settings")
+  const settingsSeed = await load("src/lib/data/seed.ts", "settings-seed")
+
+  check("the settings validator drops unknown keys instead of storing them", () => {
+    const out = []
+    const shipped = settingsSeed.DEFAULT_SETTINGS
+    // A client must not be able to smuggle anything into the stored row: the
+    // record is read back by the public site, so an extra key is an extra thing
+    // that ships to every visitor.
+    const accepted = settingsLib.validateSettings("site", {
+      ...shipped,
+      __injected: "<script>",
+      isAdmin: true,
+    })
+    if (!accepted.ok) {
+      return [`the shipped defaults are rejected by their own validator: ${JSON.stringify(accepted.fields)}`]
+    }
+    for (const key of ["__injected", "isAdmin"]) {
+      if (key in accepted.value) out.push(`validateSettings kept the unknown key "${key}"`)
+    }
+    // The other direction: a shape that lost a field would drop the operator's
+    // value on the next save, silently, because a whole-record write replaces it.
+    for (const key of Object.keys(shipped)) {
+      if (!(key in accepted.value)) out.push(`"${key}" is in DEFAULT_SETTINGS but not in the stored record`)
+    }
+    if (Object.keys(accepted.value).length !== Object.keys(shipped).length) {
+      out.push(
+        `stored ${Object.keys(accepted.value).length} fields for a ${Object.keys(shipped).length}-field record`,
+      )
+    }
+    return out
+  })
+
+  check("a colour or an hour outside the shape is refused, with the field named", () => {
+    const site = settingsSeed.DEFAULT_SETTINGS
+    const prefs = settingsSeed.DEFAULT_NOTIFICATIONS
+    const cases = [
+      ["site", { ...site, themeHome: "chartreuse" }, "themeHome", "a colour name is not a hex value"],
+      ["site", { ...site, themeHome: "#21558" }, "themeHome", "five digits is not a colour"],
+      ["site", { ...site, brandName: 42 }, "brandName", "a number is not text"],
+      ["site", { ...site, brandName: "x".repeat(81) }, "brandName", "over the 80-character limit"],
+      ["notifications", { ...prefs, digestHour: 24 }, "digestHour", "hour 24 does not exist"],
+      ["notifications", { ...prefs, digestHour: 7.5 }, "digestHour", "a fractional hour is not an hour"],
+      ["notifications", { ...prefs, emailOnLead: "yes" }, "emailOnLead", "a string is not a boolean"],
+    ]
+    const out = []
+    for (const [key, record, field, why] of cases) {
+      const result = settingsLib.validateSettings(key, record)
+      if (result.ok) out.push(`${key}.${field} accepted ${why}`)
+      else if (!(field in result.fields)) {
+        // The message has to name the field: the form marks inputs by key, so a
+        // rejection that says "invalid" marks nothing and reads as a dead save.
+        out.push(`${key}.${field} was rejected but the error named ${JSON.stringify(Object.keys(result.fields))}`)
+      }
+    }
+
+    // The uppercase form is normalised, not stored as typed — `index.css` and the
+    // picker compare strings, and `#2A5AA2` !== `#2a5aa2`.
+    const upper = settingsLib.validateSettings("site", { ...site, themeHome: "#2A5AA2" })
+    if (!upper.ok) out.push("an uppercase hex was rejected outright")
+    else if (upper.value.themeHome !== "#2a5aa2") {
+      out.push(`uppercase hex was stored as ${JSON.stringify(upper.value.themeHome)}`)
+    }
+
+    if (settingsLib.validateSettings("site", null).ok) out.push("a null body was accepted")
+    if (settingsLib.validateSettings("site", []).ok) out.push("an array body was accepted")
+    return out
+  })
+
+  check("the settings endpoint gates every write and opens only the site read", () => {
+    const src = readFileSync(path.join(ROOT, "api", "settings.ts"), "utf8")
+    const code = src.replace(/^\s*\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
+    const out = []
+
+    const authAt = code.indexOf("await requireAdmin(req)")
+    if (authAt === -1) return ["settings.ts never calls requireAdmin — every write would be public"]
+    for (const call of ["body<", "validateSettings(", "readSettings(", "writeSettings("]) {
+      const at = code.indexOf(call)
+      if (at !== -1 && at < authAt) out.push(`${call} runs before the authorization check`)
+    }
+    if ((code.match(/await requireAdmin\(/g) ?? []).length !== 1) {
+      out.push("requireAdmin is not called exactly once — a per-branch gate can be bypassed")
+    }
+
+    // The exception has to stay narrow. `site` is public because the marketing
+    // pages read it for their colours and their phone number; widening this to a
+    // method or a key it does not name would publish `profile` and `notifications`.
+    if (settingsLib.PUBLIC_KEYS.join(",") !== "site") {
+      out.push(`PUBLIC_KEYS is ${JSON.stringify(settingsLib.PUBLIC_KEYS)}, expected ["site"]`)
+    }
+    if (!/method === "GET" && PUBLIC_KEYS\.includes\(key\)/.test(code)) {
+      out.push("the un-gated read is no longer limited to GET on PUBLIC_KEYS")
+    }
+    if (!/const ALLOWED = "GET, PUT"/.test(code)) {
+      out.push("the 405 Allow header no longer names GET and PUT")
+    }
+    return out
+  })
+
+  check("no page writes the admin's settings to the browser any more", () => {
+    const apiSrc = readFileSync(path.join(ROOT, "src", "lib", "data", "api.ts"), "utf8")
+    const out = []
+    const pairs = [
+      ["getSettings", "site"],
+      ["saveSettings", "site"],
+      ["getProfile", "profile"],
+      ["saveProfile", "profile"],
+      ["getNotifications", "notifications"],
+      ["saveNotifications", "notifications"],
+    ]
+    for (const [method, key] of pairs) {
+      const block = apiSrc.match(new RegExp(`async ${method}\\([\\s\\S]*?\\n  \\},`))
+      if (!block) {
+        out.push(`api.ts has no ${method} method — this check would skip it`)
+        continue
+      }
+      // The docblocks in these methods explain what moved where, so they contain
+      // the word `localStorage`. Only code counts.
+      const body = block[0].replace(/^\s*\/\/.*$/gm, "")
+      if (!body.includes(`/api/settings?key=${key}`)) {
+        out.push(`${method} no longer calls /api/settings?key=${key}`)
+      }
+      if (/backend\.(read|write)(Settings|Profile|Notifications)/.test(body)) {
+        out.push(`${method} still goes through the browser backend`)
+      }
+    }
+
+    // The token is what makes a write admin-only, so every write path has to
+    // accept one. `getSettings` is the deliberate exception: it is the public read.
+    if (!/async saveSettings\(value: SiteSettings, token\?: TokenGetter\)/.test(apiSrc)) {
+      out.push("saveSettings no longer accepts a token")
+    }
+    for (const file of [
+      "src/admin/SettingsPage.tsx",
+      "src/admin/ProfilePage.tsx",
+      "src/admin/NotificationsPage.tsx",
+      "src/admin/DesignSystemPage.tsx",
+    ]) {
+      const page = readFileSync(path.join(ROOT, file), "utf8")
+      if (!/useAuth\(\)/.test(page)) out.push(`${file} does not read the Clerk session`)
+      if (!/getToken/.test(page)) out.push(`${file} never passes the session token to the api`)
+    }
+
+    // And the one read that must stay token-free: a visitor has no session, and a
+    // theme that needs one would leave every marketing page on the shipped colours.
+    const theme = readFileSync(path.join(ROOT, "src", "lib", "use-theme.ts"), "utf8")
+    if (!/api\.getSettings\(\)/.test(theme)) {
+      out.push("use-theme no longer reads the settings record without a token")
+    }
+    return out
+  })
 }

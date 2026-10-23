@@ -88,6 +88,40 @@ export function tally() {
 const loaded = new Map()
 
 /**
+ * A signed-out Clerk session, as source, for `stubClerk`.
+ *
+ * Kept as a string rather than a file so it cannot drift into being imported by
+ * the app: it is a virtual module that exists only inside an esbuild bundle.
+ */
+const CLERK_STUB = `
+const session = {
+  isLoaded: true,
+  isSignedIn: false,
+  userId: null,
+  sessionId: null,
+  orgId: null,
+  orgRole: null,
+  orgSlug: null,
+  getToken: async () => null,
+  signOut: async () => {},
+  openSignIn: () => {},
+  openSignUp: () => {},
+}
+export const useAuth = () => session
+export const useClerk = () => session
+export const useUser = () => ({ isLoaded: true, isSignedIn: false, user: null })
+export const useOrganization = () => ({ isLoaded: true, organization: null, membership: null })
+export const ClerkProvider = ({ children }) => children
+export const UserButton = () => null
+export const SignIn = () => null
+export const SignUp = () => null
+export const SignInButton = ({ children }) => children ?? null
+export const SignUpButton = ({ children }) => children ?? null
+export const SignedIn = ({ children }) => children ?? null
+export const SignedOut = ({ children }) => children ?? null
+`
+
+/**
  * Bundle a project module to ESM in `tests/.tmp` and import it.
  *
  * `packages: "external"` is NOT used: it would also externalise the `@/…`
@@ -99,8 +133,16 @@ const loaded = new Map()
  * time with `Dynamic require of "react" is not supported`. Leaving it external
  * lets node resolve it from node_modules instead. Only admin modules pull it in;
  * the marketing pages are raw HTML strings and import nothing.
+ *
+ * `stubClerk` swaps `@clerk/react` for the signed-out stub above. The admin
+ * pages read the session through `useAuth()`, and Clerk's hooks throw when no
+ * `<ClerkProvider>` is above them — which the static-markup gate cannot supply,
+ * because it renders one component in isolation. Without the stub the only pages
+ * this gate could reach would be the ones that need no session. It is not a
+ * substitute for authorization testing: a stubbed session proves the page
+ * renders, and nothing about who is allowed to see it.
  */
-export async function load(relativePath, name) {
+export async function load(relativePath, name, options = {}) {
   if (loaded.has(name)) return loaded.get(name)
 
   mkdirSync(TMP, { recursive: true })
@@ -118,6 +160,23 @@ export async function load(relativePath, name) {
     external: ["react", "react-dom", "react-dom/server", "react/jsx-runtime", "lucide-react"],
     define: { "process.env.NODE_ENV": '"test"' },
     logLevel: "silent",
+    plugins: options.stubClerk
+      ? [
+          {
+            name: "clerk-stub",
+            setup(b) {
+              b.onResolve({ filter: /^@clerk\/react$/ }, () => ({
+                path: "@clerk/react",
+                namespace: "clerk-stub",
+              }))
+              b.onLoad({ filter: /.*/, namespace: "clerk-stub" }, () => ({
+                contents: CLERK_STUB,
+                loader: "js",
+              }))
+            },
+          },
+        ]
+      : [],
   })
 
   const mod = await import(pathToFileURL(outfile).href)
@@ -126,8 +185,8 @@ export async function load(relativePath, name) {
 }
 
 /** Bundle a module and render its default export to static HTML. */
-export async function render(relativePath, name) {
-  const mod = await load(relativePath, name)
+export async function render(relativePath, name, options) {
+  const mod = await load(relativePath, name, options)
   const { renderToStaticMarkup } = await import("react-dom/server")
   const { createElement } = await import("react")
   return renderToStaticMarkup(createElement(mod.default))

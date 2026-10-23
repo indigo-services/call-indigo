@@ -2,8 +2,11 @@
  * RequireAuth — the identity and role gate around the `/admin` shell.
  *
  * This is a client-rendered Vite app. The guard controls which UI is shown; it
- * is not server authorization. Admin data remains in this browser's
- * localStorage until the app has an authenticated backend.
+ * is not server authorization. Every admin read and write is authorized again by
+ * the function that serves it — `api/inquiries.ts` and `api/settings.ts` both call
+ * `requireAdmin` before they touch the database — so hiding this UI is a courtesy,
+ * not the boundary. What is left in this browser is the `security` record, which
+ * has no server-side meaning yet.
  *
  * Access is decided by `resolveAdminAccess()` and nowhere else — this component
  * only supplies it with the two things Clerk knows: the user's organization

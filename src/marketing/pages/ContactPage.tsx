@@ -8,10 +8,10 @@
  * the marketing side — the registry-only rule (§7) scopes to `/admin`.
  *
  * Submissions go through `api.createInquiry()`, which POSTs to `/api/inquiry`: the
- * server validates, stores the lead and emails it. **It does not appear in
- * `/admin/inquiries` yet** — the dashboard still reads `localStorage` (proposal A2),
- * so the email is the channel that carries a lead today. A failed POST is surfaced to
- * the visitor with a phone number rather than swallowed.
+ * server validates, stores the lead and emails it. The lead then appears in
+ * `/admin/inquiries`, which reads the same table — so the email is a notification,
+ * not the only copy. A failed POST is surfaced to the visitor with a phone number
+ * rather than swallowed.
  *
  * Validation is deliberately inline and dependency-free: the field count is
  * small, and a form library would be the only thing in the marketing bundle
