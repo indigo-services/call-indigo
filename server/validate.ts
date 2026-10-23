@@ -4,22 +4,33 @@
  * The client already validates — `ContactPage.tsx` has per-field errors and moves
  * focus to the first one. That validation is a courtesy to the person typing, not
  * a gate: anything can POST to this endpoint. So the same rules are restated here,
- * against the same constants the form renders, which is why `SERVICES` is imported
- * rather than copied. A copy would drift, and the drift would be invisible until a
- * service the site offers was rejected by its own form.
+ * against the same *values* the form renders.
+ *
+ * ⚠️ **The lists below are copies, and that was forced by measurement.** The first
+ * version imported `SERVICES` from `src/lib/data/types.ts`. Every endpoint that
+ * shares this file then answered `FUNCTION_INVOCATION_FAILED` in production while
+ * `api/health.ts` — which imports nothing — answered normally: a `.ts` file outside
+ * `api/` is not in the function's compiled graph, so the import failed at load.
+ * The values are duplicated rather than shared, and `tests/backend.mjs` asserts the
+ * copy against the source, so a service added to the form cannot silently stop
+ * being accepted here. Only the *types* are imported, and those are erased.
  */
-import {
-  SERVICES,
-  type MemberAnswer,
-  type NewInquiry,
-  type PropertyType,
-  type Service,
-  type Urgency,
-} from "../src/lib/data/types"
+import type { MemberAnswer, NewInquiry, PropertyType, Service, Urgency } from "../src/lib/data/types"
 
-const PROPERTY_TYPES: readonly PropertyType[] = ["residential", "commercial"]
-const URGENCIES: readonly Urgency[] = ["emergency", "soon", "flexible"]
-const MEMBER_ANSWERS: readonly MemberAnswer[] = ["yes", "no"]
+/** Must equal `SERVICES` in `src/lib/data/types.ts` — asserted by tests/backend.mjs. */
+export const SERVICES: readonly string[] = [
+  "Plumbing",
+  "Electrical",
+  "HVAC",
+  "Carpentry & Remodeling",
+  "Painting & Make-Readies",
+  "Handyman & Repairs",
+  "Not sure yet",
+]
+
+export const PROPERTY_TYPES: readonly PropertyType[] = ["residential", "commercial"]
+export const URGENCIES: readonly Urgency[] = ["emergency", "soon", "flexible"]
+export const MEMBER_ANSWERS: readonly MemberAnswer[] = ["yes", "no"]
 
 /** Field limits. Chosen to be generous for a person and useless for a script. */
 const MAX = { name: 120, email: 200, phone: 40, message: 4000, source: 32 } as const

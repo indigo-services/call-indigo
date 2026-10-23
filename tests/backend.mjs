@@ -94,16 +94,26 @@ export async function run() {
     return out
   })
 
-  check("a service the site advertises is accepted, and one it does not is refused", () => {
+  check("the server's copy of the service list equals the one the form renders", () => {
     const out = []
     // Read from the constant the form renders, so this cannot pass while the form
     // offers a service the server rejects.
     const types = readFileSync(path.join(ROOT, "src", "lib", "data", "types.ts"), "utf8")
     const block = /export const SERVICES = \[([\s\S]*?)\] as const/.exec(types)
     if (!block) return ["SERVICES is no longer an array literal — update this check"]
-    const services = [...block[1].matchAll(/"([^"]+)"/g)].map((m) => m[1])
-    if (services.length === 0) return ["no services parsed — this check would pass vacuously"]
-    for (const service of services) {
+    const client = [...block[1].matchAll(/"([^"]+)"/g)].map((m) => m[1])
+    if (client.length === 0) return ["no services parsed — this check would pass vacuously"]
+
+    // The server keeps its own copy because a runtime import of a .ts file outside
+    // `api/` fails to load in the deployed function (measured 2026-10-23: every
+    // endpoint sharing it answered FUNCTION_INVOCATION_FAILED). A copy is only safe
+    // if it is compared, which is what this is.
+    const server = [...validate.SERVICES]
+    if (server.join(" | ") !== client.join(" | ")) {
+      out.push(`server list [${server.join(", ")}] does not equal the form's [${client.join(", ")}]`)
+    }
+
+    for (const service of client) {
       if (!validate.validateInquiry({ ...valid, service }).ok) {
         out.push(`the form offers "${service}" but the server refuses it`)
       }
@@ -211,6 +221,29 @@ export async function run() {
       // exclusion has simply broken the SPA.
       if (!re.test("/residential")) out.push(`"${source}" no longer rewrites a deep link like /residential`)
     }
+    return out
+  })
+
+  check("the health endpoint shares nothing, and reports presence rather than values", () => {
+    const out = []
+    const src = readFileSync(path.join(ROOT, "api", "health.ts"), "utf8")
+    // Its whole value is that it can load when the shared graph cannot — that is how
+    // the production 500 was localised on 2026-10-23. An import from server/ or src/
+    // would make it fail with everything else and answer nothing.
+    const imports = [...src.matchAll(/^import\s[^\n]*from\s+"([^"]+)"/gm)].map((m) => m[1])
+    for (const spec of imports) {
+      if (!spec.startsWith("node:")) out.push(`health.ts imports "${spec}" — it must share nothing`)
+    }
+    // A health check that printed a connection string would be a disclosure.
+    // What leaves the process is presence, never a value: each variable is reported
+    // through Boolean(...), and nothing serialises the environment wholesale.
+    for (const name of ["DATABASE_URL", "RESEND_API_KEY", "CLERK_SECRET_KEY"]) {
+      if (!src.includes(`Boolean(process.env.${name}`) && !src.includes(`Boolean(url)`)) {
+        out.push(`health.ts no longer reports ${name} as a boolean`)
+      }
+    }
+    if (/JSON\.stringify\(\s*process\.env/.test(src)) out.push("health.ts serialises the whole environment")
+    if (/res\.json\(\s*process\.env/.test(src)) out.push("health.ts sends process.env directly")
     return out
   })
 
