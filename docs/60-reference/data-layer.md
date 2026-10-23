@@ -187,6 +187,25 @@ acceptance path is tested only through the pure rule (`grantsAdmin`,
 `membershipGrantsAdmin`). The first person to save the settings page proves it, and
 the save surfaces the error if it fails.
 
+### 9.1 What the first production deploy taught
+
+Both endpoints answered `FUNCTION_INVOCATION_FAILED` on `call-indigo.com` while an
+unknown `/api/*` path returned 404 — registered, routed, crashing on load.
+`/api/health` was written to separate the two possible causes, and it answered: the
+runtime was fine, and **the module graph was not**.
+
+**A runtime import of a `.ts` file outside `api/` does not survive the function
+build.** `server/validate.ts` imported `SERVICES` from `src/lib/data/types.ts`; every
+endpoint that shared it failed, and the one that imports nothing worked. The server
+now keeps its own copy, and `tests/backend.mjs` compares it against the form's list,
+so a service added to the form cannot silently stop being accepted. Only `import
+type` crosses the boundary now, and those are erased.
+
+**`/api/health` is the diagnostic, and it stays.** It reports presence, never values,
+and answers 503 when the database is unreachable rather than claiming health it
+cannot verify. It is also the fastest way to find out that an environment variable
+exists in Development and not in Production — which is what it found next.
+
 ---
 
-**Last verified:** 2026-10-22 in the working tree
+**Last verified:** 2026-10-23 in the working tree

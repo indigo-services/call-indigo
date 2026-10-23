@@ -48,6 +48,14 @@ against `/residential` as a positive control.
 | `CLERK_SECRET_KEY` | `server/auth.ts` | the settings endpoint answers **500**, never 200 |
 | `INQUIRY_FROM` *(optional)* | `server/notifications.ts` | defaults to `Call Indigo <inquiries@call-indigo.com>`, a verified Resend domain |
 
+⚠️ **All three must be set in the Production scope, not only Development.** Measured
+on 2026-10-23, after the first deploy of the API: `/api/health` reported
+`DATABASE_URL: false` and `CLERK_SECRET_KEY: false` in production while
+`RESEND_API_KEY: true`. A variable pulled into `.env.local` by `vercel env pull` is
+not evidence that Production has it — `vercel env pull` reads the **Development**
+environment. `GET /api/health` is the check: it answers **503** and names the
+missing variable rather than pretending to be healthy.
+
 **Applying the schema** is a command, not a paste:
 
 ```
