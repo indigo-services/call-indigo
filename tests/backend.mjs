@@ -240,13 +240,52 @@ export async function run() {
     // A health check that printed a connection string would be a disclosure.
     // What leaves the process is presence, never a value: each variable is reported
     // through Boolean(...), and nothing serialises the environment wholesale.
-    for (const name of ["DATABASE_URL", "RESEND_API_KEY", "CLERK_SECRET_KEY"]) {
-      if (!src.includes(`Boolean(process.env.${name}`) && !src.includes(`Boolean(url)`)) {
+    for (const name of ["RESEND_API_KEY", "CLERK_SECRET_KEY"]) {
+      if (!src.includes(`Boolean(process.env.${name}`)) {
         out.push(`health.ts no longer reports ${name} as a boolean`)
       }
     }
+    // The connection string is reported by NAME rather than by boolean: which
+    // variable resolved is the operational answer, and it is still not a value.
+    if (!/dbSource:/.test(src)) {
+      out.push("health.ts no longer reports which variable supplied the connection string")
+    }
+    if (/dbSource:\s*source\?*\.url/.test(src)) out.push("health.ts reports the connection string itself")
     if (/JSON\.stringify\(\s*process\.env/.test(src)) out.push("health.ts serialises the whole environment")
     if (/res\.json\(\s*process\.env/.test(src)) out.push("health.ts sends process.env directly")
+    return out
+  })
+
+  check("the health endpoint and the server read the same connection variables", () => {
+    // health.ts cannot import api/_lib/db.ts — being import-free is what makes it a
+    // diagnostic — so the list exists twice and this keeps the copies honest.
+    //
+    // The defect this prevents, measured in Production 2026-10-23: the Neon Vercel
+    // integration injects NEON_DATABASE_URL and friends, not DATABASE_URL. Code that
+    // read only DATABASE_URL loaded correctly and could not reach the database, and
+    // health reported the same wrong absence because it had the same wrong list.
+    const list = (file, pattern) => {
+      const src = readFileSync(path.join(ROOT, file), "utf8")
+      const m = src.match(pattern)
+      if (!m) return null
+      return [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1])
+    }
+    const server = list("api/_lib/db.ts", /CONNECTION_VARS\s*=\s*\[([\s\S]*?)\]/)
+    const health = list("api/health.ts", /CANDIDATES\s*=\s*\[([\s\S]*?)\]/)
+    if (!server) return ["api/_lib/db.ts has no CONNECTION_VARS list — this check would pass vacuously"]
+    if (!health) return ["api/health.ts has no CANDIDATES list — this check would pass vacuously"]
+    if (server.length === 0 || health.length === 0) return ["a connection-variable list is empty"]
+
+    const out = []
+    if (server.join(",") !== health.join(",")) {
+      out.push(`the lists disagree — db.ts: [${server.join(", ")}]; health.ts: [${health.join(", ")}]`)
+    }
+    // The Neon names are the ones Production actually has, so losing them is the
+    // regression that matters most.
+    for (const name of ["NEON_DATABASE_URL", "NEON_POSTGRES_URL"]) {
+      if (!server.includes(name)) out.push(`db.ts no longer falls back to ${name}`)
+    }
+    if (server[0] !== "DATABASE_URL") out.push("DATABASE_URL is no longer first — an explicit override must win")
     return out
   })
 
