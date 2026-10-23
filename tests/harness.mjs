@@ -52,6 +52,13 @@ export function check(text, fn) {
     const result = fn()
     if (Array.isArray(result)) problems = result.filter(Boolean)
     else if (result === false) problems = ["assertion returned false"]
+    // ⚠️ A check that returns a Promise is not awaited, so its problems never
+    // reach the tally — it prints ✓ and asserts nothing. That is this repository's
+    // recurring defect wearing a new hat, so it fails loudly instead: await the
+    // work before calling check(), then assert on the result synchronously.
+    else if (result && typeof result.then === "function") {
+      problems = ["check() is synchronous but the callback returned a Promise — await the work first"]
+    }
   } catch (err) {
     problems = [`threw: ${err && err.message ? err.message : String(err)}`]
   }

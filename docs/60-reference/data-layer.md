@@ -145,4 +145,48 @@ the seam is for, and it is PRD §16.2 **F2**.
 
 ---
 
-**Last verified:** 2026-09-27 at `2f009a2`
+## 9. The server, since 2026-10-22 (#68)
+
+**Added, and not yet wired.** There is a server for the first time: `api/` holds
+Vercel functions, `server/` holds the code they share, and `db/migrations/` holds
+the schema. **The public form still calls `api.createInquiry()` → `localStorage`**,
+so the limitation in §8.2 above is still true of the running site. What exists is
+the destination, proven, waiting for the arrow.
+
+| Piece | File | What it does |
+|---|---|---|
+| Endpoint | `api/inquiry.ts` | `POST` → validate, insert, email. Store first, notify second |
+| Endpoint | `api/notification-settings.ts` | `GET`/`PUT` the four delivery fields, admin-only |
+| Shared | `server/validate.ts` | The same rules the form applies, restated for a caller that is not the form |
+| Shared | `server/db.ts` | Neon SQL-over-HTTP. No `pg`, no pool |
+| Shared | `server/notifications.ts` | Reads the settings row per send, then Resend |
+| Shared | `server/auth.ts` | Clerk session token → admin, against the pinned organization |
+| Schema | `db/migrations/0001_*.sql` | `inquiries`, `notification_settings`, `schema_migrations` |
+| Runner | `scripts/_db_migrate.cjs` | Applies pending files; `--check` for the gate |
+
+**Why the notification settings are not in `SiteSettings`.** `SiteSettings` lives in
+`localStorage`, which is per-browser; the function that sends the email cannot read
+any browser's storage. A "To:" field beside "Business name" would look like it
+configured delivery while the sender kept its own value — so those four live in the
+`notification_settings` row and the page reads them back through the API.
+
+**Two things the server does not do yet**, named so they are not assumed:
+
+1. **The dashboard does not read the server.** `listInquiries()` is still
+   `localStorage`, so a lead that arrives by email is not in `/admin` until the
+   dashboard is moved (proposal A2).
+2. **Spam protection is still the client-side captcha.** The honeypot is now also
+   checked on the server, which stops naive bots; a determined one is unaffected.
+   That is proposal A6 and it is not in this change.
+
+**Unverified:** a *valid* Clerk session token was not exercised against
+`api/notification-settings`. This instance is a production instance, so
+`POST /v1/sessions` — the way to mint one without a browser — is refused
+(`Invalid request for environment`). The token **rejection** paths are tested; the
+acceptance path is tested only through the pure rule (`grantsAdmin`,
+`membershipGrantsAdmin`). The first person to save the settings page proves it, and
+the save surfaces the error if it fails.
+
+---
+
+**Last verified:** 2026-10-22 in the working tree

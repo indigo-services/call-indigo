@@ -122,6 +122,27 @@ export interface AdminProfile {
   timezone: string
 }
 
+/**
+ * Where a new inquiry is announced — **server-owned**.
+ *
+ * ⚠️ This is deliberately NOT part of `SiteSettings`, which lives in
+ * `localStorage` and is therefore per-browser. The thing that sends the email is
+ * a serverless function, which cannot read any visitor's storage; a "To:" field
+ * next to "Business name" would look like it configured delivery while the sender
+ * kept using its own value. So these four live in the `notification_settings`
+ * table, the admin page reads and writes them through `/api/notification-settings`,
+ * and `server/notifications.ts` reads the same row when a lead arrives.
+ */
+export interface NotificationSettings {
+  to: string
+  /** Empty means "reply to the lead", which is what a person replying usually wants. */
+  replyTo: string
+  /** Comma-separated; empty means no Bcc. */
+  bcc: string
+  /** `{{name}}`, `{{service}}`, `{{urgency}}`, `{{propertyType}}` are substituted. */
+  subjectTemplate: string
+}
+
 export interface NotificationPrefs {
   emailOnLead: boolean
   weeklySummary: boolean

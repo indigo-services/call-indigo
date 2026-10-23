@@ -11,6 +11,7 @@ import { readFileSync } from "node:fs"
 import path from "node:path"
 import { ROOT, check, finish, suite, tally } from "./harness.mjs"
 import { run as auth } from "./auth.mjs"
+import { run as backend } from "./backend.mjs"
 import { run as docs } from "./docs.mjs"
 import { run as docsMirror } from "./docs-mirror.mjs"
 import { run as heroRotation } from "./hero-rotation.mjs"
@@ -25,6 +26,7 @@ await serviceArea()
 await heroRotation()
 await verify()
 await auth()
+await backend()
 await docs()
 await docsMirror()
 
