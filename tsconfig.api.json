@@ -16,5 +16,5 @@
     "noUncheckedIndexedAccess": false,
     "types": ["node"]
   },
-  "include": ["api/**/*.ts", "server/**/*.ts", "src/lib/data/types.ts"]
+  "include": ["api/**/*.ts", "src/lib/data/types.ts"]
 }

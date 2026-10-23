@@ -148,7 +148,7 @@ the seam is for, and it is PRD §16.2 **F2**.
 ## 9. The server, since 2026-10-22 (#68)
 
 **Added, and not yet wired.** There is a server for the first time: `api/` holds
-Vercel functions, `server/` holds the code they share, and `db/migrations/` holds
+Vercel functions, `api/_lib/` holds the code they share, and `db/migrations/` holds
 the schema. **The public form still calls `api.createInquiry()` → `localStorage`**,
 so the limitation in §8.2 above is still true of the running site. What exists is
 the destination, proven, waiting for the arrow.
@@ -157,10 +157,10 @@ the destination, proven, waiting for the arrow.
 |---|---|---|
 | Endpoint | `api/inquiry.ts` | `POST` → validate, insert, email. Store first, notify second |
 | Endpoint | `api/notification-settings.ts` | `GET`/`PUT` the four delivery fields, admin-only |
-| Shared | `server/validate.ts` | The same rules the form applies, restated for a caller that is not the form |
-| Shared | `server/db.ts` | Neon SQL-over-HTTP. No `pg`, no pool |
-| Shared | `server/notifications.ts` | Reads the settings row per send, then Resend |
-| Shared | `server/auth.ts` | Clerk session token → admin, against the pinned organization |
+| Shared | `api/_lib/validate.ts` | The same rules the form applies, restated for a caller that is not the form |
+| Shared | `api/_lib/db.ts` | Neon SQL-over-HTTP. No `pg`, no pool |
+| Shared | `api/_lib/notifications.ts` | Reads the settings row per send, then Resend |
+| Shared | `api/_lib/auth.ts` | Clerk session token → admin, against the pinned organization |
 | Schema | `db/migrations/0001_*.sql` | `inquiries`, `notification_settings`, `schema_migrations` |
 | Runner | `scripts/_db_migrate.cjs` | Applies pending files; `--check` for the gate |
 
@@ -195,7 +195,7 @@ unknown `/api/*` path returned 404 — registered, routed, crashing on load.
 runtime was fine, and **the module graph was not**.
 
 **A runtime import of a `.ts` file outside `api/` does not survive the function
-build.** `server/validate.ts` imported `SERVICES` from `src/lib/data/types.ts`; every
+build.** `api/_lib/validate.ts` imported `SERVICES` from `src/lib/data/types.ts`; every
 endpoint that shared it failed, and the one that imports nothing worked. The server
 now keeps its own copy, and `tests/backend.mjs` compares it against the form's list,
 so a service added to the form cannot silently stop being accepted. Only `import

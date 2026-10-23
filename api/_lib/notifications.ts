@@ -11,7 +11,7 @@
  * send rather than cached: a serverless instance may be minutes or days old, and a
  * cached address is how a destination change appears to work and does not.
  */
-import type { Inquiry, NotificationSettings } from "../src/lib/data/types"
+import type { Inquiry, NotificationSettings } from "../../src/lib/data/types"
 import { sql } from "./db"
 
 /** Verified on the Resend account. Overridable for a staging sender. */

@@ -43,10 +43,10 @@ against `/residential` as a positive control.
 
 | Variable | Used by | If it is missing |
 |---|---|---|
-| `DATABASE_URL` | `server/db.ts` | `POST /api/inquiry` answers **503** and stores nothing — it does not claim success |
-| `RESEND_API_KEY` | `server/notifications.ts` | the lead is **stored**, the email is not sent, the response says `notified: false` |
-| `CLERK_SECRET_KEY` | `server/auth.ts` | the settings endpoint answers **500**, never 200 |
-| `INQUIRY_FROM` *(optional)* | `server/notifications.ts` | defaults to `Call Indigo <inquiries@call-indigo.com>`, a verified Resend domain |
+| `DATABASE_URL` | `api/_lib/db.ts` | `POST /api/inquiry` answers **503** and stores nothing — it does not claim success |
+| `RESEND_API_KEY` | `api/_lib/notifications.ts` | the lead is **stored**, the email is not sent, the response says `notified: false` |
+| `CLERK_SECRET_KEY` | `api/_lib/auth.ts` | the settings endpoint answers **500**, never 200 |
+| `INQUIRY_FROM` *(optional)* | `api/_lib/notifications.ts` | defaults to `Call Indigo <inquiries@call-indigo.com>`, a verified Resend domain |
 
 ⚠️ **All three must be set in the Production scope, not only Development.** Measured
 on 2026-10-23, after the first deploy of the API: `/api/health` reported
