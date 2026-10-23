@@ -1,6 +1,6 @@
 # Deployment
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-09-27 at `60be6dc`
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-22 in the working tree
 
 ---
 
@@ -15,7 +15,7 @@
 ```json
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
 }
 ```
 
@@ -24,11 +24,48 @@ HTML file, and every route (`/residential`, `/admin/inquiries`, …) is resolved
 browser. Without the catch-all, a deep link or a refresh on any route other than `/`
 returns a 404 from the host. It shipped in `eadaf31`.
 
+**The `(?!api/)` exclusion is load-bearing too, and it was missing until 2026-10-22.**
+The rewrite used to be `/(.*)`, which also caught `/api/*` — so `POST /api/inquiry`
+would have been answered with `index.html` and a **200**, which looks exactly like a
+successful submission and stores nothing. `tests/backend.mjs` now evaluates the
+rewrite's own regex against `/api/inquiry` and `/api/notification-settings`, and
+against `/residential` as a positive control.
+
 | Setting | Value | Where |
 |---|---|---|
 | Build command | `npm run build` (`tsc -b && vite build`) | `package.json` |
 | Output | `dist/` | Vite default |
 | Node | `^20.19.0 \|\| >=22.12.0` | `package.json` `engines`, `.nvmrc` |
+| Functions | `api/*.ts`, zero config | Vercel's Node runtime |
+| Schema | `db/migrations/*.sql` | `scripts/_db_migrate.cjs` |
+
+### 1.1 The server, and the four values it needs
+
+| Variable | Used by | If it is missing |
+|---|---|---|
+| `DATABASE_URL` | `server/db.ts` | `POST /api/inquiry` answers **503** and stores nothing — it does not claim success |
+| `RESEND_API_KEY` | `server/notifications.ts` | the lead is **stored**, the email is not sent, the response says `notified: false` |
+| `CLERK_SECRET_KEY` | `server/auth.ts` | the settings endpoint answers **500**, never 200 |
+| `INQUIRY_FROM` *(optional)* | `server/notifications.ts` | defaults to `Call Indigo <inquiries@call-indigo.com>`, a verified Resend domain |
+
+**Applying the schema** is a command, not a paste:
+
+```
+node scripts/_db_migrate.cjs            # apply what is pending
+node scripts/_db_migrate.cjs --check    # exit 1 if anything is pending
+```
+
+It records each applied file in `schema_migrations` and every statement is
+`if not exists`, so a partial run is recovered by running it again. **There is no
+transaction around a file** — Neon's HTTP endpoint prepares each statement and
+Postgres refuses more than one command per prepared statement — which is exactly why
+the idempotence is in the SQL rather than assumed from the ledger.
+
+⚠️ **`vite dev` does not serve `/api`.** There is no local function runtime in this
+setup, so the form's POST fails under `npm run dev` until the client is wired and a
+proxy or `vercel dev` is in place. The endpoint itself is exercised by driving the
+bundled handler directly (see `.preview/drive-inquiry.mjs`, and `tests/backend.mjs`
+for the offline half).
 
 ## 2. Hostnames
 
@@ -196,4 +233,4 @@ this pass:
 
 ---
 
-**Last verified:** 2026-09-27 at `60be6dc`
+**Last verified:** 2026-10-22 in the working tree

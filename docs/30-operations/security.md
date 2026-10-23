@@ -1,6 +1,6 @@
 # Security posture
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-16 in the uncommitted working tree
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-22 in the working tree
 
 The current identity decision is [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md).
 The former shared-credential prototype is retained only as a historical record in
@@ -40,14 +40,27 @@ data operation.
 The previous `auth.ts` credential and its hashes have been removed. The former security
 settings mock has also been replaced with Clerk-managed account controls. See [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md).
 
+**Since 2026-10-22 there is one real server-side check** — `server/auth.ts`, used by
+`/api/notification-settings`. It verifies the Clerk session token with the official
+server SDK, then requires `org:admin` in the pinned organization, falling back to a
+membership lookup when the token carries no active-organization claim. It exists
+because that endpoint decides **where every future lead is emailed**: an
+unauthenticated write would let anyone redirect the business's inquiries to an inbox
+they control. The rest of the dashboard is still gated only in the browser, and this
+does not change that.
+
 ## 3. Other current limits
 
-- **No backend.** The contact form writes to the visitor's own browser and the business
-  receives nothing.
-- **The captcha is local arithmetic.** It is not a bot defence.
+- **The form still writes to the visitor's own browser.** The server endpoint exists
+  (`POST /api/inquiry`) and is proven against the live database and mailer, but the
+  form does not call it yet. Until that is wired, the business receives nothing.
+- **The captcha is local arithmetic.** It is not a bot defence. The server now also
+  checks the form's hidden honeypot, which stops naive bots and nothing more.
 - **The repository is public.** Source, demo fixtures, and the localStorage shape are
-  readable by anyone.
+  readable by anyone. No secret is committed: `.env*` is ignored with `!.env.example`.
 - **No secret scanning or dependency-advisory build gate is configured in CI.**
+- **The API has no rate limit.** One IP can post as fast as it can connect; the only
+  ceilings are field lengths and the honeypot.
 
 ## 4. Reporting a problem
 
@@ -56,4 +69,4 @@ repository is public, so an issue is a disclosure.
 
 ---
 
-**Last verified:** 2026-10-16 in the uncommitted working tree
+**Last verified:** 2026-10-22 in the working tree

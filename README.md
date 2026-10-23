@@ -91,7 +91,7 @@ producer attached to it and nothing failed when it drifted.
 | Type check | `npm run typecheck` | **0 errors** |
 | Lint | `npm run lint` | **0 errors, 4 warnings** — `react-refresh/only-export-components` in `src/components/ui/{badge,button,sidebar,tabs}.tsx` (registry files, pre-existing) |
 | Build | `npm run build` | **1883 modules** — 756.02 kB entry JS (217.38 kB gzip) / 131.15 kB CSS (23.41 kB gzip) / 1.53 kB HTML. The main entry still triggers Vite's >500 kB chunk warning |
-| Verification | `npm run test:only` | **163 checks passed** |
+| Verification | `npm run test:only` | **175 checks passed** |
 
 *Measured 2026-10-22 in the uncommitted working tree, Vite 8.3.1.* **One row here is machine-checked
 and three are a snapshot.** The check count cannot drift: `tests/run.mjs` compares it
