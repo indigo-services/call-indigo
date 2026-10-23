@@ -88,10 +88,11 @@ Postgres refuses more than one command per prepared statement — which is exact
 the idempotence is in the SQL rather than assumed from the ledger.
 
 ⚠️ **`vite dev` does not serve `/api`.** There is no local function runtime in this
-setup, so the form's POST fails under `npm run dev` until the client is wired and a
-proxy or `vercel dev` is in place. The endpoint itself is exercised by driving the
-bundled handler directly (see `.preview/drive-inquiry.mjs`, and `tests/backend.mjs`
-for the offline half).
+setup, so the contact form's POST fails under `npm run dev` — it shows its failure
+message with the phone number, which is the correct behaviour but a poor way to
+develop. Use `vercel dev` when working on the endpoint. The endpoint itself is also
+exercised by driving the bundled handler directly (see `.preview/drive-inquiry.mjs`,
+and `tests/backend.mjs` for the offline half).
 
 ⚠️ **A relative import under `api/` must end in `.js`.** `"type": "module"` makes
 Vercel emit ESM, and Node will not resolve `./_lib/http` — only `./_lib/http.js`.

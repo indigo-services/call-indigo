@@ -289,6 +289,37 @@ export async function run() {
     return out
   })
 
+  check("the public form posts to the server, and a failed send is visible", () => {
+    // Measured 2026-10-23: the endpoint worked and the form still wrote the visitor's
+    // own `localStorage`, so a real lead went nowhere and the site said "sent".
+    const apiSrc = readFileSync(path.join(ROOT, "src", "lib", "data", "api.ts"), "utf8")
+    const method = apiSrc.match(/async createInquiry\([\s\S]*?\n  \},/)
+    if (!method) return ["api.ts has no createInquiry method — this check would pass vacuously"]
+    const body = method[0]
+    // Comments in this method explain why the browser is no longer written, so they
+    // contain the word. Only code counts — a grep cannot tell the two apart.
+    const code = body.replace(/^\s*\/\/.*$/gm, "")
+
+    const out = []
+    if (!/fetch\(\s*"\/api\/inquiry"/.test(code)) {
+      out.push("createInquiry no longer POSTs to /api/inquiry")
+    }
+    if (/writeInquiries|localStorage/.test(code)) {
+      out.push("createInquiry still writes the browser — the inbox and the dashboard would disagree")
+    }
+
+    // The other half: a lead must never be told it was sent when it was not.
+    const page = readFileSync(path.join(ROOT, "src", "marketing", "pages", "ContactPage.tsx"), "utf8")
+    if (!/setFailure\(/.test(page)) out.push("ContactPage no longer has a failure state")
+    if (!/role="alert"/.test(page)) out.push("the failure is no longer announced to a screen reader")
+    const failure = page.match(/setFailure\("([^"]+)"\)/)
+    if (!failure) out.push("the failure message is no longer a literal — cannot check that it is actionable")
+    else if (!/\(\d{3}\)\s*\d{3}-\d{4}/.test(failure[1])) {
+      out.push("the failure message no longer offers a phone number")
+    }
+    return out
+  })
+
   check("no file under api/ imports a VALUE from outside api/", () => {
     // Code outside `api/` is not part of the function's bundle, so a value import
     // across that boundary is a load-time failure that no build reports.

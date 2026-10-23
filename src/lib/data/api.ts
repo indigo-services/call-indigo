@@ -4,12 +4,16 @@
  * Pages never touch `backend.ts`. They call these methods, which are **async on
  * purpose**: the local backend is synchronous, but a real HTTP backend will not
  * be, so the call sites are already written for the world where this returns a
- * network promise. Replacing localStorage with `fetch` is a change to this file
- * alone (PRD §16.2 F2).
+ * network promise.
  *
- * Mutations bump a version counter. `useApiData` subscribes to it, so an
- * inquiry submitted on `/contact` repaints the dashboard inbox without either
- * page knowing about the other.
+ * **That promise has now been cashed for one method.** `createInquiry` posts to
+ * `POST /api/inquiry` instead of writing `localStorage`, because the server owns the
+ * record — see `docs/60-reference/data-layer.md` §9. Every other method still reads
+ * the browser, which is proposal A2: the dashboard does not yet read the database.
+ *
+ * Mutations bump a version counter. `useApiData` subscribes to it, so a change made
+ * on one admin page repaints another without either page knowing about the other.
+ * `createInquiry` deliberately does **not** bump: it writes nothing here.
  */
 import { backend } from "@/lib/data/backend"
 import type {
@@ -57,12 +61,6 @@ export function subscribeToChanges(listener: () => void): () => void {
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 
-function newId(): string {
-  const c = globalThis.crypto
-  if (c && typeof c.randomUUID === "function") return `inq_${c.randomUUID()}`
-  return `inq_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
-}
-
 /** Newest first — the inbox's default order. */
 function byNewest(a: Inquiry, b: Inquiry): number {
   return b.createdAt.localeCompare(a.createdAt)
@@ -83,18 +81,35 @@ export const api = {
 
   /** Called by the public inquiry form. */
   async createInquiry(input: NewInquiry): Promise<Inquiry> {
+    // The server owns this record now. Writing to `localStorage` as well would give
+    // the site two sources of truth that disagree the moment a lead arrives by email
+    // — which is the primary channel — so the browser keeps nothing.
+    //
+    // The returned object is a **receipt**, not the stored row: the form needs an id
+    // for its reference, and everything else about the inquiry is the server's.
+    // Reading the stored rows back is proposal A2 (`docs/40-project/`).
+    const res = await fetch("/api/inquiry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    })
+
+    const body = (await res.json().catch(() => null)) as { id?: string } | null
+    if (!res.ok || !body?.id) {
+      // Thrown, never swallowed: the form turns this into a visible failure with a
+      // phone number. A lead must never be told it was sent when it was not.
+      throw new Error(`inquiry POST failed: ${res.status}`)
+    }
+
     const now = new Date().toISOString()
-    const record: Inquiry = {
+    return {
       ...input,
-      id: newId(),
+      id: body.id,
       status: "new",
       createdAt: now,
       updatedAt: now,
       notes: "",
     }
-    backend.writeInquiries([record, ...backend.readInquiries()])
-    bump()
-    return delay(record)
   },
 
   async updateInquiry(id: string, patch: Partial<Omit<Inquiry, "id">>): Promise<Inquiry> {
