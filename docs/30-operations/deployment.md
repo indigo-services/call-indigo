@@ -43,18 +43,36 @@ against `/residential` as a positive control.
 
 | Variable | Used by | If it is missing |
 |---|---|---|
-| `DATABASE_URL` | `api/_lib/db.ts` | `POST /api/inquiry` answers **503** and stores nothing — it does not claim success |
+| `DATABASE_URL` **or** a Neon name (below) | `api/_lib/db.ts` | `POST /api/inquiry` answers **503** and stores nothing — it does not claim success |
 | `RESEND_API_KEY` | `api/_lib/notifications.ts` | the lead is **stored**, the email is not sent, the response says `notified: false` |
 | `CLERK_SECRET_KEY` | `api/_lib/auth.ts` | the settings endpoint answers **500**, never 200 |
 | `INQUIRY_FROM` *(optional)* | `api/_lib/notifications.ts` | defaults to `Call Indigo <inquiries@call-indigo.com>`, a verified Resend domain |
 
-⚠️ **All three must be set in the Production scope, not only Development.** Measured
+**The connection string is resolved from a list, not from one name.** The Neon
+Vercel integration does **not** set `DATABASE_URL`; it injects prefixed variables.
+Measured in Production on 2026-10-23, the names present were `NEON_DATABASE_URL`,
+`NEON_POSTGRES_URL`, `NEON_POSTGRES_PRISMA_URL` and unpooled variants — and
+`DATABASE_URL` was absent, so code that read only that name loaded correctly and
+still could not reach the database. `api/_lib/db.ts` tries, in order:
+
+```
+DATABASE_URL, NEON_DATABASE_URL, POSTGRES_URL, NEON_POSTGRES_URL, NEON_POSTGRES_PRISMA_URL
+```
+
+An explicit `DATABASE_URL` wins if it is ever added; pooled names come before
+unpooled, because a serverless function opens a connection per request.
+`api/health.ts` keeps its own copy of that list (it must import nothing) and a
+check fails if the two copies disagree. `GET /api/health` reports the resolved
+variable's **name** in `dbSource`, so "which one is it using" is answerable
+without a redeploy — and never the value.
+
+⚠️ **All of them must be set in the Production scope, not only Development.** Measured
 on 2026-10-23, after the first deploy of the API: `/api/health` reported
-`DATABASE_URL: false` and `CLERK_SECRET_KEY: false` in production while
-`RESEND_API_KEY: true`. A variable pulled into `.env.local` by `vercel env pull` is
-not evidence that Production has it — `vercel env pull` reads the **Development**
-environment. `GET /api/health` is the check: it answers **503** and names the
-missing variable rather than pretending to be healthy.
+`CLERK_SECRET_KEY: false` in production while `RESEND_API_KEY: true`. A variable
+pulled into `.env.local` by `vercel env pull` is not evidence that Production has
+it — `vercel env pull` reads the **Development** environment, and it writes
+`[SENSITIVE]` for secrets it cannot read. `GET /api/health` is the check: it answers
+**503** and names what is missing rather than pretending to be healthy.
 
 **Applying the schema** is a command, not a paste:
 

@@ -11,9 +11,43 @@
  * needs two statements needs two calls, and no call here is a transaction.
  */
 
-const connectionString = (): string | undefined => process.env.DATABASE_URL ?? process.env.POSTGRES_URL
+/**
+ * Where the connection string comes from, in order.
+ *
+ * `DATABASE_URL` is the name everyone expects, and the Neon Vercel integration does
+ * **not** set it — it injects prefixed names instead. Measured in Production on
+ * 2026-10-23: `NEON_DATABASE_URL`, `NEON_POSTGRES_URL`, `NEON_POSTGRES_PRISMA_URL`
+ * and unpooled variants exist; `DATABASE_URL` does not. Reading only `DATABASE_URL`
+ * meant the function loaded correctly and still could not reach the database.
+ *
+ * Pooled before unpooled, because a serverless function opens a connection per
+ * request. `api/health.ts` keeps its **own** copy of this list, because it must not
+ * import anything — a test asserts the two copies agree.
+ */
+export const CONNECTION_VARS = [
+  "DATABASE_URL",
+  "NEON_DATABASE_URL",
+  "POSTGRES_URL",
+  "NEON_POSTGRES_URL",
+  "NEON_POSTGRES_PRISMA_URL",
+] as const
+
+export interface ConnectionSource {
+  /** The variable's **name**, so a log can say where the string came from. */
+  name: string
+  url: string
+}
 
 export class DbUnavailable extends Error {}
+
+/** Read per call: a module-level capture bakes in whatever the environment held at import. */
+export const connectionSource = (): ConnectionSource | null => {
+  for (const name of CONNECTION_VARS) {
+    const url = process.env[name]
+    if (url) return { name, url }
+  }
+  return null
+}
 
 /**
  * Run one parameterised statement.
@@ -29,12 +63,20 @@ export async function sql<T = Record<string, unknown>>(
   // Read per call, not at module load: a module-level capture bakes in whatever
   // the environment held when the file was first imported, which is a difference
   // that only shows up in a harness or a warm lambda with a rotated secret.
-  const url = connectionString()
-  if (!url) throw new DbUnavailable("DATABASE_URL is not set")
+  const source = connectionSource()
+  if (!source) throw new DbUnavailable(`no connection string — set one of ${CONNECTION_VARS.join(", ")}`)
 
-  const res = await fetch(`https://${new URL(url).host}/sql`, {
+  let host: string
+  try {
+    host = new URL(source.url).host
+  } catch {
+    // A malformed value should read as "unavailable", not as an unhandled 500.
+    throw new DbUnavailable(`${source.name} is not a URL`)
+  }
+
+  const res = await fetch(`https://${host}/sql`, {
     method: "POST",
-    headers: { "Neon-Connection-String": url, "Content-Type": "application/json" },
+    headers: { "Neon-Connection-String": source.url, "Content-Type": "application/json" },
     body: JSON.stringify({ query, params }),
   })
 
