@@ -135,7 +135,11 @@ intended.
 1. **Rebase on `main`** — no merge commits into features. Keep history linear.
 2. **Run the type checker** — `npm run typecheck` must pass with zero errors.
 3. **Run the linter** — `npm run lint` must report zero errors. Warnings in
-   generated registry files are expected; anything else is not.
+   generated registry files are expected; anything else is not. It takes about
+   25 s. If it appears to hang, the ignores in `eslint.config.js` have lost
+   `.preview` or `tests/.tmp`: a local build moves `dist` aside into `.preview`
+   rather than emptying it, so those two directories hold thousands of generated
+   files, and linting them takes minutes (#111).
 4. **Run the build** — `npm run build` must succeed.
 5. **Run the verification suite** — `npm test`. It renders every public route and
    asserts against the output, so "it type-checks" is not evidence that it works;

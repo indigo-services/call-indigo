@@ -362,6 +362,32 @@ export async function run() {
     return out
   })
 
+  check("the lint config ignores generated output, so a local run is not a seven-minute no-op", () => {
+    // #111, measured 2026-10-27: `eslint.config.js` ignored `dist` but not
+    // `.preview`, where every build leaves a full copy behind (the safe-delete
+    // guard refuses to empty `dist`, so it is moved aside instead) — 6,088
+    // minified `.js` files, plus 42 esbuild bundles in `tests/.tmp` up to 8,000
+    // lines each. A bare `eslint` ran **seven minutes without finishing**; with
+    // these two entries it takes 25 s.
+    //
+    // ⚠️ CI never saw it, because neither directory exists in a clean checkout.
+    // That is exactly why the entry is asserted here rather than left to be
+    // noticed: the failure is invisible on the machine that decides the gate, and
+    // costs the contributor the one check they could have run before pushing.
+    const src = read(path.join(ROOT, "eslint.config.js"))
+    const block = /ignores:\s*\[([\s\S]*?)\]/.exec(src)
+    if (!block) return ["eslint.config.js has no ignores array — this check would pass vacuously"]
+    const entries = [...block[1].matchAll(/"([^"]+)"/g)].map((m) => m[1])
+    if (entries.length === 0) return ["the ignores array is empty"]
+    const out = []
+    for (const required of ["dist", ".preview", "tests/.tmp"]) {
+      if (!entries.includes(required)) {
+        out.push(`eslint does not ignore ${required} — a local lint walks generated output`)
+      }
+    }
+    return out
+  })
+
   check("no tailwind.config.js, no postcss.config.js, no tailwindcss-animate (PRD §14)", () => {
     const out = []
     for (const f of ["tailwind.config.js", "tailwind.config.ts", "tailwind.config.cjs", "postcss.config.js", "postcss.config.cjs"]) {
