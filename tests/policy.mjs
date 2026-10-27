@@ -448,4 +448,50 @@ export async function run() {
     }
     return out
   })
+
+  /* ── Release hygiene ────────────────────────────────────────────────────── */
+
+  suite("Release hygiene", "tests/policy.mjs")
+
+  check("the version is one number in four places, and the changelog has an entry for it", () => {
+    // v2.0.2's own changelog entry names this failure and then left it
+    // unasserted: "`package-lock.json` had been drifting since v2.0.0. Its two
+    // root version fields still read `2.0.0-rc1` while `package.json` shipped
+    // `2.0.1` — two releases stale, and nothing failed, because no check
+    // asserted it." That is the same claim-without-a-producer shape as the
+    // README check-count drift, and it was still true in v2.3.0 — the drift was
+    // fixed, the *reason* it happened was not.
+    //
+    // ⚠️ The lockfile carries the root version **twice**, and it also contains
+    // other packages that legitimately sit at the same number: at v2.1.0 there
+    // were three occurrences of `"version": "2.1.0"`, and the third is
+    // `fast-json-stable-stringify`. A `replace_all` on the version string
+    // rewrites a dependency and leaves `resolved`/`integrity` pointing at a
+    // different tarball, which `npm ci` refuses — so this is checked as data,
+    // not as text.
+    const lock = JSON.parse(read(path.join(ROOT, "package-lock.json")))
+    const out = []
+    if (lock.version !== pkg.version) {
+      out.push(`package-lock.json version is ${String(lock.version)}, package.json is ${pkg.version}`)
+    }
+    const rootVersion = lock.packages?.[""]?.version
+    if (rootVersion !== pkg.version) {
+      out.push(`package-lock.json packages[""].version is ${String(rootVersion)}, package.json is ${pkg.version}`)
+    }
+
+    // The README states the version a reader should treat as current, which is
+    // the one place a stale number is read as fact rather than as history.
+    const stated = /\*\*Current version:\*\*\s*(v[\d.]+)/.exec(read(path.join(ROOT, "README.md")))
+    if (!stated) out.push("README.md no longer states a current version")
+    else if (stated[1] !== `v${pkg.version}`) out.push(`README.md says ${stated[1]}, package.json is ${pkg.version}`)
+
+    // And the entry has to exist, or the tag and the release notes disagree
+    // about what shipped. Matching on the heading means a release cannot be cut
+    // by bumping a number alone.
+    const changelog = read(path.join(ROOT, "CHANGELOG.md"))
+    const heading = new RegExp(`^## \\[v${pkg.version.replace(/\./g, "\\.")}\\]`, "m")
+    if (!heading.test(changelog)) out.push(`CHANGELOG.md has no "## [v${pkg.version}]" section`)
+
+    return out
+  })
 }

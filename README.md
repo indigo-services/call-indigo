@@ -11,7 +11,7 @@ is either the answer itself or a link to the document that holds it. The complet
 documentation index is [docs/README.md](./docs/README.md), also rendered as a
 [**wiki**](https://github.com/indigo-services/call-indigo/wiki).
 
-**Current version:** v2.1.0 — see [CHANGELOG.md](./CHANGELOG.md) for the
+**Current version:** v2.3.0 — see [CHANGELOG.md](./CHANGELOG.md) for the
 release entries and [PRD.md](./PRD.md) for the full product requirements document.
 
 > **Scope note.** The dashboard in this build does more than the PRD's rc1 mockup
@@ -91,7 +91,7 @@ producer attached to it and nothing failed when it drifted.
 | Type check | `npm run typecheck` | **0 errors** |
 | Lint | `npm run lint` | **0 errors, 4 warnings** — `react-refresh/only-export-components` in `src/components/ui/{badge,button,sidebar,tabs}.tsx` (registry files, pre-existing) |
 | Build | `npm run build` | **1883 modules** — 756.02 kB entry JS (217.38 kB gzip) / 131.15 kB CSS (23.41 kB gzip) / 1.53 kB HTML. The main entry still triggers Vite's >500 kB chunk warning |
-| Verification | `npm run test:only` | **200 checks passed** |
+| Verification | `npm run test:only` | **201 checks passed** |
 
 *Measured 2026-10-22 in the uncommitted working tree, Vite 8.3.1.* **One row here is machine-checked
 and three are a snapshot.** The check count cannot drift: `tests/run.mjs` compares it

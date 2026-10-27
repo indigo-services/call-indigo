@@ -1,6 +1,6 @@
 # Roadmap
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-16 in the uncommitted working tree
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-27 against `cd7ed7b` (v2.3.0)
 
 Two roadmaps, deliberately separate: **the product** and **the documentation**. They
 ship on their own clocks, and the documentation one exists because the product one had
@@ -31,8 +31,8 @@ half-restructured tree gets generated twice.
 
 > **The `Release` column is the plan's original label, not a tag that exists.**
 > Phases 2–4 shipped inside the `v2.0.x` releases, and the repository has no
-> `v2.2.0` tag. **`v2.1.0` (2026-10-22) is the product release** — Clerk sign-in, the
-> per-feature admin access model, the contact-form fix — not this milestone's phase 2.
+> `v2.2.0` tag. **`v2.3.0` (2026-10-27) is the product release** — the server, the three
+> staff levels, the Team screen — and `v2.1.0` (2026-10-22) was the one before it.
 > Read the column as "which release the plan expected this to land in"; read
 > [`CHANGELOG.md`](../../CHANGELOG.md) for what actually shipped.
 
@@ -50,27 +50,36 @@ half-restructured tree gets generated twice.
 
 | # | Work | Depends on | State |
 |---|---|---|---|
-| **F1** | Authentication — a **server-issued** session | — | **Partly landed** — Clerk identity and an admin-role check gate the SPA UI; server-side authorization still requires a backend |
-| **F2** | Real persistence — API + database | F1 | Open. **The `api.ts` seam was built for exactly this** |
+| **F1** | Authentication — a **server-issued** session | — | **Landed** — Clerk identity, and `requireCapability()` on every endpoint (`api/_lib/auth.ts:176` → `api/_lib/roles.ts`) |
+| **F2** | Real persistence — API + database | F1 | **Landed** — `api/_lib/inquiries.ts:54` `insertInquiry()` writes to Neon over HTTP (`api/_lib/db.ts:59`); the inbox and settings read it back (`api/inquiries.ts`, `api/settings.ts`) |
 | **F3** | A working design-token editor | F1, F2, a token-source decision | Open. `/admin/design` is read-only today |
 | **F4** | Content management for the marketing copy and images | F1, F2 | Open |
 | **F5** | Asset management — upload/replace `assets/images/**` | F1, F2 | Open. `/admin/assets` discovers from disk, read-only |
 | **F6** | The remaining sidebar pages | F1 | **Landed** — Profile, Notifications, Security, Assets and Components are all real pages now |
 | **F7** | Reconcile the two button systems | §8.3 debt | Open |
 | **F8** | Static pre-rendering / SEO | R4 | Open |
-| **F9** | Audit log and roles | F1, F2 | **Partly landed** — Clerk public metadata gates the admin UI; server-enforced roles and audit logging remain open |
-| **F10** | Retire `valvoro-prototype/` | rc1 acceptance | **Blocked** — needs §13.2 parity re-measured and signed off |
+| **F9** | Audit log and roles | F1, F2 | **Partly landed** — a role is a row in Postgres (`staff`, migration `0003`) enforced per endpoint; **the audit log is not built**, so a level change records when but not who (#114) |
+| **F10** | Retire `valvoro-prototype/` | rc1 acceptance | **Archived, not retired** — the directory is at `archive/valvoro-prototype/`; deleting it still needs §13.2 parity re-measured and signed off |
 | **F11** | ~~The `#area` city-list contradiction~~ | — | **Closed** — resolved to the four-city list |
 | **F12** | Update the `modern-web-app` skill template to Tailwind v4 | R1 | Open |
 
-### 2.1 The one that matters
+### 2.1 What the roadmap says now
 
-**F2 is the roadmap.** Every other item either depends on it or is cosmetic next to it.
-The contact form currently writes to the **submitter's own browser** — the business
-never receives a submission ([`../30-operations/observability.md` §2](../30-operations/observability.md#2-what-we-cannot-see)).
+**F2 was the roadmap, and it is built.** The paragraph that stood here said every other item
+was cosmetic next to a contact form that wrote to the submitter's own browser. That is no
+longer the state: a lead posted to `/api/inquiry` is stored in Neon and announced by mail
+from the server, and has been since v2.3.0.
 
-**F2 is still the main data boundary.** Clerk sign-in does not protect the current browser-local
-records or authorize future API calls; a backend must verify Clerk sessions and enforce roles.
+What is left is not smaller, it is **different**. Three things, in order:
+
+1. **The public endpoint is undefended** — no rate limit, no bot defence (#92, #94). A
+   backend that stores leads honestly and accepts every one of them is half a solution.
+2. **The address that receives the leads has no screen** (#93). It is settable only by
+   `curl`, while the field an operator would use writes a row nothing reads.
+3. **A level change is unattributable** (#114). Roles are enforced; who granted one is
+   recorded nowhere that outlives a function log.
+
+F3, F4, F5 and F8 remain open, and they wait on decisions rather than on code.
 
 ## 3. The client punch list
 
