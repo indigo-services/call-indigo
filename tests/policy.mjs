@@ -331,7 +331,7 @@ export async function run() {
     const guard = read(path.join(ROOT, "src", "admin", "RequireAuth.tsx"))
     const helper = read(path.join(ROOT, "src", "admin", "clerkAuth.ts"))
     if (!/@clerk\/react/.test(adminArea) || !/ClerkProvider/.test(adminArea)) out.push("AdminArea.tsx does not mount ClerkProvider")
-    if (!/useAuth\(\)/.test(guard) || !/resolveAdminAccess\(/.test(guard)) out.push("RequireAuth does not gate the admin UI with Clerk identity and the single access resolver")
+    if (!/useAuth\(\)/.test(guard) || !/resolveOrgAccess\(/.test(guard)) out.push("RequireAuth does not gate the admin UI with Clerk identity and the single organization resolver")
     // The organization must be PINNED, not merely read: `creator_role` is
     // org:admin on this instance, so a check that accepted any organization's
     // admin would let anyone who can create one grant themselves access.

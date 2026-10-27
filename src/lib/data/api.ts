@@ -6,10 +6,11 @@
  * be, so the call sites are already written for the world where this returns a
  * network promise.
  *
- * **That promise has now been cashed for one method.** `createInquiry` posts to
- * `POST /api/inquiry` instead of writing `localStorage`, because the server owns the
- * record — see `docs/60-reference/data-layer.md` §9. Every other method still reads
- * the browser, which is proposal A2: the dashboard does not yet read the database.
+ * **The promise has been cashed.** Inquiries, settings, profile and notification
+ * preferences all go through `/api/…` now; the browser keeps nothing that a
+ * second device would disagree with. What is left in `backend.ts` is the `security`
+ * record, which has no server-side meaning yet (#95). See
+ * `docs/60-reference/data-layer.md` §9.
  *
  * Mutations bump a version counter. `useApiData` subscribes to it, so a change made
  * on one admin page repaints another without either page knowing about the other.
@@ -87,6 +88,21 @@ async function readJson<T>(res: Response): Promise<T> {
 /* ── The API ─────────────────────────────────────────────────────────────── */
 
 export const api = {
+  /* ── The session ── */
+
+  /**
+   * Who this session is, and what it may do.
+   *
+   * The one call the admin shell makes for itself. The capability list is the same
+   * one `requireCapability()` checks against, which is what stops the nav promising
+   * a page the server will refuse — the drift that made `org:member` see a Settings
+   * page that answered `403` on every save.
+   */
+  async getMe(token?: TokenGetter): Promise<{ userId: string; role: string; capabilities: string[] }> {
+    const res = await fetch("/api/me", await withAuth(token))
+    return readJson<{ userId: string; role: string; capabilities: string[] }>(res)
+  },
+
   /* ── Inquiries ── */
 
   async listInquiries(token?: TokenGetter): Promise<Inquiry[]> {

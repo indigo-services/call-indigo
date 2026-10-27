@@ -12,7 +12,7 @@
  * Postgres and the page reads it back from here.
  */
 import { methodNotAllowed, body, type ApiRequest, type ApiResponse } from "./_lib/http.js"
-import { requireAdmin } from "./_lib/auth.js"
+import { denialBody, requireCapability } from "./_lib/auth.js"
 import { DEFAULT_SUBJECT, readNotificationSettings, writeNotificationSettings } from "./_lib/notifications.js"
 import type { NotificationSettings } from "../src/lib/data/types.js"
 
@@ -72,9 +72,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
   const method = req.method ?? "GET"
   if (method !== "GET" && method !== "PUT") return methodNotAllowed(res, "GET, PUT")
 
-  const auth = await requireAdmin(req)
+  const auth = await requireCapability(req, method === "GET" ? "settings:read" : "settings:write")
   if (!auth.ok) {
-    res.status(auth.status).json({ error: auth.error })
+    res.status(auth.status).json(denialBody(auth))
     return
   }
 

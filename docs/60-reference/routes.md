@@ -5,7 +5,7 @@
 Every route the build serves, read out of `src/App.tsx` and `src/admin/routes.ts`.
 Regenerating is the only way to change this file.
 
-Generated 2026-10-23. `tests/policy.mjs` asserts that the router and the sidebar model
+Generated 2026-10-27. `tests/policy.mjs` asserts that the router and the sidebar model
 agree on every `/admin` page; this table is that agreement, printed.
 
 ---
@@ -83,4 +83,4 @@ and each page's title. It is the file to edit when adding a page.
 
 ---
 
-*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `d13dd7d`.*
+*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `61a0cbe`.*

@@ -13,10 +13,10 @@ The former shared-credential prototype is retained only as a historical record i
 | Surface | State | Evidence |
 |---|---|---|
 | **`/admin` identity** | Clerk Invite-only mode is active; both Production users are Admin members of the `Indigo Services` organization, and that membership is the only thing that grants dashboard access. Sign-in still awaits deployment of this build. | Clerk Dashboard; `src/admin/AdminArea.tsx`, `src/admin/RequireAuth.tsx`, `src/admin/clerkAuth.ts` |
-| **Admin authorization** | Client-side UI gate only. There is no server or authenticated data API | Vite SPA; `src/lib/data/backend.ts` |
-| **Role assignment** | Add the operator to the `Indigo Services` organization with the Admin role in Clerk's dashboard; a missing membership or a lower role fails closed | `resolveAdminAccess()` and `RequireAuth` |
-| **Dashboard data** | `localStorage`; per-browser, not shared, not a database, and not protected by Clerk | `src/lib/data/backend.ts` |
-| **The contact form** | Writes to the visitor's own `localStorage`; the business does not receive it | `src/lib/data/api.ts` → `createInquiry` |
+| **Admin authorization** | Re-checked on the server by `requireCapability()` in every admin endpoint, against a capability matrix that lives in code. The browser gate decides which screens are *shown*; it authorizes nothing. | `api/_lib/auth.ts`, `api/_lib/roles.ts` |
+| **Role assignment** | Two parts, because custom Clerk roles are a paid feature: the person must be a member of `Indigo Services` in Clerk, and their level (`admin` / `service_manager` / `service_rep`) is a row in `staff`. A Clerk `org:admin` is admin regardless of the row | `resolveOrgAccess()` + `GET /api/me`; `db/migrations/0003_staff.sql` |
+| **Dashboard data** | Postgres (Neon) for inquiries and every settings record. The only browser-held record left is `security`, which nothing reads (#95) | `api/inquiries.ts`, `api/settings.ts` |
+| **The contact form** | POSTs to `/api/inquiry`, which stores the lead in Postgres and emails it | `src/lib/data/api.ts` → `createInquiry` |
 | **Clerk secret** | Vercel's Development environment has `CLERK_SECRET_KEY`; Production has only the publishable key. The Vite client does not read or bundle the secret | Vercel environment metadata; `vite.config.ts` loads only `VITE_*` and `NEXT_PUBLIC_*` values |
 | **Clerk publishable key** | Public key mapped from Vercel's `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` to Vite | `vite.config.ts` |
 | **Vercel environment scopes** | Development has the Marketplace publishable and secret keys; Production has the encrypted Production publishable key; Preview has no Clerk key | Vercel project environment-variable metadata |
@@ -42,23 +42,51 @@ The previous `auth.ts` credential and its hashes have been removed. The former s
 settings mock has also been replaced with Clerk-managed account controls. See [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md).
 
 **Since 2026-10-22 there is one real server-side check** — `api/_lib/auth.ts`. It
-verifies the Clerk session token with the official server SDK, then requires
-`org:admin` in the pinned organization, falling back to a membership lookup when the
-token carries no active-organization claim. It guards three endpoints:
+verifies the Clerk session token with the official server SDK, resolves the caller's
+level, and refuses a request that needs a capability that level does not carry. It
+guards four endpoints:
 
+- `/api/me` (2026-10-27), which reports the caller's own role and capability list. It
+  is the only thing the admin shell renders its navigation from, which is what stopped
+  the client and the server disagreeing about what a member may see;
 - `/api/notification-settings`, which decides **where every future lead is emailed** —
   an unauthenticated write would let anyone redirect the business's inquiries to an
   inbox they control;
-- `/api/inquiries` (2026-10-23), which can read every lead and delete any of them;
+- `/api/inquiries` (2026-10-23), which can read every lead and delete any of them.
+  Reading needs `inbox:read`, editing `inbox:write`, deleting `inbox:delete` — three
+  separate grants, so a Service Rep cannot do the one irreversible thing;
 - `/api/settings` (2026-10-23), for the `profile` and `notifications` keys and **every**
   write. Its single exception is a `GET` of `key=site`, which is public on purpose: the
   marketing pages read it for their colours and their phone number, and both are on
   the page anyway.
 
-All three call it **before** parsing a query, reading a body or touching the database,
+All four call it **before** parsing a query, reading a body or touching the database,
 so a caller who is about to be refused causes no work and learns nothing. The rest of
 the dashboard's UI is still gated only in the browser, and that is fine: what it gates
 is now a view of data the server has already refused to hand it.
+
+### Who is staff, and at what level
+
+Two sources, because one of them cannot answer:
+
+| Question | Answered by | Where |
+|---|---|---|
+| Are you in `Indigo Services`? | Clerk, from the session token, with a membership lookup as the fallback | `api/_lib/auth.ts` |
+| At what level? | the `staff` table | `db/migrations/0003_staff.sql` |
+
+The split exists because **custom organization roles are a paid Clerk feature.**
+Measured against the production instance on 2026-10-27: `POST /v1/organization_roles`
+returns `402 unsupported_subscription_plan_features` with
+`{"unsupported_features": ["org:roles"]}`. `max_allowed_roles` reports **10**, which
+reads like an invitation and is only the ceiling for a plan that includes the feature;
+`max_allowed_permissions` is **0**, so even a custom role could not carry a capability.
+The instance has exactly two roles: `org:admin` and `org:member`.
+
+So the level lives in Postgres, which is the better home regardless: it is in `git`, a
+test asserts it, and it can be joined to the inquiries a rep is assigned. The whole
+matrix is `api/_lib/roles.ts`. A Clerk `org:admin` is `admin` outright and never reads
+the table, so an empty table — or a bad row — can only ever reduce access, never widen
+it.
 
 ## 3. Other current limits
 

@@ -41,7 +41,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useUser()
   const { getToken } = useAuth()
   // Resolved once by <RequireAuth>. Reading it here rather than calling
-  // resolveAdminAccess() again keeps the nav and the gate on one answer.
+  // resolveOrgAccess() again keeps the nav and the gate on one answer.
   const access = useAdminAccess()
   const inquiries = useApiData("sidebar-inquiries", () => api.listInquiries(getToken))
 

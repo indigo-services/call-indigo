@@ -163,9 +163,9 @@ about this layer.
    row from any device.
 3. *"No migration is possible."* Moot: the server started empty on purpose, and the
    only browser data worth carrying was the seeded demo inbox.
-4. *"No server authorization on the data."* **Fixed.** `api/inquiries.ts` and
-   `api/settings.ts` both call `requireAdmin` before they touch the database, so the
-   browser-only Clerk check is a UI courtesy rather than the boundary.
+4. *"No server authorization on the data."* **Fixed.** Every admin endpoint calls
+   `requireCapability()` before it touches the database, so the browser-only Clerk
+   check is a UI courtesy rather than the boundary.
 
 **One consequence worth naming:** `use-theme` reads `GET /api/settings?key=site`, which
 is the only un-gated settings read. Before this, a visitor's own `localStorage` decided
@@ -185,17 +185,38 @@ in `src/lib/data/api.ts` returns a *receipt* (the new id), not the stored row.
 | Piece | File | What it does |
 |---|---|---|
 | Endpoint | `api/inquiry.ts` | `POST` → validate, insert, email. Store first, notify second |
-| Endpoint | `api/notification-settings.ts` | `GET`/`PUT` the four delivery fields, admin-only |
-| Endpoint | `api/inquiries.ts` | `GET`/`PATCH`/`DELETE` the inbox, admin-only, authorises before it reads |
+| Endpoint | `api/notification-settings.ts` | `GET`/`PUT` the four delivery fields, `settings:read` / `settings:write` |
+| Endpoint | `api/inquiries.ts` | `GET`/`PATCH`/`DELETE` the inbox, one capability per method, authorises before it reads |
 | Endpoint | `api/settings.ts` | `GET`/`PUT ?key=site\|profile\|notifications. Only the `site` read is un-gated |
+| Endpoint | `api/me.ts` (2026-10-27) | `GET` → the caller's own role and capability list. The admin shell's nav is built from it |
 | Shared | `api/_lib/adminSettings.ts` | The field spec for the three records, and their read/write |
 | Shared | `api/_lib/validate.ts` | The same rules the form applies, restated for a caller that is not the form |
 | Shared | `api/_lib/db.ts` | Neon SQL-over-HTTP. No `pg`, no pool |
 | Shared | `api/_lib/notifications.ts` | Reads the settings row per send, then Resend |
-| Shared | `api/_lib/auth.ts` | Clerk session token → admin, against the pinned organization |
+| Shared | `api/_lib/auth.ts` | Clerk session token + staff level → role and capabilities. Pure rules exported for tests |
+| Shared | `api/_lib/roles.ts` (2026-10-27) | The capability matrix: role → what it may do. No I/O, so it is tested directly |
+| Shared | `api/_lib/staff.ts` (2026-10-27) | The `staff` table read — one indexed lookup, and only on the non-admin path |
 | Schema | `db/migrations/0001_*.sql` | `inquiries`, `notification_settings`, `schema_migrations` |
 | Schema | `db/migrations/0002_*.sql` | `admin_settings` — one `jsonb` row per key |
+| Schema | `db/migrations/0003_*.sql` (2026-10-27) | `staff` — one row per person, holding their level |
 | Runner | `scripts/_db_migrate.cjs` | Applies pending files; `--check` for the gate |
+
+**Setting a level.** Custom Clerk organization roles are plan-gated — measured
+2026-10-27, `POST /v1/organization_roles` answers `402
+unsupported_subscription_plan_features` for `org:roles` — so Admin, Service Manager
+and Service Rep are rows here rather than roles in Clerk. There is no endpoint for
+this yet (the team screen is its own issue; an endpoint with no caller is the dead
+surface #95 is cleaning up), so a level is one statement:
+
+```sql
+insert into staff (clerk_user_id, role) values ('user_…', 'service_manager')
+on conflict (clerk_user_id) do update set role = excluded.role, active = true, updated_at = now();
+```
+
+`role` is one of `admin`, `service_manager`, `service_rep`. A Clerk `org:admin` does
+not need a row — `roleFromOrgRole()` short-circuits before the table is read — and a
+row cannot demote one. `active = false` withdraws access without deleting the record
+of who once had it.
 
 **Every relative import under `api/` ends in `.js`.** `package.json` sets
 `"type": "module"`, so Vercel compiles each `api/*.ts` to an ESM `.js` file and
