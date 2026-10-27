@@ -68,12 +68,19 @@ export async function run() {
   const settings = await load("api/notification-settings.ts", "api-settings")
   const inquiry = await load("api/inquiry.ts", "api-inquiry")
   const me = await load("api/me.ts", "api-me")
+  const staffApi = await load("api/staff.ts", "api-staff")
+  const staff = await load("api/_lib/staff.ts", "server-staff")
 
   // The async work, done once and asserted synchronously below.
   const anonPut = await callHandler(settings.default, "PUT", { body: { to: "attacker@example.com" } })
   const anonInquiryGet = await callHandler(inquiry.default, "GET")
   const anonMe = await callHandler(me.default, "GET")
   const anonMePost = await callHandler(me.default, "POST")
+  const anonStaffGet = await callHandler(staffApi.default, "GET")
+  const anonStaffPut = await callHandler(staffApi.default, "PUT", {
+    body: { userId: "user_2abcdef", role: "service_rep" },
+  })
+  const anonStaffPost = await callHandler(staffApi.default, "POST")
   const honeypotPost = await callHandler(inquiry.default, "POST", { body: { ...valid, company: "Acme" } })
   const invalidPost = await callHandler(inquiry.default, "POST", { body: { ...valid, email: "nope" } })
 
@@ -746,7 +753,12 @@ export async function run() {
     // A typo here is a permanent 403 for everyone including an admin, and it reads
     // as "the page is broken" rather than "the name is wrong".
     const out = []
-    const files = ["api/inquiries.ts", "api/settings.ts", "api/notification-settings.ts"]
+    const files = [
+      "api/inquiries.ts",
+      "api/settings.ts",
+      "api/notification-settings.ts",
+      "api/staff.ts",
+    ]
     for (const file of files) {
       const src = readFileSync(path.join(ROOT, file), "utf8")
       const code = src.replace(/^\s*\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
@@ -781,6 +793,157 @@ export async function run() {
     if (/FEATURES_BY_ROLE/.test(clerkAuth)) {
       out.push("clerkAuth.ts has a role→feature table again — that is the drift /api/me removed")
     }
+    return out
+  })
+
+  check("the staff endpoint gates both methods, authorises first, and checks the membership answer", () => {
+    // The roster is readable by a manager and writable only by an admin, so the
+    // two methods name different capabilities. A single gate here would either
+    // hide the page from the person who runs the desk or let them hand out access.
+    const out = []
+    if (anonStaffGet.status !== 401) out.push(`an anonymous GET answered ${anonStaffGet.status}, expected 401`)
+    if (anonStaffPut.status !== 401) out.push(`an anonymous PUT answered ${anonStaffPut.status}, expected 401`)
+    if (anonStaffPut.payload?.error !== "missing_token") {
+      out.push(`the PUT refusal was ${JSON.stringify(anonStaffPut.payload)}`)
+    }
+    if (anonStaffPost.status !== 405) out.push(`POST answered ${anonStaffPost.status}, expected 405`)
+    if (anonStaffPost.payload?.allowed !== "GET, PUT") {
+      out.push(`Allow was ${JSON.stringify(anonStaffPost.payload?.allowed)}`)
+    }
+
+    // ⚠️ A status code cannot show the ORDER. A handler that read and validated
+    // the body first would answer the same 401 while having parsed a stranger's
+    // payload — and, on a future change, while having written.
+    const src = readFileSync(path.join(ROOT, "api", "staff.ts"), "utf8")
+    const code = src.replace(/^\s*\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
+    const authAt = code.indexOf("await requireCapability(")
+    const bodyAt = code.indexOf("body<unknown>(req)")
+    if (authAt < 0) out.push("staff.ts no longer calls requireCapability")
+    if (bodyAt < 0) out.push("staff.ts no longer reads a body — this check would pass vacuously")
+    if (authAt >= 0 && bodyAt >= 0 && authAt > bodyAt) out.push("the body is read BEFORE the caller is authorised")
+    if (!/"settings:read" : "settings:write"/.test(code)) {
+      out.push("the two methods no longer name different capabilities")
+    }
+
+    // ⚠️ `membershipIncludes()` is asserted on its own above, and that check
+    // passed a mutation that replaced the call with `memberships.data.length > 0`
+    // — the pure function was covered, its USE was not. The negative assertion is
+    // the one that catches it: a length test trusts Clerk's filter, so an ignored
+    // filter would admit anyone in the roster.
+    if (/memberships\.data\.length\s*[><]/.test(code)) {
+      out.push("the endpoint trusts the response length instead of checking the answer names the user")
+    }
+    if (!/membershipIncludes\(memberships\.data,/.test(code)) {
+      out.push("the endpoint no longer checks the Clerk answer against the target user")
+    }
+    return out
+  })
+
+  check("a staff change is validated as a shape before it can reach the database", () => {
+    const out = []
+    const ok = staff.validateStaffUpdate({ userId: "  user_2abcdef  ", role: "service_manager" })
+    if (!ok.ok) return [`a well-formed change was refused: ${JSON.stringify(ok.fields ?? ok)}`]
+    if (ok.value.userId !== "user_2abcdef") out.push(`userId not trimmed: "${ok.value.userId}"`)
+    // Omitted `active` is NOT "true": it means "leave the row alone", which is what
+    // stops a role change from resurrecting a deactivated person.
+    if (ok.value.active !== null) out.push(`an omitted active became ${JSON.stringify(ok.value.active)}, expected null`)
+
+    const cases = [
+      [{ userId: "dana@example.com", role: "service_rep" }, "userId", "an email address as a user id"],
+      [{ userId: "", role: "service_rep" }, "userId", "an empty user id"],
+      [{ userId: "user_2abcdef", role: "org:owner" }, "role", "a level that is not one of the three"],
+      [{ userId: "user_2abcdef", role: "service_rep", active: "false" }, "active", "a string where a boolean belongs"],
+    ]
+    for (const [input, field, label] of cases) {
+      const got = staff.validateStaffUpdate(input)
+      if (got.ok) out.push(`${label} was accepted`)
+      else if (!got.fields[field]) out.push(`${label} was refused without naming "${field}": ${JSON.stringify(got.fields)}`)
+    }
+
+    const off = staff.validateStaffUpdate({ userId: "user_2abcdef", role: "service_rep", active: false })
+    if (!off.ok || off.value.active !== false) out.push("an explicit active:false was not carried through")
+    const admin = staff.validateStaffUpdate({ userId: "user_2abcdef", role: "admin" })
+    if (!admin.ok) out.push("the admin level was refused as a staff level")
+    return out
+  })
+
+  check("nobody changes their own level, and only a member of the organization gets a row", () => {
+    const out = []
+    const target = { userId: "user_2target", role: "service_rep", active: null }
+    if (staff.staffRefusal("user_2target", target) !== "cannot_change_own_level") {
+      out.push("an operator was allowed to change their own level")
+    }
+    if (staff.staffRefusal("user_2actor", target) !== null) {
+      out.push("an operator was refused a change to someone else's level")
+    }
+
+    // The membership answer has to be about THAT user. If Clerk ever ignored the
+    // `userId` filter the response would be the whole roster, every id would look
+    // like a member, and a stranger would be accepted with no error anywhere.
+    const roster = [{ publicUserData: { userId: "user_2member" } }]
+    if (!staff.membershipIncludes(roster, "user_2member")) out.push("a member was not recognised")
+    if (staff.membershipIncludes(roster, "user_2stranger")) {
+      out.push("a stranger was accepted because someone ELSE is in the roster — the filter was ignored")
+    }
+    if (staff.membershipIncludes([], "user_2member")) out.push("an empty answer was read as a membership")
+    if (staff.membershipIncludes([{ publicUserData: null }], "user_2member")) {
+      out.push("a membership with no user data was counted as a match")
+    }
+    return out
+  })
+
+  check("the roster is Clerk's members joined to the levels, and a missing row is a state", () => {
+    // Three states the screen has to tell apart, and they are indistinguishable
+    // from any status code: a member with a level, a member with no row (the
+    // read-only floor), and a row for someone who has left the organization.
+    const members = [
+      {
+        role: "org:member",
+        publicUserData: { userId: "user_2rep", firstName: "Dana", lastName: "Reyes", identifier: "dana@example.com" },
+      },
+      {
+        role: "org:member",
+        publicUserData: { userId: "user_2new", firstName: "Sam", lastName: "Lee", identifier: "sam@example.com" },
+      },
+      {
+        role: "org:admin",
+        publicUserData: { userId: "user_2boss", firstName: "Jaden", lastName: "Black", identifier: "jaden@example.com" },
+      },
+    ]
+    const rows = [
+      {
+        userId: "user_2rep",
+        role: "service_rep",
+        active: true,
+        createdAt: "2026-10-27T00:00:00Z",
+        updatedAt: "2026-10-27T00:00:00Z",
+      },
+      {
+        userId: "user_2gone",
+        role: "service_manager",
+        active: true,
+        createdAt: "2026-10-01T00:00:00Z",
+        updatedAt: "2026-10-01T00:00:00Z",
+      },
+    ]
+    const roster = staff.buildRoster(members, rows)
+    const out = []
+    if (roster.length !== 3) out.push(`the roster has ${roster.length} people, expected 3 (a row for a non-member must not appear)`)
+    if (roster.some((e) => e.userId === "user_2gone")) out.push("a staff row for a non-member appeared on the roster")
+
+    const rep = roster.find((e) => e.userId === "user_2rep")
+    if (rep?.role !== "service_rep" || rep.active !== true) out.push(`the rep came back as ${JSON.stringify(rep)}`)
+    if (rep?.name !== "Dana Reyes") out.push(`the rep's name is "${rep?.name}"`)
+
+    // The one the issue is really about: a member with no row is a STATE, not an
+    // absence. `role: null` is what the screen renders as "no level set — read-only".
+    const fresh = roster.find((e) => e.userId === "user_2new")
+    if (fresh?.role !== null) out.push(`a member with no row came back with role ${JSON.stringify(fresh?.role)}`)
+    if (fresh?.active !== false) out.push("a member with no row was reported as active")
+
+    // Clerk admins sort first, because the screen's order should be the order of
+    // who can do what, not the order rows happen to exist.
+    if (roster[0]?.userId !== "user_2boss") out.push(`the roster leads with ${roster[0]?.userId}, expected the Clerk admin`)
     return out
   })
 }

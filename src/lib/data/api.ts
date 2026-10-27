@@ -25,6 +25,8 @@ import type {
   NotificationPrefs,
   SecurityState,
   SiteSettings,
+  StaffLevel,
+  StaffMember,
 } from "@/lib/data/types"
 
 /**
@@ -248,6 +250,57 @@ export const api = {
     const stored = await readJson<{ value: NotificationPrefs }>(res)
     bump()
     return stored.value
+  },
+
+  /* ── Staff ── */
+
+  /**
+   * The roster: Clerk's members, each with the level Postgres holds for them.
+   *
+   * One call rather than two because the join is the server's: `useUser()` only
+   * carries the signed-in user's own memberships, so a browser-side join would
+   * need `useOrganization()` and its own pagination to see the same list.
+   *
+   * `role === null` is a real answer — a member with no row, whom the server
+   * treats as read-only. It is not an error and not an empty state.
+   */
+  async listStaff(token?: TokenGetter): Promise<StaffMember[]> {
+    const res = await fetch("/api/staff", await withAuth(token))
+    const { staff } = await readJson<{ staff: StaffMember[] }>(res)
+    return staff
+  },
+
+  /**
+   * Set one person's level, and return the row as stored.
+   *
+   * `active` is sent only when the caller means to change it: omitting it leaves a
+   * deactivated row deactivated, so changing a leaver's level cannot quietly hand
+   * their access back.
+   *
+   * ⚠️ A refusal carries the server's own error code (`not_a_member`,
+   * `cannot_change_own_level`, `missing_capability`), because `API 422` tells the
+   * person reading the toast nothing they can act on. The page maps the code to a
+   * sentence; an unknown code still reaches the screen rather than being swallowed.
+   */
+  async setStaffLevel(
+    input: { userId: string; role: StaffLevel; active?: boolean },
+    token?: TokenGetter,
+  ): Promise<StaffMember> {
+    const res = await fetch(
+      "/api/staff",
+      await withAuth(token, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      }),
+    )
+    if (!res.ok) {
+      const payload = (await res.json().catch(() => null)) as { error?: string } | null
+      throw new Error(payload?.error ?? `API ${res.status}`)
+    }
+    const { staff } = await readJson<{ staff: StaffMember }>(res)
+    bump()
+    return staff
   },
 
   /* ── Security ── */

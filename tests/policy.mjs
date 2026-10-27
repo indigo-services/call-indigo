@@ -276,15 +276,15 @@ export async function run() {
     const out = []
     const labels = navModel.ADMIN_NAV.map((g) => g.label)
     // Positive control: an empty model would satisfy every loop below.
-    if (navModel.ADMIN_ROUTES.length !== 9) {
-      out.push(`ADMIN_ROUTES has ${navModel.ADMIN_ROUTES.length} pages, expected 9`)
+    if (navModel.ADMIN_ROUTES.length !== 10) {
+      out.push(`ADMIN_ROUTES has ${navModel.ADMIN_ROUTES.length} pages, expected 10`)
     }
     if (labels.join(", ") !== "Inbox, Settings") {
       out.push(`ADMIN_NAV groups are [${labels.join(", ")}], expected [Inbox, Settings]`)
     }
     const settings = navModel.ADMIN_NAV.find((g) => g.label === "Settings")
-    if (!settings || settings.items.length !== 8) {
-      out.push(`Settings holds ${settings?.items.length ?? 0} sub-panes, expected 8`)
+    if (!settings || settings.items.length !== 9) {
+      out.push(`Settings holds ${settings?.items.length ?? 0} sub-panes, expected 9`)
     }
     // Reachability, per path, through the resolver the breadcrumb uses — not by
     // counting the array, which would pass even if every path were duplicated.
@@ -308,6 +308,11 @@ export async function run() {
       "/admin/profile": "settings",
       "/admin/notifications": "settings",
       "/admin/security": "settings",
+      // Its own area, not `settings`: the roster is the one page a manager can use
+      // with `settings:read` alone. Retagging it `settings` would hide it from the
+      // person most likely to notice a missing rep — a permission change disguised
+      // as a nav tidy-up, which is exactly what this check exists to catch.
+      "/admin/team": "team",
       "/admin/design": "design",
       "/admin/assets": "design",
       "/admin/components": "design",

@@ -36,6 +36,7 @@ sidebar, and no `/admin/login` route exists to loop through.
 | `profile` | `ProfilePage` | `src/admin/ProfilePage.tsx` | 144 |
 | `notifications` | `NotificationsPage` | `src/admin/NotificationsPage.tsx` | 236 |
 | `security` | `Suspense` | — | — |
+| `team` | `TeamPage` | `src/admin/TeamPage.tsx` | 277 |
 | `design` | `DesignSystemPage` | `src/admin/DesignSystemPage.tsx` | 423 |
 | `assets` | `AssetsPage` | `src/admin/AssetsPage.tsx` | 167 |
 | `components` | `ComponentsPage` | `src/admin/ComponentsPage.tsx` | 165 |
@@ -65,6 +66,7 @@ and each page's title. It is the file to edit when adding a page.
 | Profile | `/admin/profile` | The signed-in operator's own details. |
 | Notifications | `/admin/notifications` | What the team gets told about, and when. |
 | Security | `/admin/security` | Clerk account and session controls. |
+| Team | `/admin/team` | Who can sign in, and what each person may do. |
 | Design System | `/admin/design` | The brand tokens, read-only. |
 | Assets | `/admin/assets` | The images the marketing pages serve. |
 | Components | `/admin/components` | The primitives available to dashboard pages. |
@@ -83,4 +85,4 @@ and each page's title. It is the file to edit when adding a page.
 
 ---
 
-*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `c229a3f`.*
+*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `15e9a6b`.*

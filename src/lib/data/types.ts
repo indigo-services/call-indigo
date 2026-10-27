@@ -162,6 +162,37 @@ export interface SecurityState {
   sessionTimeoutMinutes: number
 }
 
+/* ── Staff ───────────────────────────────────────────────────────────────── */
+
+/**
+ * The three levels a `staff` row may hold — mirroring `StaffRole` in
+ * `api/_lib/roles.ts`.
+ *
+ * A second copy, for the same reason `KNOWN_CAPABILITIES` has one: the two sides
+ * are built by different tsconfigs and `src/` may not import `api/`. Unlike that
+ * list this one is not asserted equal by a test — it is a response shape, and a
+ * wrong value here would render a label the server never sends.
+ */
+export type StaffLevel = "admin" | "service_manager" | "service_rep"
+
+/**
+ * One person on the Team screen.
+ *
+ * ⚠️ `role` is the **staff level**, and `null` means no row exists — the server
+ * gives that person the `member` floor. It is not the same field as `role` on
+ * `/api/me`, which is what the *current request* runs as. `orgRole` is Clerk's
+ * (`org:admin` / `org:member`) and outranks `role` outright.
+ */
+export interface StaffMember {
+  userId: string
+  name: string
+  email: string
+  imageUrl: string
+  orgRole: string
+  role: StaffLevel | null
+  active: boolean
+}
+
 /* ── Assets ──────────────────────────────────────────────────────────────── */
 
 export type AssetGroup = "Brand" | "Photography" | "Icons" | "Logos"

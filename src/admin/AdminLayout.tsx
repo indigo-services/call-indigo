@@ -2,9 +2,9 @@
  * AdminLayout — the shadcn sidebar shell that wraps every `/admin` page.
  *
  * One inset sidebar containing two menu groups — Inbox, and Settings with its
- * eight sub-panes — following registry block sidebar-08 (PRD §9.2). It was four
+ * nine sub-panes — following registry block sidebar-08 (PRD §9.2). It was four
  * groups until issue #73; Design and Reference are sub-panes now, because four
- * top-level labels made a nine-page dashboard read as four products. The
+ * top-level labels made a ten-page dashboard read as four products. The
  * breadcrumb's leaf comes from the shared nav model in `routes.ts`, so a page
  * cannot be added to the sidebar without also getting a correct breadcrumb.
  *

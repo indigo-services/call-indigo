@@ -27,6 +27,10 @@ export async function run() {
   const lock = JSON.parse(read("package-lock.json"))
   const clerkAuth = await load("src/admin/clerkAuth.ts", "clerkAuth")
   const routesModel = await load("src/admin/routes.ts", "admin-routes")
+  // The Team screen's rules, in a module with no JSX: the page itself pulls in
+  // Radix's `Select`, whose CJS dependencies cannot be imported here — so anything
+  // defined inside the page could only be grepped, never called.
+  const roster = await load("src/admin/team-roster.ts", "team-roster")
 
   check("the React Core 3 SDK is a direct runtime dependency", () => {
     const spec = pkg.dependencies?.["@clerk/react"]
@@ -214,9 +218,11 @@ export async function run() {
   })
 
   check("a manager's nav is what they can act on, not what they can read", () => {
-    // `settings:read` opens nothing on purpose. The settings pages are forms whose
-    // only action is Save, and saving needs `settings:write` — so a manager with a
-    // page of disabled controls would be the quieter version of the lie #100 removed.
+    // `settings:read` opens exactly one page: the Team roster (#102), which it can
+    // render completely — every person, every level, and a select it cannot move.
+    // It does NOT open the settings pages, because those are forms whose only
+    // action is Save and saving needs `settings:write`; a manager with a page of
+    // disabled controls would be the quieter version of the lie #100 removed.
     const manager = clerkAuth.accessFrom("service_manager", [
       "inbox:read",
       "inbox:write",
@@ -228,12 +234,79 @@ export async function run() {
     const out = []
     if (!visible.includes("inbox")) out.push("a manager cannot see the inbox")
     if (!visible.includes("reference")) out.push("a manager cannot see the reference docs")
+    if (!visible.includes("team")) out.push("a manager cannot see the roster, which settings:read is for")
     if (visible.includes("settings")) out.push("a manager sees settings, which they cannot save")
     if (visible.includes("design")) out.push("a manager sees the brand system, which they cannot save")
 
     const rep = clerkAuth.accessFrom("service_rep", ["inbox:read", "inbox:write"])
     if (clerkAuth.can(rep, "settings")) out.push("a rep sees settings")
     if (clerkAuth.can(rep, "reference")) out.push("a rep sees the reference docs")
+    // A rep has no `settings:read`, so the roster is not theirs either. The page is
+    // about other people's access, and it is the one page where the levels are all
+    // visible at once.
+    if (clerkAuth.can(rep, "team")) out.push("a rep sees the roster, which needs settings:read")
+    return out
+  })
+
+  check("the roster offers only what the level allows, and a missing row is not a withdrawn one", () => {
+    // Four states the screen must tell apart. They are one boolean away from each
+    // other, and getting one wrong is not a cosmetic bug: `canRestore` on a member
+    // with no row **creates a level** when pressed.
+    const member = (over) => ({
+      userId: "user_2someone",
+      name: "Dana Reyes",
+      email: "dana@example.com",
+      imageUrl: "",
+      orgRole: "org:member",
+      role: null,
+      active: false,
+      ...over,
+    })
+    const admin = { canWrite: true, isSelf: false }
+    const out = []
+
+    // No row: a select, and NOTHING else. The level is set, not restored.
+    const fresh = roster.rowState(member({}), admin)
+    if (!fresh.editable) out.push("a member with no row cannot be given a level")
+    if (fresh.canRestore) out.push("a member with no row was offered Restore — that would create a level by accident")
+    if (fresh.canWithdraw) out.push("a member with no row was offered Remove access")
+    if (fresh.showInactive) out.push("a member with no row was labelled Inactive — they never had a level")
+
+    // A live row: a select and Remove access.
+    const active = roster.rowState(member({ role: "service_rep", active: true }), admin)
+    if (!active.editable || !active.canWithdraw) out.push("an active rep cannot be changed or withdrawn")
+    if (active.canRestore) out.push("an active rep was offered Restore")
+
+    // A withdrawn row: the level is still shown and Restore is the action.
+    const withdrawn = roster.rowState(member({ role: "service_rep", active: false }), admin)
+    if (!withdrawn.canRestore || !withdrawn.showInactive) out.push("a withdrawn rep cannot be restored")
+    if (withdrawn.canWithdraw) out.push("a withdrawn rep was offered Remove access again")
+
+    // A Clerk admin: no control at all, whatever the row says — their level is
+    // never read, so a select there writes a value that never applies.
+    const boss = roster.rowState(member({ orgRole: "org:admin", role: "service_rep", active: true }), admin)
+    if (boss.editable || boss.canWithdraw || boss.canRestore) out.push("a Clerk admin's row was made editable")
+    if (boss.showInactive) out.push("a Clerk admin was labelled Inactive")
+
+    // Yourself: the endpoint refuses it, so the control is not offered.
+    const self = roster.rowState(member({ role: "service_rep", active: true }), { canWrite: true, isSelf: true })
+    if (self.editable || self.canWithdraw) out.push("an operator was offered a control on their own row")
+
+    // A manager: everything visible, nothing offered.
+    const reader = roster.rowState(member({ role: "service_rep", active: true }), { canWrite: false, isSelf: false })
+    if (reader.editable || reader.canWithdraw) out.push("a manager without settings:write was offered a control")
+
+    // And the access column, which is the same rule the server applies.
+    if (roster.accessText(member({ orgRole: "org:admin" })) !== "Admin") {
+      out.push("a Clerk admin with no row was not shown as an admin")
+    }
+    if (roster.accessText(member({})) !== "Read-only inbox") out.push("a member with no row was not shown as read-only")
+    if (roster.accessText(member({ role: "service_manager", active: true })) !== "Service Manager") {
+      out.push("a live manager was not shown as one")
+    }
+    if (roster.accessText(member({ role: "service_manager", active: false })) !== "Read-only inbox") {
+      out.push("a withdrawn manager was not shown as read-only")
+    }
     return out
   })
 

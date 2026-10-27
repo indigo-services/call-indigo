@@ -1,6 +1,6 @@
 # Data layer
 
-**Kind:** dated · **Owner:** `src/lib/data/` · **Last verified:** 2026-10-23 in the working tree
+**Kind:** dated · **Owner:** `src/lib/data/` · **Last verified:** 2026-10-27 in the working tree
 
 The full surface. The *reasoning* is in
 [`../40-project/decisions/0003-localstorage-behind-an-async-seam.md`](../40-project/decisions/0003-localstorage-behind-an-async-seam.md);
@@ -189,13 +189,14 @@ in `src/lib/data/api.ts` returns a *receipt* (the new id), not the stored row.
 | Endpoint | `api/inquiries.ts` | `GET`/`PATCH`/`DELETE` the inbox, one capability per method, authorises before it reads |
 | Endpoint | `api/settings.ts` | `GET`/`PUT ?key=site\|profile\|notifications. Only the `site` read is un-gated |
 | Endpoint | `api/me.ts` (2026-10-27) | `GET` → the caller's own role and capability list. The admin shell's nav is built from it |
+| Endpoint | `api/staff.ts` (2026-10-27) | `GET` → the roster (Clerk members + levels), `settings:read`. `PUT` → set one level, `settings:write` |
 | Shared | `api/_lib/adminSettings.ts` | The field spec for the three records, and their read/write |
 | Shared | `api/_lib/validate.ts` | The same rules the form applies, restated for a caller that is not the form |
 | Shared | `api/_lib/db.ts` | Neon SQL-over-HTTP. No `pg`, no pool |
 | Shared | `api/_lib/notifications.ts` | Reads the settings row per send, then Resend |
 | Shared | `api/_lib/auth.ts` | Clerk session token + staff level → role and capabilities. Pure rules exported for tests |
 | Shared | `api/_lib/roles.ts` (2026-10-27) | The capability matrix: role → what it may do. No I/O, so it is tested directly |
-| Shared | `api/_lib/staff.ts` (2026-10-27) | The `staff` table read — one indexed lookup, and only on the non-admin path |
+| Shared | `api/_lib/staff.ts` (2026-10-27) | The `staff` table: the hot-path lookup, the roster join, the upsert, and the pure rules for both |
 | Schema | `db/migrations/0001_*.sql` | `inquiries`, `notification_settings`, `schema_migrations` |
 | Schema | `db/migrations/0002_*.sql` | `admin_settings` — one `jsonb` row per key |
 | Schema | `db/migrations/0003_*.sql` (2026-10-27) | `staff` — one row per person, holding their level |
@@ -204,9 +205,21 @@ in `src/lib/data/api.ts` returns a *receipt* (the new id), not the stored row.
 **Setting a level.** Custom Clerk organization roles are plan-gated — measured
 2026-10-27, `POST /v1/organization_roles` answers `402
 unsupported_subscription_plan_features` for `org:roles` — so Admin, Service Manager
-and Service Rep are rows here rather than roles in Clerk. There is no endpoint for
-this yet (the team screen is its own issue; an endpoint with no caller is the dead
-surface #95 is cleaning up), so a level is one statement:
+and Service Rep are rows here rather than roles in Clerk. Since issue #102 a level is
+set on **`/admin/team`**, through `api/staff.ts`:
+
+| Method | Capability | What it does |
+|---|---|---|
+| `GET /api/staff` | `settings:read` | Clerk's members of `Indigo Services`, each with their level — the roster, not just the rows, so a member with **no row** appears as *no level set* |
+| `PUT /api/staff` | `settings:write` | `{ userId, role, active? }` → one upsert. `422 not_a_member` if Clerk says they are not in the organization; `422 cannot_change_own_level` if it is the caller's own row |
+
+The join is the server's because `useUser()` only carries the signed-in user's own
+memberships — a browser-side roster would need `useOrganization()` and its own
+pagination to see the same list. `active` is tri-state: omitted means *do not touch
+it*, so changing a leaver's level cannot silently restore their access.
+
+The statement it replaces, still valid for a repair when the dashboard is the thing
+that is broken:
 
 ```sql
 insert into staff (clerk_user_id, role) values ('user_…', 'service_manager')
@@ -299,4 +312,4 @@ Production has `RESEND_API_KEY` but not `DATABASE_URL` or `CLERK_SECRET_KEY`.
 
 ---
 
-**Last verified:** 2026-10-23 in the working tree
+**Last verified:** 2026-10-27 in the working tree

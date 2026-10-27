@@ -15,6 +15,7 @@ import InquiriesPage from "@/admin/InquiriesPage"
 import SettingsPage from "@/admin/SettingsPage"
 import ProfilePage from "@/admin/ProfilePage"
 import NotificationsPage from "@/admin/NotificationsPage"
+import TeamPage from "@/admin/TeamPage"
 import DesignSystemPage from "@/admin/DesignSystemPage"
 import AssetsPage from "@/admin/AssetsPage"
 import ComponentsPage from "@/admin/ComponentsPage"
@@ -83,6 +84,7 @@ export default function App() {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="security" element={<Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Loading security…</p>}><SecurityPage /></Suspense>} />
+          <Route path="team" element={<TeamPage />} />
           <Route path="design" element={<DesignSystemPage />} />
           <Route path="assets" element={<AssetsPage />} />
           <Route path="components" element={<ComponentsPage />} />

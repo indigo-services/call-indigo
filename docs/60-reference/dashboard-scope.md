@@ -1,6 +1,6 @@
 # Dashboard Scope Deviation (PRD §5.2, §9.1, §16.2)
 
-**Kind:** dated · **Last verified:** 2026-09-27 at `899beff`
+**Kind:** dated · **Last verified:** 2026-10-27 in the working tree
 **Status:** accepted 2026-09-18 · **Release:** v2.0.rc1 (pre-release)
 
 > **Historical scope record.** Authentication details in this snapshot were superseded
@@ -23,7 +23,7 @@ is the bug. Where the PRD and this build disagree, this file is the reconciliati
 
 | Ref | Claim | Verdict |
 |---|---|---|
-| §5.2 | "`/admin` contains exactly two pages: Settings, Design System" | **Superseded** — 9 pages |
+| §5.2 | "`/admin` contains exactly two pages: Settings, Design System" | **Superseded** — 10 pages |
 | §5.2 | "**Three entries. No more.** Any additional `/admin` route in rc1 is a scope violation." | **Superseded** — see §3 |
 | §5.2 | "no catch-all" — an unknown `/admin/*` path must not silently become a page | **Honoured** — see §4 |
 | §9.1 | No authentication | **Superseded 2026-09-26** — a client-side gate; see §6 |
@@ -39,7 +39,7 @@ is the bug. Where the PRD and this build disagree, this file is the reconciliati
 `/`, `/residential`, `/commercial` (static-prototype parity) plus `/contact`, a new
 inquiry page carrying a validated form that writes a real record.
 
-**`/admin` routes — 9** [M: `src/admin/routes.ts`, `src/App.tsx`]
+**`/admin` routes — 10** [M: `src/admin/routes.ts`, `src/App.tsx`]
 
 | Path | Page |
 |---|---|
@@ -48,6 +48,7 @@ inquiry page carrying a validated form that writes a real record.
 | `/admin/profile` | The operator's own details, persisted |
 | `/admin/notifications` | Preferences, persisted, with a replay of what would have been sent |
 | `/admin/security` | 2FA toggle, session timeout, change-password flow, demo-data reset |
+| `/admin/team` | The roster — Clerk's members joined to their staff level; set a level, withdraw access |
 | `/admin/design` | Design System — unchanged, read-only |
 | `/admin/assets` | The images the marketing pages serve, discovered from disk |
 | `/admin/components` | The registry primitives and their exports, discovered from disk |
