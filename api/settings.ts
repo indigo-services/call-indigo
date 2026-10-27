@@ -16,7 +16,7 @@
  * the caller has been authorised.
  */
 import { body, methodNotAllowed, queryParam, type ApiRequest, type ApiResponse } from "./_lib/http.js"
-import { requireAdmin } from "./_lib/auth.js"
+import { denialBody, requireCapability } from "./_lib/auth.js"
 import {
   PUBLIC_KEYS,
   isSettingsKey,
@@ -40,11 +40,15 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     return
   }
 
+  // A public read never gets a gate: the marketing pages need the theme colours
+  // and the phone number, and both are on the page anyway. The key decides that,
+  // which is why it is read before anything is authorized.
   const isPublicRead = method === "GET" && PUBLIC_KEYS.includes(key)
   if (!isPublicRead) {
-    const auth = await requireAdmin(req)
+    // `settings:read` for a private key, `settings:write` for any write.
+    const auth = await requireCapability(req, method === "GET" ? "settings:read" : "settings:write")
     if (!auth.ok) {
-      res.status(auth.status).json({ error: auth.error })
+      res.status(auth.status).json(denialBody(auth))
       return
     }
   }

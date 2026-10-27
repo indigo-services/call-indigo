@@ -63,13 +63,17 @@ export async function run() {
 
   const validate = await load("api/_lib/validate.ts", "server-validate")
   const auth = await load("api/_lib/auth.ts", "server-auth")
+  const roles = await load("api/_lib/roles.ts", "server-roles")
   const notify = await load("api/_lib/notifications.ts", "server-notify")
   const settings = await load("api/notification-settings.ts", "api-settings")
   const inquiry = await load("api/inquiry.ts", "api-inquiry")
+  const me = await load("api/me.ts", "api-me")
 
   // The async work, done once and asserted synchronously below.
   const anonPut = await callHandler(settings.default, "PUT", { body: { to: "attacker@example.com" } })
   const anonInquiryGet = await callHandler(inquiry.default, "GET")
+  const anonMe = await callHandler(me.default, "GET")
+  const anonMePost = await callHandler(me.default, "POST")
   const honeypotPost = await callHandler(inquiry.default, "POST", { body: { ...valid, company: "Acme" } })
   const invalidPost = await callHandler(inquiry.default, "POST", { body: { ...valid, email: "nope" } })
 
@@ -145,29 +149,89 @@ export async function run() {
     return out
   })
 
-  check("admin is the pinned organization's admin role, not any organization's", () => {
-    const out = []
-    const cases = [
-      [{ orgId: ORG, orgRole: "org:admin" }, true, "admin of Indigo Services"],
-      [{ orgId: "org_someone_else", orgRole: "org:admin" }, false, "admin of a DIFFERENT organization"],
-      [{ orgId: ORG, orgRole: "org:member" }, false, "member of Indigo Services"],
-      [{ orgId: undefined, orgRole: undefined }, false, "a token with no organization claim"],
-      [{ orgId: ORG, orgRole: "org:admin" }, true, "the same claims again (no state between calls)"],
-    ]
-    for (const [claims, expected, label] of cases) {
-      const got = auth.grantsAdmin(claims)
-      if (got !== expected) out.push(`${label}: grantsAdmin=${got}, expected ${expected}`)
+  check("the capability matrix is exactly the table in the docblock", () => {
+    // The matrix is the artifact a reviewer reads, so the check restates it
+    // independently rather than importing the expectation from the same file.
+    const expected = {
+      admin: ["inbox:read", "inbox:write", "inbox:delete", "settings:read", "settings:write", "reference:read"],
+      service_manager: ["inbox:read", "inbox:write", "inbox:delete", "settings:read", "reference:read"],
+      service_rep: ["inbox:read", "inbox:write"],
+      member: ["inbox:read"],
     }
+    const out = []
+    for (const [role, caps] of Object.entries(expected)) {
+      const got = [...roles.capabilitiesFor(role)].sort().join(",")
+      const want = [...caps].sort().join(",")
+      if (got !== want) out.push(`${role}: ${got || "(nothing)"} — expected ${want}`)
+    }
+    // A role this build has never heard of gets NOTHING. A default of "everything"
+    // is how a typo in a staff row becomes an admin.
+    if (roles.capabilitiesFor("org:owner").length !== 0) out.push("an unknown role was granted capabilities")
+    if (roles.capabilitiesFor(null).length !== 0) out.push("a null role was granted capabilities")
+
+    // The one asymmetry worth stating: deleting a lead is the only irreversible
+    // action in the dashboard, and it is the whole difference between a manager and
+    // a rep. If these two ever agree, the third role exists for nothing.
+    if (roles.hasCapability("service_rep", "inbox:delete")) out.push("a service rep can delete a lead")
+    if (!roles.hasCapability("service_manager", "inbox:delete")) out.push("a service manager cannot delete a lead")
+    if (roles.hasCapability("member", "inbox:write")) out.push("a member with no staff row can change a lead")
     return out
   })
 
-  check("the membership fallback uses the same pinned organization", () => {
+  check("a Clerk admin outranks the staff table, and a row can never widen a member", () => {
     const out = []
+    const r = roles.roleFromOrgRole
+    if (r("org:admin", null) !== "admin") out.push("a Clerk admin with no staff row was not admin")
+    // Load-bearing: the table starts empty and both operators are Clerk admins. If
+    // a row could demote them, the first bad INSERT locks everyone out of the page
+    // that would fix it.
+    if (r("org:admin", "service_rep") !== "admin") out.push("a staff row demoted a Clerk admin")
+    if (r("org:member", null) !== "member") out.push("a member with no row was not the member floor")
+    if (r("org:member", "service_manager") !== "service_manager") out.push("a staff row did not raise a member")
+    if (r("org:member", "admin") !== "admin") out.push("a staff row could not grant admin")
+    // A role this code has never seen must land on the floor, not fall through a gap.
+    if (r("org:auditor", null) !== "member") out.push("an unknown Clerk role did not degrade to the floor")
+    return out
+  })
+
+  check("the organization is pinned by id, in the token and in the membership list", () => {
+    const out = []
+    const cases = [
+      [{ orgId: ORG, orgRole: "org:admin" }, "org:admin", "admin of Indigo Services"],
+      [{ orgId: "org_someone_else", orgRole: "org:admin" }, null, "admin of a DIFFERENT organization"],
+      [{ orgId: ORG, orgRole: "org:member" }, "org:member", "member of Indigo Services"],
+      [{ orgId: ORG }, null, "the pinned organization with no role claim"],
+      [{ orgId: undefined, orgRole: undefined }, null, "a token with no organization claim"],
+    ]
+    for (const [claims, expected, label] of cases) {
+      const got = auth.orgRoleFromClaims(claims)
+      if (got !== expected) out.push(`${label}: ${JSON.stringify(got)}, expected ${JSON.stringify(expected)}`)
+    }
     const m = (id, role) => [{ organization: { id }, role }]
-    if (!auth.membershipGrantsAdmin(m(ORG, "org:admin"))) out.push("an admin membership of Indigo Services was refused")
-    if (auth.membershipGrantsAdmin(m("org_other", "org:admin"))) out.push("an admin of a DIFFERENT organization was allowed")
-    if (auth.membershipGrantsAdmin(m(ORG, "org:member"))) out.push("a plain member was allowed to write settings")
-    if (auth.membershipGrantsAdmin([])) out.push("an empty membership list was allowed")
+    if (auth.orgRoleFromMemberships(m(ORG, "org:admin")) !== "org:admin") {
+      out.push("an admin membership of Indigo Services was not read")
+    }
+    if (auth.orgRoleFromMemberships(m("org_other", "org:admin")) !== null) {
+      out.push("a membership of a DIFFERENT organization was read")
+    }
+    if (auth.orgRoleFromMemberships([]) !== null) out.push("an empty membership list returned a role")
+    return out
+  })
+
+  check("a Clerk admin is resolved without reading the staff table", () => {
+    // The property that keeps the two existing operators working on the day this
+    // ships, and the one that makes a broken table harmless. A status code cannot
+    // show it, so it is asserted by position in the source.
+    const src = readFileSync(path.join(ROOT, "api", "_lib", "auth.ts"), "utf8")
+    const code = src.replace(/^\s*\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
+    const out = []
+    const guardAt = code.indexOf("if (orgRole !== CLERK_ADMIN_ROLE)")
+    const lookupAt = code.indexOf("await staffRoleFor(")
+    if (guardAt === -1) out.push("the admin short-circuit is gone — an empty staff table would lock every operator out")
+    if (lookupAt === -1) out.push("auth.ts no longer reads the staff table at all")
+    if (guardAt !== -1 && lookupAt !== -1 && lookupAt < guardAt) {
+      out.push("the staff lookup runs BEFORE the admin short-circuit")
+    }
     return out
   })
 
@@ -177,11 +241,11 @@ export async function run() {
     // ⚠️ The status alone cannot prove the ORDER: a handler that wrote first and
     // then returned 401 would pass the line above while having written.
     const src = readFileSync(path.join(ROOT, "api", "notification-settings.ts"), "utf8")
-    const authAt = src.indexOf("await requireAdmin(")
+    const authAt = src.indexOf("await requireCapability(")
     const writeAt = src.indexOf("writeNotificationSettings(parsed.value)")
-    if (authAt < 0) out.push("the handler no longer calls requireAdmin")
+    if (authAt < 0) out.push("the handler no longer calls requireCapability")
     if (writeAt < 0) out.push("the handler no longer writes")
-    if (authAt >= 0 && writeAt >= 0 && authAt > writeAt) out.push("requireAdmin is called AFTER the write")
+    if (authAt >= 0 && writeAt >= 0 && authAt > writeAt) out.push("requireCapability is called AFTER the write")
     return out
   })
 
@@ -328,8 +392,8 @@ export async function run() {
     const code = src.replace(/^\s*\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
     const out = []
 
-    const authAt = code.indexOf("await requireAdmin(req)")
-    if (authAt === -1) return ["inquiries.ts never calls requireAdmin — every method would be public"]
+    const authAt = code.indexOf("await requireCapability(req, capability)")
+    if (authAt === -1) return ["inquiries.ts never calls requireCapability — every method would be public"]
     for (const call of ["listInquiries(", "getInquiry(", "updateInquiry(", "deleteInquiry(", "queryParam(", "body<"]) {
       const at = code.indexOf(call)
       if (at !== -1 && at < authAt) out.push(`${call} runs before the authorization check`)
@@ -339,8 +403,13 @@ export async function run() {
     }
     // One gate for all methods: if the check sat inside a branch, a new method would
     // arrive unguarded.
-    if ((code.match(/await requireAdmin\(/g) ?? []).length !== 1) {
-      out.push("requireAdmin is not called exactly once — a per-method gate can be bypassed")
+    if ((code.match(/await requireCapability\(/g) ?? []).length !== 1) {
+      out.push("requireCapability is not called exactly once — a per-method gate can be bypassed")
+    }
+    // The capability is chosen by the method, before the gate. A single capability
+    // for all three would let a rep delete a lead.
+    for (const name of ["inbox:read", "inbox:write", "inbox:delete"]) {
+      if (!code.includes(`"${name}"`)) out.push(`inquiries.ts no longer names ${name}`)
     }
     return out
   })
@@ -562,14 +631,19 @@ export async function run() {
     const code = src.replace(/^\s*\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
     const out = []
 
-    const authAt = code.indexOf("await requireAdmin(req)")
-    if (authAt === -1) return ["settings.ts never calls requireAdmin — every write would be public"]
+    const authAt = code.indexOf("await requireCapability(")
+    if (authAt === -1) return ["settings.ts never calls requireCapability — every write would be public"]
     for (const call of ["body<", "validateSettings(", "readSettings(", "writeSettings("]) {
       const at = code.indexOf(call)
       if (at !== -1 && at < authAt) out.push(`${call} runs before the authorization check`)
     }
-    if ((code.match(/await requireAdmin\(/g) ?? []).length !== 1) {
-      out.push("requireAdmin is not called exactly once — a per-branch gate can be bypassed")
+    if ((code.match(/await requireCapability\(/g) ?? []).length !== 1) {
+      out.push("requireCapability is not called exactly once — a per-branch gate can be bypassed")
+    }
+    // A private read and a write are different grants: a manager may read the
+    // notification address and may not change it.
+    if (!code.includes('"settings:read"') || !code.includes('"settings:write"')) {
+      out.push("settings.ts no longer distinguishes reading from writing")
     }
 
     // The exception has to stay narrow. `site` is public because the marketing
@@ -636,6 +710,76 @@ export async function run() {
     const theme = readFileSync(path.join(ROOT, "src", "lib", "use-theme.ts"), "utf8")
     if (!/api\.getSettings\(\)/.test(theme)) {
       out.push("use-theme no longer reads the settings record without a token")
+    }
+    return out
+  })
+
+  check("the client knows every capability the server can grant", () => {
+    // The one duplicated list in the app: `api/_lib/roles.ts` and
+    // `src/admin/clerkAuth.ts` are built by different tsconfigs, so `src/` cannot
+    // import `api/`. A capability the server grants and the client has never heard
+    // of opens no page — the nav would hide an area the operator is entitled to,
+    // and nothing else in the suite would notice.
+    const client = readFileSync(path.join(ROOT, "src", "admin", "clerkAuth.ts"), "utf8")
+    const block = client.match(/KNOWN_CAPABILITIES = \[([\s\S]*?)\] as const/)
+    if (!block) return ["clerkAuth.ts no longer declares KNOWN_CAPABILITIES"]
+    const names = [...block[1].matchAll(/"([a-z]+:[a-z]+)"/g)].map((m) => m[1]).sort()
+    // A vacuity guard: an empty list would make both loops below pass.
+    if (names.length === 0) return ["the client's capability list is empty — this check would pass vacuously"]
+
+    const out = []
+    const server = [...roles.ALL_CAPABILITIES].sort()
+    for (const capability of server) {
+      if (!names.includes(capability)) {
+        out.push(`${capability} is granted by the server and unknown to the client — its page would be hidden`)
+      }
+    }
+    for (const capability of names) {
+      if (!server.includes(capability)) {
+        out.push(`${capability} is known to the client and granted by no server role`)
+      }
+    }
+    return out
+  })
+
+  check("every capability an endpoint names is one a role can hold", () => {
+    // A typo here is a permanent 403 for everyone including an admin, and it reads
+    // as "the page is broken" rather than "the name is wrong".
+    const out = []
+    const files = ["api/inquiries.ts", "api/settings.ts", "api/notification-settings.ts"]
+    for (const file of files) {
+      const src = readFileSync(path.join(ROOT, file), "utf8")
+      const code = src.replace(/^\s*\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
+      const named = [...code.matchAll(/"(inbox|settings|reference):([a-z]+)"/g)].map((m) => `${m[1]}:${m[2]}`)
+      if (named.length === 0) {
+        out.push(`${file} names no capability — is it gated at all?`)
+        continue
+      }
+      for (const capability of new Set(named)) {
+        if (!roles.ALL_CAPABILITIES.includes(capability)) {
+          out.push(`${file} requires "${capability}", which no role can hold`)
+        }
+      }
+    }
+    return out
+  })
+
+  check("/api/me refuses an anonymous caller and answers only GET", () => {
+    const out = []
+    if (anonMe.status !== 401) out.push(`an anonymous GET answered ${anonMe.status}, expected 401`)
+    if (anonMe.payload?.error !== "missing_token") out.push(`the refusal was ${JSON.stringify(anonMe.payload)}`)
+    // No role or capability list may leak to a caller who was refused — that is the
+    // whole payload, and an anonymous caller has not earned any of it.
+    if (anonMe.payload?.role || anonMe.payload?.capabilities) out.push("a refused response carries access details")
+    if (anonMePost.status !== 405) out.push(`POST answered ${anonMePost.status}, expected 405`)
+    if (anonMePost.payload?.allowed !== "GET") out.push(`Allow was ${JSON.stringify(anonMePost.payload?.allowed)}`)
+
+    // And the shell must read it from here, not from a second table of its own.
+    const guard = readFileSync(path.join(ROOT, "src", "admin", "RequireAuth.tsx"), "utf8")
+    if (!/useCapabilities\(/.test(guard)) out.push("RequireAuth does not ask the server for its capabilities")
+    const clerkAuth = readFileSync(path.join(ROOT, "src", "admin", "clerkAuth.ts"), "utf8")
+    if (/FEATURES_BY_ROLE/.test(clerkAuth)) {
+      out.push("clerkAuth.ts has a role→feature table again — that is the drift /api/me removed")
     }
     return out
   })

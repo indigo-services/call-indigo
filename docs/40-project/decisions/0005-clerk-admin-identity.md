@@ -95,3 +95,52 @@ operator out on every fresh sign-in.
 **What has not changed.** This is still a client-side UI gate inside a public bundle, and
 it still authorizes nothing. When a backend lands, the same membership has to be
 re-checked there.
+
+---
+
+## Amendment — 2026-10-27: three staff levels, and where they live
+
+**Issue:** #100. **Supersedes:** the *roles* paragraph in the amendment above — the claim
+that `org:member` sees the inbox and settings, and that "custom roles are not accepted".
+Everything about the organization being pinned, and about the gate running in the client,
+stands unchanged.
+
+The requirement was three staff roles: Admin, Service Manager, Service Rep. Clerk was the
+obvious home, and it is not available. Measured against the Production instance:
+
+```
+POST /v1/organization_roles
+→ 402 unsupported_subscription_plan_features
+     { "unsupported_features": ["org:roles"] }
+```
+
+`organization_settings.max_allowed_roles` reports **10**, which reads like an invitation
+and is only the ceiling for a plan that includes the feature. `max_allowed_permissions`
+is **0**, so even a custom role could not carry a capability. The instance issues exactly
+two roles: `org:admin` and `org:member`.
+
+So the model is now two questions with two sources:
+
+| Question | Answered by |
+|---|---|
+| Are you in `Indigo Services`? | Clerk, from the session token, with a membership lookup as fallback |
+| At what level? | the `staff` table (`db/migrations/0003_staff.sql`) |
+
+`api/_lib/roles.ts` holds the whole matrix — role → capability — and
+`api/_lib/auth.ts` resolves it. Three properties matter, and each is asserted:
+
+1. **A Clerk `org:admin` is `admin` outright**, without reading the table. The table
+   starts empty and both operators are Clerk admins, so an empty table cannot lock anyone
+   out — and a bad row cannot demote the only person who could fix it.
+2. **A row can only narrow, never widen.** `member` (no row) is the floor: read-only
+   inbox. Every mutation needs a row.
+3. **An unknown Clerk role degrades to the floor**, rather than falling through a gap.
+
+The drift this also removed: `clerkAuth.ts` used to grant `org:member` the Settings page
+that `api/settings.ts` answered `403` to. The client now renders its navigation from
+`GET /api/me`, which is the same capability list the endpoints check, so the two cannot
+disagree. The client keeps only a *floor* — the narrowest reading of the Clerk role — for
+the moment before that call answers, so it can never over-promise.
+
+**Still true, and still the point.** This remains a client-side gate inside a public
+bundle. What changed is that the server now has the same rules, and re-checks them.

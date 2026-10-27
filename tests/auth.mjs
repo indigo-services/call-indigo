@@ -101,7 +101,7 @@ export async function run() {
       ["the active session with no role", { activeOrgId: org, activeOrgRole: null }, false],
     ]
     return cases.flatMap(([label, subject, expected]) => {
-      const got = clerkAuth.resolveAdminAccess(subject)
+      const got = clerkAuth.resolveOrgAccess(subject)
       return got.allowed === expected ? [] : [`${label}: allowed=${got.allowed}, expected ${expected}`]
     })
   })
@@ -111,37 +111,50 @@ export async function run() {
     // other sends the operator to ask for the wrong thing.
     const org = clerkAuth.ADMIN_ORG_ID
     const out = []
-    const missing = clerkAuth.resolveAdminAccess({ memberships: [] })
-    const wrongRole = clerkAuth.resolveAdminAccess({ memberships: [{ organization: { id: org }, role: "org:auditor" }] })
-    if (missing.reason !== "no-membership") out.push(`no membership reports reason "${missing.reason}"`)
-    if (wrongRole.reason !== "insufficient-role") out.push(`a custom role reports reason "${wrongRole.reason}"`)
-    if (missing.role !== null || wrongRole.role !== null) out.push("a denied result carries a role")
-    if (missing.features.size !== 0 || wrongRole.features.size !== 0) out.push("a denied result carries features")
+    const missing = clerkAuth.resolveOrgAccess({ memberships: [] })
+    const wrongRole = clerkAuth.resolveOrgAccess({ memberships: [{ organization: { id: org }, role: "org:auditor" }] })
+    if (missing.allowed) out.push("an empty membership list was allowed")
+    if (wrongRole.allowed) out.push("an unrecognised role was allowed")
+    if (!missing.allowed && missing.reason !== "no-membership") out.push(`no membership reports reason "${missing.reason}"`)
+    if (!wrongRole.allowed && wrongRole.reason !== "insufficient-role") out.push(`an unrecognised role reports reason "${wrongRole.reason}"`)
+    // A denial that carried capabilities would be a grant wearing a denial's face.
+    if ("capabilities" in missing || "capabilities" in wrongRole) out.push("a denied result carries capabilities")
     return out
   })
 
-  check("a member gets the inbox and settings, and nothing else", () => {
-    const access = clerkAuth.resolveAdminAccess({
+  check("the Clerk floor is the narrowest reading of a role, never the widest", () => {
+    // This is what the shell renders from between the Clerk check and `/api/me` —
+    // and for good if that call fails. It must never show a page the server would
+    // refuse, so a member's floor is one area, not two. Until #100 this file granted
+    // a member the Settings page that `api/settings.ts` answered `403` to.
+    const access = clerkAuth.resolveOrgAccess({
       memberships: [{ organization: { id: clerkAuth.ADMIN_ORG_ID }, role: "org:member" }],
     })
-    const visible = clerkAuth.ALL_ADMIN_FEATURES.filter((f) => clerkAuth.can(access, f))
+    if (!access.allowed) return ["a member of Indigo Services was refused the dashboard entirely"]
+
+    const features = clerkAuth.featuresForCapabilities(access.capabilities)
+    const visible = clerkAuth.ALL_ADMIN_FEATURES.filter((f) => features.has(f))
     const out = []
-    if (!visible.includes("inbox")) out.push("a member cannot see the inbox — the page the role exists for")
-    if (!visible.includes("settings")) out.push("a member cannot see settings, which holds their own profile and security")
-    if (visible.includes("design")) out.push("a member can see the brand system")
-    if (visible.includes("reference")) out.push("a member can see the engineering documentation")
-    if (visible.length !== 2) out.push(`a member sees ${visible.length} areas (${visible.join(", ")}), expected exactly 2`)
+    if (!visible.includes("inbox")) out.push("a member cannot see the inbox — the one area every staff level has")
+    if (visible.includes("settings")) out.push("a member's floor includes settings, which needs settings:read")
+    if (visible.includes("design")) out.push("a member's floor includes the brand system")
+    if (visible.includes("reference")) out.push("a member's floor includes the engineering documentation")
+    if (visible.length !== 1) out.push(`a member's floor is ${visible.length} areas (${visible.join(", ")}), expected exactly 1`)
     return out
   })
 
-  check("an admin sees every page the nav model declares, and a member does not", () => {
-    const admin = clerkAuth.resolveAdminAccess({
-      memberships: [{ organization: { id: clerkAuth.ADMIN_ORG_ID }, role: "org:admin" }],
-    })
-    const member = clerkAuth.resolveAdminAccess({
-      memberships: [{ organization: { id: clerkAuth.ADMIN_ORG_ID }, role: "org:member" }],
-    })
+  check("an admin's floor is every page the nav model declares, and a member's is not", () => {
+    const org = clerkAuth.ADMIN_ORG_ID
+    const floor = (role) => {
+      const access = clerkAuth.resolveOrgAccess({ memberships: [{ organization: { id: org }, role }] })
+      return access.allowed ? clerkAuth.accessFrom(access.orgRole, access.capabilities) : null
+    }
+    const admin = floor("org:admin")
+    const member = floor("org:member")
     const out = []
+    if (!admin) return ["an admin of Indigo Services was refused the dashboard"]
+    if (!member) return ["a member of Indigo Services was refused the dashboard entirely"]
+
     // Without this, a typo in an item's `feature` would hide that page from
     // everyone — including the role that is supposed to see all of it — and
     // nothing else in the suite looks at feature values.
@@ -151,8 +164,12 @@ export async function run() {
         out.push(`${item.path} is hidden from an admin (feature "${item.feature}") — unknown area, or no role grants it`)
       }
     }
+
     const memberPaths = routesModel.ADMIN_ROUTES.filter((i) => clerkAuth.can(member, i.feature)).map((i) => i.path)
     if (memberPaths.length === 0) out.push("a member sees no pages at all")
+    if (memberPaths.length >= routesModel.ADMIN_ROUTES.length) {
+      out.push(`a member sees ${memberPaths.length} of ${routesModel.ADMIN_ROUTES.length} pages — as many as an admin`)
+    }
     for (const path of ["/admin/design", "/admin/assets", "/admin/components", "/admin/docs"]) {
       if (memberPaths.includes(path)) out.push(`a member can reach ${path}`)
     }
@@ -175,11 +192,19 @@ export async function run() {
     if (!/useAuth\(\)/.test(src) || !/useUser\(\)/.test(src)) out.push("RequireAuth does not read Clerk auth and user state")
     if (!/if \(!isLoaded \|\| \(isSignedIn && !isUserLoaded\)\)/.test(src)) out.push("RequireAuth does not wait for both Clerk states to load")
     if (!/if \(!isSignedIn\) return <LoginPage \/>/.test(src)) out.push("signed-out visitors do not receive the Clerk sign-in page")
-    if (!/if \(!access\.allowed\)/.test(src)) out.push("the guard does not deny when the resolver refuses")
-    if (!/resolveAdminAccess\(\{/.test(src)) out.push("the guard does not call the single access resolver")
+    if (!/if \(!org\.allowed\)/.test(src)) out.push("the guard does not deny when the organization check refuses")
+    if (!/resolveOrgAccess\(\{/.test(src)) out.push("the guard does not call the single organization resolver")
     if (!/memberships: user\?\.organizationMemberships/.test(src)) out.push("the guard does not pass the organization memberships")
     if (!/activeOrgId: orgId,/.test(src) || !/activeOrgRole: orgRole/.test(src)) {
       out.push("the guard does not pass the session's active organization, so an admin who has not selected one is locked out")
+    }
+    // Hook order: the capability fetch has to run before the first early return,
+    // or signing in would change the number of hooks between renders.
+    const hookAt = src.indexOf("useCapabilities(")
+    const firstReturnAt = src.indexOf("if (!isLoaded")
+    if (hookAt === -1) out.push("the guard never asks the server for its capabilities")
+    else if (firstReturnAt !== -1 && hookAt > firstReturnAt) {
+      out.push("useCapabilities is called after an early return — the hook order would change on sign-in")
     }
     if (!/<AdminAccessContext\.Provider value=\{access\}>\{children\}<\/AdminAccessContext\.Provider>/.test(src)) {
       out.push("the resolved access is not provided to the shell")

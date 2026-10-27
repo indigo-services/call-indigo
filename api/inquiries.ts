@@ -17,7 +17,7 @@
  *   DELETE /api/inquiries?id=…   → 204
  */
 import { body, methodNotAllowed, queryParam, type ApiRequest, type ApiResponse } from "./_lib/http.js"
-import { requireAdmin } from "./_lib/auth.js"
+import { denialBody, requireCapability } from "./_lib/auth.js"
 import {
   deleteInquiry,
   getInquiry,
@@ -37,9 +37,15 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     return
   }
 
-  const auth = await requireAdmin(req)
+  // The method decides which capability is needed, so `method` is read first —
+  // and nothing else is. No query parameter, no body and no database call happens
+  // until this returns; `tests/backend.mjs` asserts that by position, because a
+  // status code alone cannot tell "refused" from "refused after writing".
+  const capability =
+    method === "GET" ? "inbox:read" : method === "PATCH" ? "inbox:write" : "inbox:delete"
+  const auth = await requireCapability(req, capability)
   if (!auth.ok) {
-    res.status(auth.status).json({ error: auth.error })
+    res.status(auth.status).json(denialBody(auth))
     return
   }
 

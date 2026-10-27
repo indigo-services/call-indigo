@@ -1,37 +1,58 @@
 /**
- * Admin access — resolved in ONE function, from Clerk organization membership.
+ * Admin access — the organization check, and the capabilities the server granted.
  *
  * ⚠️ THIS IS A UI GATE, NOT AUTHORIZATION. Everything it protects is rendered in
- * the browser and can be bypassed by anyone willing to edit the bundle. There is
- * no server yet (see `docs/40-project/audit-backend-and-clerk-readiness-2026-10-20.md`,
- * F1), so there is nothing here that could authorize data. Its job is to decide
- * which screens an operator is shown, and to say plainly why when the answer is
- * "none". When a backend lands, the same role has to be re-checked there.
+ * the browser and can be bypassed by anyone willing to edit the bundle. Every
+ * admin read and write is authorized again by the function that serves it —
+ * `api/inquiries.ts`, `api/settings.ts` and `api/notification-settings.ts` each
+ * call `requireCapability()` before they touch the database. What this file
+ * decides is which screens an operator is *shown*.
  *
- * ── The model, and why it changed ────────────────────────────────────────────
+ * ── What changed, and why ───────────────────────────────────────────────────
  *
- * Until issue #74 this was one flat flag on the user's public metadata — a single
+ * Until issue #100 this file held its own role→page table: `admin` got every area,
+ * `member` got the inbox and settings. The server disagreed. `requireAdmin`
+ * refused `org:member` outright, so a member was shown a Settings page that
+ * answered `403 not_an_admin` on every save — a UI promising what the server
+ * denies, which reads to the operator as a broken feature rather than a boundary.
+ *
+ * The table is gone. Capabilities now come from `GET /api/me`, which is the same
+ * list `requireCapability()` checks against, so the two cannot disagree. What
+ * remains here is:
+ *
+ *   1. the organization check, which only Clerk can answer, and
+ *   2. a **floor** — what a Clerk role is guaranteed to be able to do before the
+ *      server has replied.
+ *
+ * ⚠️ The floor is deliberately the narrowest reading, never the widest. A member
+ * sees the inbox before `/api/me` answers and gains nothing it cannot have; if
+ * the call fails, the floor stands and the operator sees less than they are
+ * entitled to, never more. Over-promising would put the 403 back.
+ *
+ * ── The model, and why it changed once already ──────────────────────────────
+ *
+ * Before #74 this was one flat flag on the user's public metadata — a single
  * `role === "admin"` string. One boolean, no organization, no per-feature access:
  * every signed-in admin saw all nine pages.
  *
- * Access now comes from a membership in a specific Clerk organization, and the
- * membership's role decides which feature areas are visible. Measured against the
- * production instance before choosing:
+ * Access now comes from a membership in a specific Clerk organization. Measured
+ * against the production instance before choosing:
  *
  *   · organizations are ENABLED (`organization_settings.enabled = true`);
  *   · the organization is "Indigo Services" (`org_3KmfJ9xVJNIs6N6uNmJSsD5SqHb`);
  *   · both existing users are already `org:admin` in it.
  *
- * So the migration is a code change only — nobody has to be re-provisioned, and
- * the flat flag is retired rather than kept as a fallback. A fallback would be a
- * second grant path that nothing exercises, which is how a permission model rots:
- * it would keep working long after the thing it was bridging away from is gone.
- *
- * ⚠️ Read the membership list, not the "active organization". A user can be an
- * admin of an organization without having selected it in this session, so a gate
+ * ⚠️ Read the membership list, not the "active organization". A user can be a
+ * member of an organization without having selected it in this session, so a gate
  * that only looked at `orgId` would lock out a legitimate operator on every fresh
- * sign-in. `resolveAdminAccess` therefore accepts both, and treats the active
+ * sign-in. `resolveOrgAccess` therefore accepts both, and treats the active
  * session as a second view of the same fact rather than a separate rule.
+ *
+ * ⚠️ **Only two organization roles exist on this Clerk plan.** `org:admin` and
+ * `org:member`. Custom roles are plan-gated (`POST /v1/organization_roles` →
+ * `402 unsupported_subscription_plan_features`), so the three staff levels —
+ * Admin, Service Manager, Service Rep — live in Postgres and reach the browser
+ * through `/api/me`. See `api/_lib/roles.ts`.
  */
 
 /**
@@ -69,46 +90,85 @@ export const ADMIN_ORG_ID = "org_3KmfJ9xVJNIs6N6uNmJSsD5SqHb"
 /** The organization's display name, for the message shown when access is denied. */
 export const ADMIN_ORG_NAME = "Indigo Services"
 
-export type AdminRole = "admin" | "member"
+/** The two roles this Clerk plan can issue. Nothing else is accepted. */
+export type OrgRole = "admin" | "member"
 
-/** Clerk's built-in organization role keys. Custom roles are not accepted. */
-const ROLE_KEYS: Record<AdminRole, string> = {
+const ORG_ROLE_KEYS: Record<OrgRole, string> = {
   admin: "org:admin",
   member: "org:member",
 }
 
 /**
- * What each role can see.
+ * The capability names this build understands.
  *
- * `admin` is every area. `member` is the day-to-day surfaces — the inbox and the
- * settings that include the member's own profile, notifications and security —
- * but not the brand system or the engineering documentation, which are for
- * whoever changes the site. Adding a feature here is the whole of granting it.
+ * A **duplicate** of `ALL_CAPABILITIES` in `api/_lib/roles.ts`, and the one place
+ * in this app where a copy is unavoidable: the two sides are built by different
+ * toolchains (`tsconfig.app.json` vs `tsconfig.api.json`) and `api/` may not be
+ * imported from `src/`. `tests/backend.mjs` asserts the two lists are identical,
+ * so a capability added on the server and forgotten here fails the build rather
+ * than silently hiding a page from everybody.
  */
-const FEATURES_BY_ROLE: Record<AdminRole, readonly AdminFeature[]> = {
-  admin: ALL_ADMIN_FEATURES,
-  member: ["inbox", "settings"],
+export const KNOWN_CAPABILITIES = [
+  "inbox:read",
+  "inbox:write",
+  "inbox:delete",
+  "settings:read",
+  "settings:write",
+  "reference:read",
+] as const
+
+export type Capability = (typeof KNOWN_CAPABILITIES)[number]
+
+/**
+ * Which feature area each capability opens.
+ *
+ * Only the *read* capabilities appear, plus `settings:write` → `design`: the
+ * Design page writes the `site` key, and writing any key is `settings:write`. An
+ * unknown capability opens nothing, so a server that grows a capability before
+ * this table does hides a page instead of inventing one.
+ */
+const FEATURE_FOR_CAPABILITY: Partial<Record<Capability, AdminFeature>> = {
+  "inbox:read": "inbox",
+  "settings:read": "settings",
+  "settings:write": "design",
+  "reference:read": "reference",
 }
 
-const NO_FEATURES: ReadonlySet<AdminFeature> = new Set<AdminFeature>()
+/**
+ * What a Clerk role is guaranteed to be able to do, before `/api/me` answers.
+ *
+ * `admin` is every capability because Clerk's `org:admin` *is* admin on the
+ * server — `roleFromOrgRole` short-circuits on it without reading the `staff`
+ * table, so this is exact rather than optimistic.
+ *
+ * `member` is `inbox:read` alone. A staff row may raise that to rep or manager;
+ * nothing may lower it, and this file must not assume the raise has happened.
+ */
+const FLOOR_CAPABILITIES: Record<OrgRole, readonly Capability[]> = {
+  admin: KNOWN_CAPABILITIES,
+  member: ["inbox:read"],
+}
 
 export type AdminDenialReason = "granted" | "no-membership" | "insufficient-role"
 
-export interface AdminAccess {
-  allowed: boolean
-  /** The role that granted access, or null when denied. */
-  role: AdminRole | null
-  features: ReadonlySet<AdminFeature>
-  /** Why. Drives the message `AccessDenied` shows, so it can be specific. */
-  reason: AdminDenialReason
-}
+/**
+ * What Clerk alone can say: whether this person is in Indigo Services, and in
+ * which of the two built-in roles.
+ *
+ * A discriminated union rather than `{ allowed, reason }`, so that after
+ * `if (!access.allowed)` the compiler knows `orgRole` exists and no caller has to
+ * assert it.
+ */
+export type OrgAccess =
+  | { allowed: true; orgRole: OrgRole; capabilities: readonly Capability[] }
+  | { allowed: false; reason: AdminDenialReason }
 
 /**
  * The parts of Clerk's `User` and `AuthObject` this needs.
  *
- * Structural rather than imported: `resolveAdminAccess` is the only thing in the
- * app that decides access, and it must be testable against plain objects without
- * a Clerk provider. Clerk's own types satisfy these shapes.
+ * Structural rather than imported: this is the only thing in the app that decides
+ * which organization a person is in, and it must be testable against plain
+ * objects without a Clerk provider. Clerk's own types satisfy these shapes.
  */
 export interface AdminAccessSubject {
   /** `user.organizationMemberships` — independent of the active organization. */
@@ -124,18 +184,14 @@ export interface AdminAccessSubject {
   activeOrgRole?: string | null
 }
 
-function denied(reason: AdminDenialReason): AdminAccess {
-  return { allowed: false, role: null, features: NO_FEATURES, reason }
-}
-
 /**
- * The single resolver. Every access decision in the app comes from here.
+ * The organization check. Every access decision starts here.
  *
  * Admin is checked before member so a user holding both roles gets the wider one
  * regardless of the order Clerk returns the memberships in.
  */
-export function resolveAdminAccess(subject: AdminAccessSubject | null | undefined): AdminAccess {
-  if (!subject) return denied("no-membership")
+export function resolveOrgAccess(subject: AdminAccessSubject | null | undefined): OrgAccess {
+  if (!subject) return { allowed: false, reason: "no-membership" }
 
   const roles: (string | null | undefined)[] = []
 
@@ -150,23 +206,47 @@ export function resolveAdminAccess(subject: AdminAccessSubject | null | undefine
     roles.push(subject.activeOrgRole)
   }
 
-  if (roles.length === 0) return denied("no-membership")
+  if (roles.length === 0) return { allowed: false, reason: "no-membership" }
 
   for (const role of ["admin", "member"] as const) {
-    if (roles.includes(ROLE_KEYS[role])) {
-      return {
-        allowed: true,
-        role,
-        features: new Set(FEATURES_BY_ROLE[role]),
-        reason: "granted",
-      }
+    if (roles.includes(ORG_ROLE_KEYS[role])) {
+      return { allowed: true, orgRole: role, capabilities: FLOOR_CAPABILITIES[role] }
     }
   }
 
-  return denied("insufficient-role")
+  return { allowed: false, reason: "insufficient-role" }
+}
+
+/** What the shell renders from. Only constructed when access has been granted. */
+export interface AdminAccess {
+  /** The level the request is running as: admin, service_manager, service_rep or member. */
+  role: string
+  capabilities: ReadonlySet<Capability>
+  features: ReadonlySet<AdminFeature>
+}
+
+/** The capability list as the shell needs it: a set of areas. */
+export function featuresForCapabilities(
+  capabilities: readonly string[],
+): ReadonlySet<AdminFeature> {
+  const features = new Set<AdminFeature>()
+  for (const capability of capabilities) {
+    const feature = FEATURE_FOR_CAPABILITY[capability as Capability]
+    if (feature) features.add(feature)
+  }
+  return features
+}
+
+/** Build the shell's view from a role and the capabilities the server granted. */
+export function accessFrom(role: string, capabilities: readonly Capability[]): AdminAccess {
+  return {
+    role,
+    capabilities: new Set(capabilities),
+    features: featuresForCapabilities(capabilities),
+  }
 }
 
 /** Whether this access includes a feature area. */
 export function can(access: AdminAccess, feature: AdminFeature): boolean {
-  return access.allowed && access.features.has(feature)
+  return access.features.has(feature)
 }
