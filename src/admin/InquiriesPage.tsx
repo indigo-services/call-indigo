@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { PageHeader } from "@/admin/PageHeader"
+import { useAdminAccess } from "@/admin/access-context"
 import { useAuth } from "@clerk/react"
 import { api } from "@/lib/data/api"
 import { useApiData } from "@/lib/data/hooks"
@@ -275,6 +276,13 @@ function InquiryDetail({ inquiry, onClose }: { inquiry: Inquiry | null; onClose:
   // The drawer writes, so it needs the token too — it is a separate component, and
   // a hook cannot be reached across that boundary.
   const { getToken } = useAuth()
+  // What the *server* will allow, not what this component can draw. A Service Rep
+  // may change a lead's status and may not delete one, so the drawer has to show
+  // the same boundary the endpoint enforces — a Delete button that answers 403 is
+  // the same lie as a Settings page a member cannot save.
+  const access = useAdminAccess()
+  const canWrite = access.capabilities.has("inbox:write")
+  const canDelete = access.capabilities.has("inbox:delete")
   const [notes, setNotes] = useState("")
   const [notesFor, setNotesFor] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
@@ -370,7 +378,11 @@ function InquiryDetail({ inquiry, onClose }: { inquiry: Inquiry | null; onClose:
 
               <div className="space-y-2">
                 <Label htmlFor="detail-status">Status</Label>
-                <Select value={inquiry.status} onValueChange={(v) => void setStatus(v as InquiryStatus)}>
+                <Select
+                  value={inquiry.status}
+                  onValueChange={(v) => void setStatus(v as InquiryStatus)}
+                  disabled={!canWrite}
+                >
                   <SelectTrigger id="detail-status">
                     <SelectValue />
                   </SelectTrigger>
@@ -392,13 +404,14 @@ function InquiryDetail({ inquiry, onClose }: { inquiry: Inquiry | null; onClose:
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Called back, quoted $450, waiting on approval…"
+                  disabled={!canWrite}
                 />
                 <div className="flex justify-end">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => void saveNotes()}
-                    disabled={notes === inquiry.notes}
+                    disabled={!canWrite || notes === inquiry.notes}
                   >
                     Save notes
                   </Button>
@@ -407,25 +420,34 @@ function InquiryDetail({ inquiry, onClose }: { inquiry: Inquiry | null; onClose:
 
               <Separator />
 
-              <div className="space-y-2">
-                <Label>Delete</Label>
-                {confirming ? (
-                  <div className="flex flex-wrap items-center gap-3">
-                    <p className="text-sm text-muted-foreground">Delete this inquiry for good?</p>
-                    <Button size="sm" variant="destructive" onClick={() => void remove()}>
-                      Yes, delete
+              {canDelete ? (
+                <div className="space-y-2">
+                  <Label>Delete</Label>
+                  {confirming ? (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <p className="text-sm text-muted-foreground">Delete this inquiry for good?</p>
+                      <Button size="sm" variant="destructive" onClick={() => void remove()}>
+                        Yes, delete
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setConfirming(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => setConfirming(true)}>
+                      <Trash2 className="mr-2 size-4" />
+                      Delete inquiry
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setConfirming(false)}>
-                      Cancel
-                    </Button>
-                  </div>
-                ) : (
-                  <Button size="sm" variant="outline" onClick={() => setConfirming(true)}>
-                    <Trash2 className="mr-2 size-4" />
-                    Delete inquiry
-                  </Button>
-                )}
-              </div>
+                  )}
+                </div>
+              ) : (
+                // Said out loud rather than hidden: a missing control reads as a bug,
+                // a named boundary reads as a rule. `inbox:delete` is what the endpoint
+                // checks, and a Service Rep does not carry it.
+                <p className="text-sm text-muted-foreground">
+                  Deleting a lead is limited to a service manager or an admin.
+                </p>
+              )}
             </div>
           </>
         ) : null}

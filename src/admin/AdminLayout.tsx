@@ -7,6 +7,13 @@
  * top-level labels made a nine-page dashboard read as four products. The
  * breadcrumb's leaf comes from the shared nav model in `routes.ts`, so a page
  * cannot be added to the sidebar without also getting a correct breadcrumb.
+ *
+ * ⚠️ **The nav filter is not a guard.** The sidebar hides a link the caller's
+ * capabilities do not open, but the route is still mounted — so a Service Rep who
+ * types `/admin/settings` would get a page that loads (the `site` read is public)
+ * and then answers `403` on every save. This component is where that is closed: the
+ * outlet is replaced by a named refusal, so a URL cannot reach a surface the nav
+ * hides. One check, in one place, covering every route.
  */
 import { Link, Outlet, useLocation } from "react-router-dom"
 import {
@@ -17,14 +24,37 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { can } from "@/admin/clerkAuth"
+import { useAdminAccess } from "@/admin/access-context"
 import { findAdminRoute } from "@/admin/routes"
+
+/** Shown instead of a page the caller's capabilities do not open. */
+function NotAvailable({ title }: { title: string }) {
+  return (
+    <div className="rounded-lg border bg-card p-6 text-sm">
+      <p className="font-medium text-foreground">{title} is not part of your access.</p>
+      <p className="mt-1 text-muted-foreground">
+        An administrator sets what each level may open. Your inbox is unaffected.
+      </p>
+      <Button asChild size="sm" variant="outline" className="mt-4">
+        <Link to="/admin/inquiries">Go to the inbox</Link>
+      </Button>
+    </div>
+  )
+}
 
 export default function AdminLayout() {
   const location = useLocation()
+  const access = useAdminAccess()
   const route = findAdminRoute(location.pathname)
+
+  // An unknown path is left to the router (the outlet renders nothing). Only a
+  // route we know about, whose feature this caller lacks, is refused here.
+  const denied = route && !can(access, route.feature) ? route : null
 
   return (
     <SidebarProvider>
@@ -50,7 +80,7 @@ export default function AdminLayout() {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <Outlet />
+          {denied ? <NotAvailable title={denied.title} /> : <Outlet />}
         </div>
       </SidebarInset>
     </SidebarProvider>

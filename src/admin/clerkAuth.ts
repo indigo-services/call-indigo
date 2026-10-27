@@ -120,18 +120,26 @@ export const KNOWN_CAPABILITIES = [
 export type Capability = (typeof KNOWN_CAPABILITIES)[number]
 
 /**
- * Which feature area each capability opens.
+ * Which feature areas each capability opens.
  *
- * Only the *read* capabilities appear, plus `settings:write` → `design`: the
- * Design page writes the `site` key, and writing any key is `settings:write`. An
- * unknown capability opens nothing, so a server that grows a capability before
+ * ⚠️ **Only capabilities that make a page *usable* appear here.** `settings:read`
+ * deliberately opens nothing: a Service Manager carries it, but the settings pages
+ * are forms whose only action is Save, and saving needs `settings:write`. Showing a
+ * manager a page where every control is disabled is the same lie as showing a member
+ * a page that answers `403` — just quieter. `settings:read` still has a real job
+ * server-side (it gates `GET` on the private keys); the read-only delivery view that
+ * gives it a client surface is #93's Notifications rewrite.
+ *
+ * `settings:write` opens two areas because the Design page writes the `site` key,
+ * and writing any key is `settings:write`.
+ *
+ * An unknown capability opens nothing, so a server that grows a capability before
  * this table does hides a page instead of inventing one.
  */
-const FEATURE_FOR_CAPABILITY: Partial<Record<Capability, AdminFeature>> = {
-  "inbox:read": "inbox",
-  "settings:read": "settings",
-  "settings:write": "design",
-  "reference:read": "reference",
+const FEATURES_FOR_CAPABILITY: Partial<Record<Capability, readonly AdminFeature[]>> = {
+  "inbox:read": ["inbox"],
+  "settings:write": ["settings", "design"],
+  "reference:read": ["reference"],
 }
 
 /**
@@ -231,8 +239,9 @@ export function featuresForCapabilities(
 ): ReadonlySet<AdminFeature> {
   const features = new Set<AdminFeature>()
   for (const capability of capabilities) {
-    const feature = FEATURE_FOR_CAPABILITY[capability as Capability]
-    if (feature) features.add(feature)
+    for (const feature of FEATURES_FOR_CAPABILITY[capability as Capability] ?? []) {
+      features.add(feature)
+    }
   }
   return features
 }
