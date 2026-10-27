@@ -213,6 +213,67 @@ export async function run() {
     return out
   })
 
+  check("a manager's nav is what they can act on, not what they can read", () => {
+    // `settings:read` opens nothing on purpose. The settings pages are forms whose
+    // only action is Save, and saving needs `settings:write` — so a manager with a
+    // page of disabled controls would be the quieter version of the lie #100 removed.
+    const manager = clerkAuth.accessFrom("service_manager", [
+      "inbox:read",
+      "inbox:write",
+      "inbox:delete",
+      "settings:read",
+      "reference:read",
+    ])
+    const visible = clerkAuth.ALL_ADMIN_FEATURES.filter((f) => clerkAuth.can(manager, f))
+    const out = []
+    if (!visible.includes("inbox")) out.push("a manager cannot see the inbox")
+    if (!visible.includes("reference")) out.push("a manager cannot see the reference docs")
+    if (visible.includes("settings")) out.push("a manager sees settings, which they cannot save")
+    if (visible.includes("design")) out.push("a manager sees the brand system, which they cannot save")
+
+    const rep = clerkAuth.accessFrom("service_rep", ["inbox:read", "inbox:write"])
+    if (clerkAuth.can(rep, "settings")) out.push("a rep sees settings")
+    if (clerkAuth.can(rep, "reference")) out.push("a rep sees the reference docs")
+    return out
+  })
+
+  check("a route the nav hides cannot be reached by typing its URL", () => {
+    // The sidebar filters links; it does not unmount routes. Without a guard at the
+    // outlet, a Service Rep who types /admin/settings gets a page that loads (the
+    // `site` read is public) and answers 403 on every save.
+    const src = read("src/admin/AdminLayout.tsx")
+    const out = []
+    if (!/useAdminAccess\(\)/.test(src)) out.push("the layout does not read the resolved capabilities")
+    if (!/findAdminRoute\(/.test(src)) out.push("the layout does not resolve the current route")
+    if (!/can\(access, route\.feature\)/.test(src)) {
+      out.push("the layout does not check the route's feature against the capabilities")
+    }
+    if (!/\{denied \? .* : <Outlet \/>\}/.test(src)) {
+      out.push("the outlet is rendered unconditionally — the URL is unguarded")
+    }
+    // ⚠️ Presence is not enough. A second, unconditional `<Outlet />` beside the
+    // guarded one renders the page regardless, and the assertion above still
+    // matches. Measured: adding one passed the check above before this line existed.
+    const outlets = (src.match(/<Outlet \/>/g) ?? []).length
+    if (outlets !== 1) out.push(`${outlets} <Outlet /> elements — an unguarded one bypasses the nav filter`)
+    return out
+  })
+
+  check("the inbox hides the actions a caller's capabilities do not include", () => {
+    // The page-level gate is not enough. A Service Rep *reaches* the inbox, so the
+    // drawer is where a capability has to become a visible boundary — a Delete
+    // button that answers 403 is the same lie as a Settings page a member cannot
+    // save, one level down.
+    const src = read("src/admin/InquiriesPage.tsx")
+    const out = []
+    if (!/useAdminAccess\(\)/.test(src)) out.push("the inbox does not read the resolved capabilities")
+    if (!/capabilities\.has\("inbox:delete"\)/.test(src)) out.push("the delete control is not gated on inbox:delete")
+    if (!/capabilities\.has\("inbox:write"\)/.test(src)) out.push("the edit controls are not gated on inbox:write")
+    if (!/disabled=\{!canWrite\}/.test(src)) out.push("the status or notes control is not disabled for a read-only caller")
+    if (!/\{canDelete \? \(/.test(src)) out.push("the delete block is not conditional on canDelete")
+    return out
+  })
+
   check("the whole admin shell stays behind RequireAuth", () => {
     const src = read("src/admin/AdminArea.tsx")
     return /<RequireAuth clerkConfigured>\s*<AdminLayout\s*\/>\s*<\/RequireAuth>/.test(src)
