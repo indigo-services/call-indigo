@@ -12,7 +12,7 @@ those claims live.
 
 | | |
 |---|---|
-| **Library** | `docs/` — **62 documents**, in seven numbered domains |
+| **Library** | `docs/` — **63 documents**, in seven numbered domains |
 | **Front door** | this file |
 | **Start here instead if you are new** | [`../README.md`](../README.md) at the repo root |
 | **Read it as a website** | [**The project wiki**](https://github.com/indigo-services/call-indigo/wiki) — this directory, rendered. **A mirror: edit here, never there.** |
@@ -108,6 +108,7 @@ declares for itself — see `00-meta/conventions.md` §2.
 | [`40-project/prd/phase-3-docs-library.md`](./40-project/prd/phase-3-docs-library.md) | dated | **v2.2.0** — the numbered-domain library, fully populated |
 | [`40-project/prd/phase-4-wiki-publication.md`](./40-project/prd/phase-4-wiki-publication.md) | dated | Continuous — the wiki, generated from this directory |
 | [`40-project/prd/phase-5-observability-and-automation.md`](./40-project/prd/phase-5-observability-and-automation.md) | dated | Continuous — freshness assertions, link checks, a deploy log |
+| [`40-project/plans/plan-admin-nav-roles-2026-10-27.md`](./40-project/plans/plan-admin-nav-roles-2026-10-27.md) | dated | **Proposed** — the vendor dashboards are ungated for a Service Rep (#104), the Google/social group (#105), home and account links for every role (#106), the external-link pane (#107); **blocked on Q1, the version number** |
 | [`40-project/plans/plan-docs-refactor-2026-09-27.md`](./40-project/plans/plan-docs-refactor-2026-09-27.md) | dated | The refactor: findings F1–F10, target structure, five phases |
 | [`40-project/plans/plan-client-feedback-2026-09-25.md`](./40-project/plans/plan-client-feedback-2026-09-25.md) | dated | Round-2 client feedback: plan, evidence, risks, outcome |
 | [`40-project/plans/plan-client-feedback-2026-09-26.md`](./40-project/plans/plan-client-feedback-2026-09-26.md) | dated | Round-3 client feedback: plan and evidence |

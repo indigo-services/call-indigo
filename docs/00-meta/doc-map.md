@@ -83,6 +83,7 @@ exists to prevent — see [`conventions.md` §2](./conventions.md#2-declare-the-
 | [`40-project/decisions/0004-numbered-documentation-domains.md`](../40-project/decisions/0004-numbered-documentation-domains.md) | dated | ADR 0004 — Numbered documentation domains, audience-led |
 | [`40-project/decisions/0005-clerk-admin-identity.md`](../40-project/decisions/0005-clerk-admin-identity.md) | dated | ADR 0005 — Clerk identity for the admin UI, with an explicit server-authorization boundary |
 | [`40-project/decisions/README.md`](../40-project/decisions/README.md) | index | Decisions — ADRs |
+| [`40-project/plans/plan-admin-nav-roles-2026-10-27.md`](../40-project/plans/plan-admin-nav-roles-2026-10-27.md) | dated | Plan — admin navigation, roles and the vendor accounts |
 | [`40-project/plans/plan-client-feedback-2026-09-25.md`](../40-project/plans/plan-client-feedback-2026-09-25.md) | dated | Plan — client feedback round, 2026-09-25 |
 | [`40-project/plans/plan-client-feedback-2026-09-26.md`](../40-project/plans/plan-client-feedback-2026-09-26.md) | dated | Client feedback round 3 — plan and evidence, 2026-09-26 |
 | [`40-project/plans/plan-client-feedback-2026-09-29.md`](../40-project/plans/plan-client-feedback-2026-09-29.md) | dated | Plan — client feedback round 4, release `v2.0.2` |
