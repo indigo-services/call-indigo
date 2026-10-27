@@ -1,12 +1,13 @@
 # Observability
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-16 in the uncommitted working tree
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-27 against `cd7ed7b` (v2.3.0)
 
 **The honest summary: this project has almost no application observability, and that is
-a known and deliberate state rather than an oversight.** It is a marketing site with a
-client-side demo dashboard. It takes no payments and has no app backend; Clerk handles
-admin identity and session state as an external service. No app-level error or usage
-telemetry is collected.
+a known and deliberate state rather than an oversight.** It is a marketing site with an
+admin dashboard. It takes no payments. Since **v2.3.0** it does have a back end — a lead
+posted to `/api/inquiry` is stored in Neon and announced by mail — but the observability did
+not grow with it: there is still no error reporter and no analytics. No app-level error or
+usage telemetry is collected.
 
 This document exists so the gap is **written down** rather than rediscovered.
 
@@ -20,23 +21,28 @@ This document exists so the gap is **written down** rather than rediscovered.
 | **Deploy result** | The commit status on GitHub (see [`deployment.md` §3.1](./deployment.md#31-read-the-status-before-theorising)) | Minutes | Anyone |
 | **Runtime errors** | **The browser console.** Not collected. | — | Whoever is looking |
 | **Traffic** | Vercel's own dashboard | ~real time | Whoever has Vercel access |
-| **Form submissions** | The visitor's own `localStorage` | — | **Nobody but that visitor** |
+| **Form submissions** | `inquiries` in Neon, written by `api/inquiry.ts`; announced by mail from `api/_lib/notifications.ts` | At submit | A staff member, in `/admin/inquiries` or in the inbox the alert reaches |
+| **Whether a submission was emailed** | The `notified` flag in the `POST /api/inquiry` response, and the function log when `RESEND_API_KEY` is unset or the send fails | At submit | Whoever reads the log — **not** the visitor |
 | **Admin identities and sessions** | Clerk Dashboard | As users sign in | A Clerk administrator |
+| **Who holds which staff level** | `/admin/team` (`GET /api/staff`) | On load | A staff member with `settings:read` |
 
 ## 2. What we cannot see
 
 | Cannot see | Consequence |
 |---|---|
 | **Any runtime error a visitor hit** | There is no error reporter. A broken interaction is invisible until someone reproduces it by hand. |
-| **Any form submission** | `/contact` writes to the **submitter's** `localStorage`. **The business never receives it.** This is the single most important thing on this page. |
+| **A submission that was stored but not emailed** | The lead is safe in Neon and the response carries `notified: false`, but nothing alerts anyone that the mail failed. It is visible only to whoever reads that response or the function log. **After a mail outage, check `/admin/inquiries`** — not the inbox. |
 | **Which routes are used** | No analytics. PRD §16.2 and the client's requirements rule it out — see [`security.md`](./security.md). |
+| **Who changed a staff level** | `staff.updated_at` records *when*, not *who*. A level changed on `/admin/team` is attributable to nobody (#114). |
 | **Core Web Vitals / real-user performance** | Vercel's dashboard has some of this; nothing is recorded in the repo. |
 | **Whether the deploy is serving the intended build** | Only by the manual fingerprint procedure in [`deployment.md` §5](./deployment.md#5-proving-a-deploy-actually-shipped-the-code). |
 
-> ⚠️ **"The form works" means the form works *in that browser*.** A demo where the
-> client fills in the contact form on their own laptop and then checks their inbox will
-> find nothing, because there is no backend. **Say this out loud before a demo** — it is
-> the most likely thing to be mistaken for a bug in a room full of people.
+> ⚠️ **"The form works" now means two things, and only one of them is visible to the
+> visitor.** The lead is stored and the mail is attempted; if the mail fails, the visitor
+> still sees the thank-you and the lead is still in the dashboard. Before a demo, submit
+> once yourself and check `/admin/inquiries` — that is the surface that shows the truth.
+> The warning that stood here said the business never receives a submission. That stopped
+> being true in #89.
 
 ## 3. Why there is no analytics
 

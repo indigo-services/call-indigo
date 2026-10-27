@@ -8,6 +8,229 @@ with pre-release tags for release candidates.
 
 ---
 
+## [v2.3.0] — 2026-10-27
+
+**The server release.** v2.1.0's entry named the most important line in it: a contact-form
+submission was written to the visitor's own browser and never reached Indigo. This release
+is where that stopped being true. The form posts to `/api/inquiry`, the lead is written to
+Neon, the mail that announces it is sent by the server, and the inbox, the settings pages
+and the notification address all read the same database.
+
+It also replaces "is this person an admin" with a **three-level staff model enforced per
+endpoint**, and gives that model a screen, so a level can be set without a `psql` session.
+
+**What it does not do, said in the same breath.** `/api/inquiry` is public and undefended:
+no rate limit, and the captcha is still arithmetic computed in the browser (#92 and #94,
+both scheduled for v2.4.0). A backend that stores leads honestly is worth more than one
+that pretends to be protected. This one does not pretend.
+
+Fourteen merges since v2.1.0:
+
+| PR | Merge | What it does |
+|---|---|---|
+| #83 | `b304a9f` | The first server — `POST /api/inquiry`, and where a lead is emailed |
+| #84 | `d9d77e3` | `/api/health`, so a shared-module failure is distinguishable from a systemic one |
+| #85 | `0a02d40` | Stop importing a `.ts` file outside `api/` — it fails to load in production |
+| #86 | `d1ddc23` | Move the shared server code inside `api/`, so it is bundled |
+| #87 | `491bf72` | Every relative import gets its `.js` extension — the actual production 500 |
+| #88 | `4169558` | Resolve the connection string from the names Production actually has |
+| #89 | `a36b130` | The contact form posts to the server — the arrow out (#68) |
+| #90 | `d13dd7d` | The inbox reads the database, not the browser |
+| #91 | `61a0cbe` | The settings pages read the database too (A2, #68) |
+| #101 | `c229a3f` | Three staff levels, enforced server-side (#100) |
+| #103 | `a26b291` | The UI stops offering what the capability model refuses |
+| #110 | `1944fa7` | A Team screen, so a level is not a `psql` session (#102) |
+| #112 | `ce1c133` | Stop walking 6,000 generated files (#111) |
+| #113 | `cd7ed7b` | The lint timing is 25 s warm and ~85 s cold |
+
+### Added
+
+**A back end, in seven endpoints.** `/api/inquiry` (public), `/api/inquiries`,
+`/api/settings`, `/api/notification-settings`, `/api/me`, `/api/staff` and `/api/health`.
+Three migrations: `0001_inquiries_and_notification_settings`, `0002_admin_settings`,
+`0003_staff`.
+
+Neon is reached **over HTTP** — `POST https://<host>/sql` with the connection string in a
+header, one statement per request — rather than through a pooled TCP driver. A serverless
+function that opens a pool per invocation is the wrong shape, and the pool it does not open
+is the connection limit it does not exhaust.
+
+**`/api/health`, which exists because the first server failed four times in a row.** Its
+job is not to say "ok" but to separate *the function did not load* from *a module it imports
+did not load*, because those two failures look identical from `curl` and the difference is
+the whole diagnosis.
+
+**A staff model with three levels, six capabilities, and one table.** `admin`,
+`service_manager`, `service_rep` — plus `member`, which is what a verified organization
+member gets when there is no row for them and which never appears in the database.
+Capabilities are `<area>:<action>`: `inbox:read`, `inbox:write`, `inbox:delete`,
+`settings:read`, `settings:write`, `reference:read`.
+
+The matrix is the artifact, so it is written as one:
+
+| | admin | manager | rep | member |
+|---|---|---|---|---|
+| read the inbox | ✓ | ✓ | ✓ | ✓ |
+| change a lead's status or notes | ✓ | ✓ | ✓ | |
+| delete a lead | ✓ | ✓ | | |
+| read the notification address | ✓ | ✓ | | |
+| change any setting | ✓ | | | |
+
+`settings:read` goes to a manager deliberately: the notification address decides where every
+future lead is emailed, and the person who runs the desk is the person who notices it is
+wrong. Changing it stays admin-only, because a write there redirects the business's leads.
+
+**`/admin/team`, and the reason it is a server join.** Clerk answers *who is in Indigo
+Services*; the `staff` table answers *at what level*. `GET /api/staff` joins them, because
+`useUser()` carries only the signed-in user's own memberships — a browser-side roster would
+need `useOrganization()` plus its own pagination, in a page whose entire job is to be
+trustworthy about who has access.
+
+### Changed
+
+**`publicMetadata.role` is retired.** It was a flat boolean about a person. Access is now a
+level in Postgres, read per request by `requireCapability()`, and the client-side gate is a
+*display* concern only: every endpoint re-checks, including the ones the UI does not call.
+
+This is the part that cost the most to get right, and the reason is structural. Clerk's
+custom organization roles would have been the obvious home for the levels — they are not
+available: `POST /v1/organization_roles` returns `402 unsupported_subscription_plan_features`
+on this instance, and `max_allowed_roles: 10` is a ceiling rather than a grant, with
+permissions fixed at 0. Only `org:admin` and `org:member` exist. So the levels live in
+`staff`, and a Clerk `org:admin` short-circuits to `admin` — the two agree unless someone
+edits a row to demote a Clerk admin, which the code refuses.
+
+**The nav grows by one page and one sub-pane, and `settings:read` now opens exactly one of
+them.** Ten routes, nine Settings sub-panes. `tests/policy.mjs` pins the nav by name —
+`"Inbox, Settings"`, eight sub-panes, a path→feature map — so adding a page moves four
+assertions, which is the point: a page that appears in the sidebar and not in the permission
+map is the failure this file exists to catch.
+
+**`eslint.config.js` ignores generated output.** `dist` was listed; `.preview` was not, and
+neither was `tests/.tmp`. A bare `eslint` walked **6,088 minified `.js` files** and ran
+**seven minutes without finishing**. It now takes 25 s warm and about 85 s cold after a
+`vite build`. CI never saw this, because neither directory exists in a clean checkout — the
+failure was invisible on the machine that decides the gate and cost every contributor the
+one check they could run before pushing.
+
+### Docs
+
+**The roadmap's product table was re-verified against the tree (#108).** Three rows had been
+overtaken by this release itself: F1 and F9 said server-side authorization "still requires a
+backend", and F2 said persistence was "Open" — while `requireCapability()` guards every
+endpoint and `insertInquiry()` writes to Neon. All three now state something a `grep`
+confirms, with a `file:line` and the release it landed in, and §2.1 no longer argues that
+F2 is the roadmap. It names the three things that actually matter next.
+
+**Two operational pages were corrected because this release made them dangerous.**
+`observability.md` §2 said "the business never receives" a submission — the single most
+important sentence on that page, and the opposite of true since #89.
+`runbook-incident.md` §1 listed *"the form submitted but no email arrived"* as **not an
+incident**; it is now the first thing to check, because the lead is stored and the send
+failed. Five other living documents still tell the no-backend story — including the
+client-facing disclosure — and they are **#116**, filed rather than half-fixed here.
+
+### Fixed
+
+**The production 500, in four merges that were each correct and each insufficient.** This
+is the release's real cost and it is worth writing down, because the failure mode is
+general.
+
+- #83 shipped the first function. It built green, deployed green, and returned 500.
+- #84 added `/api/health` to find out *which* layer was failing.
+- #85 stopped importing a `.ts` file from outside `api/`.
+- #86 moved the shared server code inside `api/`, so Vercel bundles it.
+- #87 gave every relative import its `.js` extension — this was the actual 500.
+
+`api/` is compiled as ESM under `"type": "module"`. A relative import without an extension
+resolves at build time and fails at run time, so `tsc`, `vite build` and the whole suite are
+green while the deployed function is dead. Nothing in the repo could see it; only
+`vercel logs <url>` said why. That is now a check rather than a lesson.
+
+**The UI stopped offering what the capability model refuses (#103).** A Service Rep could
+see Delete on a lead, and a nav item for a page their level does not open. The refusal was
+correct on the server and invisible in the browser, which reads as a broken button. The
+guard now derives what to *show* from the same capability list the server enforces.
+
+**A pure function's test does not cover its call site.** `membershipIncludes()` was
+asserted directly, and replacing its use in `api/staff.ts` with
+`memberships.data.length > 0` left **198 checks green** — while the endpoint would have
+accepted any user as a member, because the response it counted was the roster, not the
+answer about the target. Closed with two negative assertions on the source: the endpoint
+must not trust the response length, and it must call `membershipIncludes(memberships.data, …)`.
+The same mutation now fails.
+
+**The roster offered "Restore" to a member who had never been withdrawn.** `active` is
+`false` for both a brand-new member and a withdrawn one, so testing `!active` alone offered
+to restore a level that never existed — creating access out of nothing. The rule moved into
+`src/admin/team-roster.ts` (JSX-free, so the runner can call it) and now tests `role !== null`.
+Caught by reading the rendered page, not by a check.
+
+### Why `v2.3.0` and not `v2.2.0`
+
+`v2.2.0` is already spent as a **label**. `roadmap.md` §1 assigns it to the documentation
+milestone's phase 3, `prd/phase-3-docs-library.md` records it as that phase's release, and
+`docs/README.md` repeats it. Phase 3 shipped inside the `v2.0.x` releases and **no `v2.2.0`
+tag exists** — the roadmap has carried a warning saying so since v2.1.0. Reusing the number
+would have left three documents describing a tag that means something else, so the product
+line skips it and the roadmap's warning now names `v2.3.0` as the product release.
+
+The tag list is `v2.0.1`, `v2.0.2`, `v2.1.0`, **`v2.3.0`**.
+
+### Found, and not fixed
+
+Filed as issues rather than carried as knowledge, and all five are in the `v2.4.0` milestone
+except the last:
+
+- **`/api/inquiry` has no rate limit and no bot defence (#92, #94).** They are one change:
+  a captcha without a limit is defeated by replaying a solved token, and a limit without a
+  captcha still admits one request per window per address. Landing either alone produces a
+  public endpoint that looks defended.
+- **The Notifications screen controls nothing (#93).** The field labelled "Where new-inquiry
+  alerts are sent" writes a row nothing reads; the row that decides delivery is settable
+  only by `curl`. An operator changes the address, is told "Settings saved", and every lead
+  keeps going to the old inbox.
+- **The `security` record has no readers and no writers, and "Reset demo data" restores
+  fixtures nobody shows (#95).** It is the last `localStorage` surface, and it is what keeps
+  `backend.ts` alive.
+- **A level change has no audit trail (#114), and this release created that gap.** Before
+  #110 a level could only be changed in `psql`; now it is a button, `updated_at` records
+  *when*, and nothing records *who*.
+- **Every Vercel preview deployment fails without building (#96).** Nine in a row, with
+  `duration: {}` and no `errorMessage`, while production deploys of the same commits
+  succeed. `Gates` is the required check, so it has blocked nothing and trained everyone to
+  ignore a red X.
+
+### Verification
+
+`npm test` (build + suite) → **201 checks passed**, up from 163 at v2.1.0. Entry JS 871.07 kB
+(244.61 kB gzip) / 128.25 kB CSS; `AdminArea` 17.96 → 19.27 kB. The entry bundle grew by
+115 kB across this release, which is Clerk's admin surface plus the new pages; nothing was
+split further to hide it.
+
+CI `Gates` green on every merge and on `main` at `cd7ed7b`; Vercel production deploy success
+on the same commit.
+
+**The release added the check that would have caught its own paperwork.** v2.0.2's entry
+recorded that `package-lock.json` had drifted two releases behind `package.json` "because no
+check asserted it", and then left it unasserted. It is asserted now — the version is one
+number in `package.json`, both root fields of the lockfile, and the README's "Current
+version", and `CHANGELOG.md` must have a heading for it. Written as data, not text: at
+v2.1.0 the lockfile contained **three** occurrences of `"version": "2.1.0"` and the third is
+`fast-json-stable-stringify`, so a `replace_all` on the string rewrites a dependency and
+leaves `resolved`/`integrity` pointing at a different tarball.
+
+Two checks in this release were falsified before they were trusted: the `membershipIncludes`
+call site (mutated to `length > 0`, watched it go green, then red), and the roster's four
+row states (mutated back to `!active`).
+
+**A merge is not a deploy.** `POST /api/staff` answered 404 in production for about 90
+seconds after #110 merged, because the function did not exist yet — not because the route
+was wrong. Any smoke test run in the first minute after a merge is testing the previous
+deployment.
+
+---
+
 ## [v2.1.0] — 2026-10-22
 
 A **capability release**. `/admin` stops being a demonstration of itself: sign-in is

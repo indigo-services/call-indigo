@@ -2,7 +2,7 @@
 
 **Kind:** dated · **Trigger:** the live site is wrong, down, or serving something
 unintended · **Target:** identify within 10 minutes, mitigate within 30 ·
-**Last verified:** 2026-10-16 in the uncommitted working tree
+**Last verified:** 2026-10-27 against `cd7ed7b` (v2.3.0)
 
 > Written for a person under pressure. Short sentences, exact commands. The *why* lives
 > in [`deployment.md`](./deployment.md) and [`observability.md`](./observability.md).
@@ -21,10 +21,12 @@ Before anything else, separate the three things that look identical from the out
 | The site loads, but an image is missing | A moved or renamed asset | §5 |
 | The site is fine, but **`/admin` shows the sign-in page** | Working as intended when signed out; Clerk handles the session | **Not an incident.** See [`security.md`](./security.md) |
 | **`/admin` says sign-in is not configured** | The Vercel environment lacks the Clerk publishable key | Check the target's environment-variable scope in Vercel, then redeploy |
-| **The contact form submitted but no email arrived** | Working as intended — there is no backend | **Not an incident.** See [`observability.md` §2](./observability.md#2-what-we-cannot-see) |
+| **The contact form submitted but no email arrived** | **An incident, since v2.3.0.** The lead is in Neon and the send failed: read `/admin/inquiries` first, then `vercel logs` for `notified: false` | [`observability.md` §2](./observability.md#2-what-we-cannot-see) |
 
-> **The last two rows are the two most likely false alarms.** Both are documented
-> behaviour, not defects. Check them before escalating.
+> **Only one of these rows is a false alarm now, and it is the `/admin` sign-in one.** The
+> form row used to be the second: until v2.3.0 a submission never reached Indigo, so a
+> missing email was documented behaviour. #89 put a back end behind the form, which turned
+> that row into a real incident — do not dismiss it. Check them before escalating.
 
 ## 2. The whole site is down
 
