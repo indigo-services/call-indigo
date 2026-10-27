@@ -144,3 +144,17 @@ the moment before that call answers, so it can never over-promise.
 
 **Still true, and still the point.** This remains a client-side gate inside a public
 bundle. What changed is that the server now has the same rules, and re-checks them.
+
+**The surface, added the same day (#102).** `PUT /api/staff` was withheld in #100 because
+an endpoint with no caller is a dead surface; `/admin/team` is the caller, and it shipped
+with it. Two rules arrived with the write path, and both are decided rather than
+discovered:
+
+- **A level for a non-member is refused** (`422 not_a_member`). The org check refuses them
+  before the `staff` lookup, so the row would be inert — accepting it would let an admin
+  set a level and watch nothing happen. The refusal is the difference between a silent
+  no-op and a message.
+- **Nobody edits their own row** (`422 cannot_change_own_level`). The Clerk short-circuit
+  means a self-demotion cannot remove access, so it would not break anything — it would
+  *look* broken, because the nav would keep offering pages the new level says nothing
+  about. A control whose effect nobody can see is worse than no control.

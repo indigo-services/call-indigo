@@ -25,6 +25,7 @@ import {
   Shield,
   Triangle,
   User,
+  Users,
   type LucideIcon,
 } from "lucide-react"
 
@@ -103,6 +104,17 @@ export const ADMIN_NAV: readonly AdminNavGroup[] = [
         feature: "settings",
         icon: Shield,
         description: "Clerk account and session controls.",
+      },
+      {
+        // Its own area (`team`), not `settings`: the roster is the one page a
+        // manager can *use* with `settings:read` alone — they see every level and
+        // can move none of them. Tagging it `settings` would hide it from the
+        // person most likely to notice a missing rep.
+        title: "Team",
+        path: "/admin/team",
+        feature: "team",
+        icon: Users,
+        description: "Who can sign in, and what each person may do.",
       },
       {
         title: "Design System",

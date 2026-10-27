@@ -62,13 +62,14 @@
  * (#73 collapses Design and Reference into Settings sub-panes) and must not
  * change who can see what. One area per *reason* someone is trusted with it.
  */
-export type AdminFeature = "inbox" | "settings" | "design" | "reference"
+export type AdminFeature = "inbox" | "settings" | "design" | "reference" | "team"
 
 export const ALL_ADMIN_FEATURES: readonly AdminFeature[] = [
   "inbox",
   "settings",
   "design",
   "reference",
+  "team",
 ]
 
 /**
@@ -123,12 +124,16 @@ export type Capability = (typeof KNOWN_CAPABILITIES)[number]
  * Which feature areas each capability opens.
  *
  * ⚠️ **Only capabilities that make a page *usable* appear here.** `settings:read`
- * deliberately opens nothing: a Service Manager carries it, but the settings pages
- * are forms whose only action is Save, and saving needs `settings:write`. Showing a
- * manager a page where every control is disabled is the same lie as showing a member
- * a page that answers `403` — just quieter. `settings:read` still has a real job
- * server-side (it gates `GET` on the private keys); the read-only delivery view that
- * gives it a client surface is #93's Notifications rewrite.
+ * opens one page and no more: the Team roster (#102), which it can render
+ * completely — every person, every level, and a select it cannot move. That is a
+ * finished read-only surface, not a form with its only button disabled.
+ *
+ * It deliberately does NOT open the settings pages. Those are forms whose only
+ * action is Save, and saving needs `settings:write`; showing a manager a page
+ * where every control is disabled is the same lie as showing a member a page that
+ * answers `403`, just quieter. `settings:read` still gates the private `GET`s
+ * server-side, and #93's Notifications rewrite is the other read-only surface it
+ * is waiting on.
  *
  * `settings:write` opens two areas because the Design page writes the `site` key,
  * and writing any key is `settings:write`.
@@ -138,6 +143,7 @@ export type Capability = (typeof KNOWN_CAPABILITIES)[number]
  */
 const FEATURES_FOR_CAPABILITY: Partial<Record<Capability, readonly AdminFeature[]>> = {
   "inbox:read": ["inbox"],
+  "settings:read": ["team"],
   "settings:write": ["settings", "design"],
   "reference:read": ["reference"],
 }

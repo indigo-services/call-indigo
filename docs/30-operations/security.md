@@ -1,6 +1,6 @@
 # Security posture
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-22 in the working tree
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-27 in the working tree
 
 The current identity decision is [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md).
 The former shared-credential prototype is retained only as a historical record in
@@ -14,7 +14,7 @@ The former shared-credential prototype is retained only as a historical record i
 |---|---|---|
 | **`/admin` identity** | Clerk Invite-only mode is active; both Production users are Admin members of the `Indigo Services` organization, and that membership is the only thing that grants dashboard access. Sign-in still awaits deployment of this build. | Clerk Dashboard; `src/admin/AdminArea.tsx`, `src/admin/RequireAuth.tsx`, `src/admin/clerkAuth.ts` |
 | **Admin authorization** | Re-checked on the server by `requireCapability()` in every admin endpoint, against a capability matrix that lives in code. The browser gate decides which screens are *shown*; it authorizes nothing. | `api/_lib/auth.ts`, `api/_lib/roles.ts` |
-| **Role assignment** | Two parts, because custom Clerk roles are a paid feature: the person must be a member of `Indigo Services` in Clerk, and their level (`admin` / `service_manager` / `service_rep`) is a row in `staff`. A Clerk `org:admin` is admin regardless of the row | `resolveOrgAccess()` + `GET /api/me`; `db/migrations/0003_staff.sql` |
+| **Role assignment** | Two parts, because custom Clerk roles are a paid feature: the person must be a member of `Indigo Services` in Clerk, and their level (`admin` / `service_manager` / `service_rep`) is a row in `staff`. A Clerk `org:admin` is admin regardless of the row. Levels are set on `/admin/team`; `GET` needs `settings:read`, `PUT` needs `settings:write` | `resolveOrgAccess()` + `GET /api/me`; `api/staff.ts`; `db/migrations/0003_staff.sql` |
 | **Dashboard data** | Postgres (Neon) for inquiries and every settings record. The only browser-held record left is `security`, which nothing reads (#95) | `api/inquiries.ts`, `api/settings.ts` |
 | **The contact form** | POSTs to `/api/inquiry`, which stores the lead in Postgres and emails it | `src/lib/data/api.ts` → `createInquiry` |
 | **Clerk secret** | Vercel's Development environment has `CLERK_SECRET_KEY`; Production has only the publishable key. The Vite client does not read or bundle the secret | Vercel environment metadata; `vite.config.ts` loads only `VITE_*` and `NEXT_PUBLIC_*` values |
@@ -44,11 +44,18 @@ settings mock has also been replaced with Clerk-managed account controls. See [A
 **Since 2026-10-22 there is one real server-side check** — `api/_lib/auth.ts`. It
 verifies the Clerk session token with the official server SDK, resolves the caller's
 level, and refuses a request that needs a capability that level does not carry. It
-guards four endpoints:
+guards five endpoints:
 
 - `/api/me` (2026-10-27), which reports the caller's own role and capability list. It
   is the only thing the admin shell renders its navigation from, which is what stopped
   the client and the server disagreeing about what a member may see;
+- `/api/staff` (2026-10-27), which is **who may sign in and at what level** — the one
+  endpoint whose data is other people's access. Reading the roster needs
+  `settings:read`, so a Service Manager sees every level; writing one needs
+  `settings:write`. It refuses a level for anyone who is not a member of
+  `Indigo Services` (`422 not_a_member`), because such a row is inert — the org check
+  refuses them before the table is read, so the row would never take effect — and it
+  refuses a change to the caller's own row (`422 cannot_change_own_level`);
 - `/api/notification-settings`, which decides **where every future lead is emailed** —
   an unauthenticated write would let anyone redirect the business's inquiries to an
   inbox they control;
@@ -60,7 +67,7 @@ guards four endpoints:
   marketing pages read it for their colours and their phone number, and both are on
   the page anyway.
 
-All four call it **before** parsing a query, reading a body or touching the database,
+All five call it **before** parsing a query, reading a body or touching the database,
 so a caller who is about to be refused causes no work and learns nothing. The rest of
 the dashboard's UI is still gated only in the browser, and that is fine: what it gates
 is now a view of data the server has already refused to hand it.
@@ -88,6 +95,14 @@ matrix is `api/_lib/roles.ts`. A Clerk `org:admin` is `admin` outright and never
 the table, so an empty table — or a bad row — can only ever reduce access, never widen
 it.
 
+A level is set on **`/admin/team`** (issue #102), not in a psql session. The screen
+joins Clerk's membership list to the rows — Clerk says who works here, Postgres says at
+what level — and shows a member with no row as *no level set*, which is what the server
+actually does with them. It offers no control on a Clerk admin's row, because a level
+there is never read: that badge says where the level comes from instead. Removing
+someone's access is `active = false`; the row is kept, because it is the record of who
+was once allowed to read a customer's phone number.
+
 ## 3. Other current limits
 
 - **The form posts to the server, and that is proven end to end.** `POST /api/inquiry`
@@ -109,4 +124,4 @@ repository is public, so an issue is a disclosure.
 
 ---
 
-**Last verified:** 2026-10-22 in the working tree
+**Last verified:** 2026-10-27 in the working tree

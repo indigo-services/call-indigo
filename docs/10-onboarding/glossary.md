@@ -31,7 +31,8 @@ From `PRD.md` Appendix B.
 | **`BODY_HTML`** | A page's markup held as a string literal and injected with `dangerouslySetInnerHTML`. Three marketing pages do this. | It is the only place raw HTML enters the DOM, and the reason `chrome.ts` exists. |
 | **The admin gate** | Clerk sign-in plus a membership of the `Indigo Services` organization, resolved by `resolveOrgAccess()` around the `/admin` UI. | It decides which screens are **shown** and authorizes nothing; every endpoint re-checks with `requireCapability()`. See [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md). |
 | **Capability** | One grant named `area:action` — `inbox:read`, `settings:write`. A role is a bundle of them, and an endpoint names the single one it needs. | `api/_lib/roles.ts`. A capability that no endpoint checks is decoration, so each one is either enforced or presentation-only by declaration. |
-| **Staff level** | `admin`, `service_manager` or `service_rep`, held in the `staff` table rather than in Clerk. | Custom Clerk organization roles are a **paid** feature — `POST /v1/organization_roles` → `402 unsupported_subscription_plan_features`. See `db/migrations/0003_staff.sql`. |
+| **Staff level** | `admin`, `service_manager` or `service_rep`, held in the `staff` table rather than in Clerk. Set on `/admin/team`, not in a psql session. | Custom Clerk organization roles are a **paid** feature — `POST /v1/organization_roles` → `402 unsupported_subscription_plan_features`. See `db/migrations/0003_staff.sql`. |
+| **The roster** | Clerk's members of `Indigo Services`, each joined to their staff level. Shown on `/admin/team`. | It comes from Clerk, not from `staff`: a member with **no row** is a state the screen has to show, and they are absent from the table by definition. `role: null` means "no level set — read-only", which is what the server does with them. |
 | **Derived / Dated / Living** | A document's kind, which determines how it can go wrong. See [`../00-meta/conventions.md` §2](../00-meta/conventions.md#2-declare-the-documents-kind). | A **living** claim written as if **dated** can be wrong forever without anyone noticing. |
 | **Producer** | The command that produced a number. | A number without one is a claim that cannot expire. |
 | **Negative control** | Running a check against a fixture that **contains** the defect, and confirming it fails. | A check that only ever sees correct input cannot tell a real fix from a vacuous one. This repo has paid for that mistake three times. |
@@ -53,4 +54,4 @@ From `PRD.md` Appendix B.
 
 ---
 
-**Last verified:** 2026-10-16 in the uncommitted working tree
+**Last verified:** 2026-10-27 in the uncommitted working tree
