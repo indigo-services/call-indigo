@@ -17,7 +17,7 @@ import {
   BookOpen,
   Component,
   Fingerprint,
-  Github,
+  GitBranch,
   Image,
   Inbox,
   Palette,
@@ -218,7 +218,10 @@ export const ADMIN_EXTERNAL_NAV: readonly AdminExternalNavGroup[] = [
       {
         title: "GitHub",
         href: "https://github.com/indigo-services/call-indigo",
-        icon: Github,
+        // lucide 1.x removed the brand glyphs, so `Github` no longer exists.
+        // `GitBranch` is the closest remaining source-control mark; the label
+        // above is what a reader actually uses, and it is unchanged.
+        icon: GitBranch,
       },
     ],
   },
