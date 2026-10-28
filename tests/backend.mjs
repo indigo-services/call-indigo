@@ -71,6 +71,10 @@ export async function run() {
   const auth = await load("api/_lib/auth.ts", "server-auth")
   const roles = await load("api/_lib/roles.ts", "server-roles")
   const notify = await load("api/_lib/notifications.ts", "server-notify")
+  // The browser's copy of the same rule (#93). `src/` may not import `api/`, so the
+  // page re-states `shouldNotify()` to preview what the switches would do. A copy is
+  // only safe when something compares it, and that something is a check below.
+  const clientNotify = await load("src/lib/notifications.ts", "client-notify")
   const settings = await load("api/notification-settings.ts", "api-settings")
   const inquiry = await load("api/inquiry.ts", "api-inquiry")
   const me = await load("api/me.ts", "api-me")
@@ -787,7 +791,7 @@ export async function run() {
     return out
   })
 
-  check("a colour or an hour outside the shape is refused, with the field named", () => {
+  check("a value outside the shape is refused, with the field named", () => {
     const site = settingsSeed.DEFAULT_SETTINGS
     const prefs = settingsSeed.DEFAULT_NOTIFICATIONS
     const cases = [
@@ -795,9 +799,11 @@ export async function run() {
       ["site", { ...site, themeHome: "#21558" }, "themeHome", "five digits is not a colour"],
       ["site", { ...site, brandName: 42 }, "brandName", "a number is not text"],
       ["site", { ...site, brandName: "x".repeat(81) }, "brandName", "over the 80-character limit"],
-      ["notifications", { ...prefs, digestHour: 24 }, "digestHour", "hour 24 does not exist"],
-      ["notifications", { ...prefs, digestHour: 7.5 }, "digestHour", "a fractional hour is not an hour"],
+      // `digestHour` used to be asserted here. It was removed with the digest (#93),
+      // and so was the `hour` field kind it was the only user of: a kind no shape
+      // declares is a branch no check can reach.
       ["notifications", { ...prefs, emailOnLead: "yes" }, "emailOnLead", "a string is not a boolean"],
+      ["notifications", { ...prefs, emergencyAlerts: 1 }, "emergencyAlerts", "a number is not a boolean"],
     ]
     const out = []
     for (const [key, record, field, why] of cases) {
@@ -900,6 +906,13 @@ export async function run() {
       const page = readFileSync(path.join(ROOT, file), "utf8")
       if (!/useAuth\(\)/.test(page)) out.push(`${file} does not read the Clerk session`)
       if (!/getToken/.test(page)) out.push(`${file} never passes the session token to the api`)
+      // The copy, not the code: both pages used to say the save went to "this
+      // browser's local store" while writing to Postgres. A truthful toast is the
+      // only part of a save an operator can check (#93).
+      const copy = page.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "")
+      if (/local store/i.test(copy)) {
+        out.push(`${file} still tells the operator the settings are saved to this browser`)
+      }
     }
 
     // And the one read that must stay token-free: a visitor has no session, and a
@@ -907,6 +920,256 @@ export async function run() {
     const theme = readFileSync(path.join(ROOT, "src", "lib", "use-theme.ts"), "utf8")
     if (!/api\.getSettings\(\)/.test(theme)) {
       out.push("use-theme no longer reads the settings record without a token")
+    }
+    return out
+  })
+
+  /* ── The address that decides delivery, and the switches that decide whether ──
+   *
+   * #93 was a screen that controlled nothing. `/admin/settings` offered a
+   * "Notification email", labelled *Where new-inquiry alerts are sent*, and no
+   * sender read it; the address that did decide delivery was settable only by
+   * `curl`. The four checks below are what stops that shape from coming back, and
+   * each of them fails on a different half of it: two homes for one address, a
+   * preview that describes a rule the sender does not use, a form field the
+   * endpoint drops, and a label promising a behaviour that has no reader.
+   */
+  suite("The delivery address has one home (#93)", "src/admin/NotificationsPage.tsx")
+
+  check("a delivery address cannot be stored in the site record", () => {
+    const out = []
+    const shipped = settingsSeed.DEFAULT_SETTINGS
+    if ("notificationEmail" in shipped) out.push("DEFAULT_SETTINGS still ships notificationEmail")
+
+    // Behavioural, not a grep: the site record is written whole, so the question is
+    // whether a value can get in at all. Unknown keys are dropped, which is exactly
+    // the answer we want — a second address is not refused loudly, it is impossible.
+    const smuggled = settingsLib.validateSettings("site", {
+      ...shipped,
+      notificationEmail: "attacker@example.com",
+    })
+    if (!smuggled.ok) {
+      out.push(`a site record carrying notificationEmail was rejected outright: ${JSON.stringify(smuggled.fields)}`)
+    } else if ("notificationEmail" in smuggled.value) {
+      out.push("a delivery address can still be stored in the site record")
+    }
+
+    // And the name must be gone from code, not just from the shape. Comments are
+    // allowed to explain what was removed; that is how the next reader learns why.
+    for (const file of [
+      "src/lib/data/types.ts",
+      "src/lib/data/seed.ts",
+      "api/_lib/adminSettings.ts",
+      "src/admin/SettingsPage.tsx",
+    ]) {
+      const src = readFileSync(path.join(ROOT, file), "utf8")
+      const code = src
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/^\s*\/\/.*$/gm, "")
+        .replace(/^\s*\*.*$/gm, "")
+      if (/notificationEmail/.test(code)) out.push(`${file} still references notificationEmail in code`)
+    }
+    return out
+  })
+
+  check("the page's rule and the sender's rule agree on every input", () => {
+    // The preview card on /admin/notifications replays the inquiry list through the
+    // browser's copy. If that copy drifted, the card would describe a rule the sender
+    // does not apply — #93's defect wearing a different hat. So every input is walked,
+    // not a representative one.
+    const out = []
+    let compared = 0
+    for (const emailOnLead of [true, false]) {
+      for (const emergencyAlerts of [true, false]) {
+        for (const urgency of ["emergency", "soon", "flexible"]) {
+          const prefs = { emailOnLead, emergencyAlerts }
+          const server = notify.shouldNotify(prefs, { urgency })
+          const page = clientNotify.willNotify(prefs, urgency)
+          compared += 1
+          if (server !== page) {
+            out.push(
+              `disagree on ${JSON.stringify({ ...prefs, urgency })}: sender ${server}, page ${page}`,
+            )
+          }
+        }
+      }
+    }
+    // A count, because a loop that stopped iterating would otherwise pass silently.
+    if (compared !== 12) out.push(`compared ${compared} combinations, expected 12`)
+
+    // The rule itself, stated four ways. `emergencyAlerts` is a FLOOR, not a filter:
+    // the third case is the one that catches a "fix" which reads it as a filter and
+    // quietly stops announcing burst pipes to the operator who turned routine mail off.
+    const rule = [
+      [{ emailOnLead: true, emergencyAlerts: false }, "flexible", true, "routine mail is not sent when emailOnLead is on"],
+      [{ emailOnLead: false, emergencyAlerts: true }, "emergency", true, "an emergency is not announced when emergencyAlerts is on"],
+      [{ emailOnLead: false, emergencyAlerts: true }, "soon", false, "emergencyAlerts is narrowing routine mail — it is meant to be a floor"],
+      [{ emailOnLead: false, emergencyAlerts: false }, "emergency", false, "mail is sent with both switches off"],
+      // A malformed urgency must not be read as an emergency.
+      [{ emailOnLead: false, emergencyAlerts: true }, "urgent", false, "an unknown urgency was treated as an emergency"],
+    ]
+    for (const [prefs, urgency, expected, why] of rule) {
+      if (notify.shouldNotify(prefs, { urgency }) !== expected) out.push(why)
+    }
+    return out
+  })
+
+  check("the sender's fallback preferences are the ones the page ships", () => {
+    // `DEFAULT_PREFS` is a copy of `DEFAULT_NOTIFICATIONS` because `api/` cannot
+    // import `src/` at runtime. A copy with a comparison is a specification; a copy
+    // without one is a second source of truth.
+    const out = []
+    const server = notify.DEFAULT_PREFS
+    const shipped = settingsSeed.DEFAULT_NOTIFICATIONS
+    const serverKeys = Object.keys(server).sort().join(",")
+    const seedKeys = Object.keys(shipped).sort().join(",")
+    if (serverKeys !== seedKeys) out.push(`key sets differ — api: ${serverKeys} / seed: ${seedKeys}`)
+    for (const key of Object.keys(shipped)) {
+      if (server[key] !== shipped[key]) {
+        out.push(`DEFAULT_PREFS.${key} is ${server[key]}, the seed says ${shipped[key]}`)
+      }
+    }
+    // The defaults must be storable, not merely readable: an unwritten row falls back
+    // to these, and the first save from the page writes the record whole.
+    const round = settingsLib.validateSettings("notifications", shipped)
+    if (!round.ok) {
+      out.push(`the shipped defaults are rejected by their own validator: ${JSON.stringify(round.fields)}`)
+    }
+    // And the removed toggles must be gone from the shape, not merely hidden: a switch
+    // no scheduler reads is the same lie as a field no sender reads.
+    const stale = settingsLib.validateSettings("notifications", {
+      ...shipped,
+      weeklySummary: true,
+      digestHour: 9,
+    })
+    if (stale.ok && ("weeklySummary" in stale.value || "digestHour" in stale.value)) {
+      out.push("the notifications record still accepts weeklySummary or digestHour — nothing schedules them")
+    }
+    return out
+  })
+
+  check("the delivery form, the validator and the sender name the same four fields", () => {
+    const out = []
+    const page = readFileSync(path.join(ROOT, "src/admin/NotificationsPage.tsx"), "utf8")
+    const block = page.match(/const DELIVERY_FIELDS[\s\S]*?\n\]/)
+    if (!block) return ["NotificationsPage.tsx has no DELIVERY_FIELDS array — this check would skip it"]
+    const keys = [...block[0].matchAll(/key:\s*"(\w+)"/g)].map((m) => m[1])
+    if (keys.length !== 4) out.push(`the form edits ${keys.length} delivery fields, expected 4`)
+
+    // What the endpoint actually keeps, given a complete body. Comparing key sets in
+    // both directions catches both failures: a form field the endpoint drops (saved,
+    // then forgotten) and an endpoint field the form never shows (settable by curl
+    // only, which is the original defect).
+    const accepted = settings.validateSettings({
+      to: "inbox@example.com",
+      replyTo: "",
+      bcc: "",
+      subjectTemplate: "x",
+    })
+    if (!accepted.ok) {
+      out.push(`the endpoint rejected a complete delivery body: ${JSON.stringify(accepted.errors)}`)
+    } else {
+      const stored = Object.keys(accepted.value).sort().join(",")
+      const edited = [...keys].sort().join(",")
+      if (stored !== edited) out.push(`the form edits ${edited}; the endpoint stores ${stored}`)
+    }
+
+    // The sender must read the columns it writes, or a value the page saves is never
+    // seen again. Parsed from the SQL because both directions need a database.
+    const lib = readFileSync(path.join(ROOT, "api/_lib/notifications.ts"), "utf8")
+    const sel = lib.match(/select ([\w, ]+) from notification_settings/)
+    const ins = lib.match(/insert into notification_settings \(([\w, ]+)\)/)
+    if (!sel || !ins) {
+      out.push("the notification_settings select/insert column lists are no longer parseable")
+    } else {
+      const split = (s, drop) =>
+        s.split(",").map((x) => x.trim()).filter((x) => x && !drop.includes(x)).sort().join(",")
+      const read = split(sel[1], ["updated_at"])
+      const written = split(ins[1], ["id", "updated_at"])
+      if (read !== written) out.push(`the sender reads ${read} but writes ${written}`)
+      if (written.split(",").length !== 4) {
+        out.push(`${written.split(",").length} delivery columns are stored, expected 4`)
+      }
+    }
+    return out
+  })
+
+  check("the delivery row is saved through the endpoint that validates it", () => {
+    const apiSrc = readFileSync(path.join(ROOT, "src", "lib", "data", "api.ts"), "utf8")
+    const page = readFileSync(path.join(ROOT, "src/admin/NotificationsPage.tsx"), "utf8")
+    const out = []
+    for (const method of ["getNotificationSettings", "saveNotificationSettings"]) {
+      const block = apiSrc.match(new RegExp(`async ${method}\\([\\s\\S]*?\\n  \\},`))
+      if (!block) {
+        out.push(`api.ts has no ${method} — the delivery form would call nothing`)
+        continue
+      }
+      if (!block[0].includes("/api/notification-settings")) {
+        out.push(`${method} does not call /api/notification-settings`)
+      }
+      if (!page.includes(`api.${method}`)) out.push(`NotificationsPage.tsx never calls api.${method}`)
+    }
+    // A write with no token is a public write, whatever the page looks like.
+    if (!/async saveNotificationSettings\(\s*value: NotificationSettings,\s*token\?: TokenGetter,?\s*\)/.test(apiSrc)) {
+      out.push("saveNotificationSettings no longer accepts a session token")
+    }
+    // The page must not claim a browser-local save: that was the old copy, and it was
+    // the reason an operator believed a change had taken effect.
+    if (/local store|this browser's local/i.test(page.replace(/\/\*[\s\S]*?\*\//g, ""))) {
+      out.push("NotificationsPage.tsx still tells the operator the settings are saved to this browser")
+    }
+    return out
+  })
+
+  check("no settings field promises a delivery behaviour nothing reads", () => {
+    // #93 in one sentence: a field labelled "Where new-inquiry alerts are sent",
+    // saved, displayed, and read by no sender. The detector is deliberately crude —
+    // a label that talks about delivery — because a rule that only recognises the
+    // field that already burned us would miss the next one.
+    const page = readFileSync(path.join(ROOT, "src/admin/SettingsPage.tsx"), "utf8")
+    const block = page.match(/const FIELDS[\s\S]*?\n\]/)
+    if (!block) return ["SettingsPage.tsx has no FIELDS array — this check would skip it"]
+    const entries = [...block[0].matchAll(/\{\s*key:\s*"(\w+)",\s*label:\s*"([^"]*)"/g)].map((m) => [
+      m[1],
+      m[2],
+    ])
+    if (entries.length === 0) return ["no FIELDS entries parsed — the guard would pass vacuously"]
+
+    const apiSources = []
+    const walk = (dir) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name)
+        if (entry.isDirectory()) walk(full)
+        else if (entry.name.endsWith(".ts")) apiSources.push(readFileSync(full, "utf8"))
+      }
+    }
+    walk(path.join(ROOT, "api"))
+    // Comments are stripped: `adminSettings.ts` explains at length why the field is
+    // gone, and a grep that counted that explanation as a reader would make this
+    // guard fail for the very change that added it (trap: a grep cannot tell a
+    // comment from code).
+    const apiText = apiSources
+      .map((src) => src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, ""))
+      .join("\n")
+
+    const CLAIMS = /notif|alert|deliver|inbox/i
+    const out = []
+    for (const [key, label] of entries) {
+      if (!CLAIMS.test(label)) continue
+      if (!new RegExp(`\\b${key}\\b`).test(apiText)) {
+        out.push(`"${label}" (${key}) claims a delivery behaviour, and nothing in api/ reads ${key}`)
+      }
+    }
+
+    // The positive control. With no field currently claiming delivery, the loop above
+    // passes by finding nothing — so the detector is proved against the exact entry
+    // this change removed. A guard nobody has seen fire is a regex, not a check.
+    const removed = { key: "notificationEmail", label: "Where new-inquiry alerts are sent" }
+    if (!CLAIMS.test(removed.label)) {
+      out.push("the detector no longer recognises the label #93 removed — it would not have caught it")
+    }
+    if (new RegExp(`\\b${removed.key}\\b`).test(apiText)) {
+      out.push("api/ now reads notificationEmail — this guard can no longer prove anything")
     }
     return out
   })

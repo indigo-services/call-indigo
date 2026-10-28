@@ -10,6 +10,9 @@
  * outage must not cost the lead, so the email is attempted after the row exists
  * and its failure is reported rather than thrown. `notified: false` in a 201 is a
  * stored lead with a broken announcement — which someone can fix — not a lost one.
+ * Since #93 `notified: false` also covers the case where an operator switched
+ * routine mail off: the preference decides *whether* to announce, never whether to
+ * store.
  *
  * ⚠️ The rewrite in `vercel.json` used to send every path to `/index.html`,
  * including this one. That is why that file now excludes `/api/`: without it this
@@ -30,7 +33,7 @@
  */
 import { body, methodNotAllowed, type ApiRequest, type ApiResponse } from "./_lib/http.js"
 import { insertInquiry } from "./_lib/inquiries.js"
-import { readNotificationSettings, sendInquiryEmail } from "./_lib/notifications.js"
+import { readNotificationPrefs, readNotificationSettings, sendInquiryEmail, shouldNotify } from "./_lib/notifications.js"
 import { enforce } from "./_lib/throttle.js"
 import { validateInquiry } from "./_lib/validate.js"
 
@@ -78,13 +81,25 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
 
   let notified = false
   try {
-    const settings = await readNotificationSettings()
-    if (!settings) {
-      console.error("inquiry: notification_settings has no 'default' row — the migration has not run")
+    // The switches on /admin/notifications, read here rather than trusted from the
+    // page — the page decides what to *show*, this decides what to *send* (#93).
+    const prefs = await readNotificationPrefs()
+    if (!shouldNotify(prefs, inquiry)) {
+      // Deliberately not an error: an operator turned routine mail off. The lead is
+      // stored and appears in the inbox, which is the channel that always works.
+      console.log(
+        `inquiry: ${inquiry.id} stored, notification suppressed ` +
+          `(emailOnLead=${prefs.emailOnLead}, emergencyAlerts=${prefs.emergencyAlerts}, urgency=${inquiry.urgency})`,
+      )
     } else {
-      const result = await sendInquiryEmail(settings, inquiry)
-      notified = result.sent
-      if (!result.sent) console.error(`inquiry: ${inquiry.id} stored but not emailed — ${result.error}`)
+      const settings = await readNotificationSettings()
+      if (!settings) {
+        console.error("inquiry: notification_settings has no 'default' row — the migration has not run")
+      } else {
+        const result = await sendInquiryEmail(settings, inquiry)
+        notified = result.sent
+        if (!result.sent) console.error(`inquiry: ${inquiry.id} stored but not emailed — ${result.error}`)
+      }
     }
   } catch (err) {
     // A settings read that fails is still not a lost lead.

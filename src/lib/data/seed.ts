@@ -172,7 +172,6 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   establishedYear: "2012",
   serviceArea: "Hays, Travis, and Williamson counties",
   licenseNumber: "RMP45574 EC23851",
-  notificationEmail: "support@call-indigo.com",
   ...THEME_DEFAULTS,
 }
 
@@ -185,11 +184,20 @@ export const DEFAULT_PROFILE: AdminProfile = {
   timezone: "America/Chicago (Central)",
 }
 
+/**
+ * What a lead announcement does before anyone has chosen otherwise: mail every lead,
+ * and never suppress an emergency.
+ *
+ * These two are the only preference fields there are — `weeklySummary` and
+ * `digestHour` were removed rather than left editable and unread (#93, #115).
+ *
+ * `api/_lib/notifications.ts` keeps its own copy, because a runtime import from
+ * `src/` fails inside the deployed function. `tests/backend.mjs` asserts the two
+ * agree, so this is a copy with a guard rather than a second source of truth.
+ */
 export const DEFAULT_NOTIFICATIONS: NotificationPrefs = {
   emailOnLead: true,
-  weeklySummary: false,
   emergencyAlerts: true,
-  digestHour: 8,
 }
 
 export const DEFAULT_SECURITY: SecurityState = {

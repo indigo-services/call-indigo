@@ -34,7 +34,9 @@ const FIELDS: ReadonlyArray<{
   { key: "legalName", label: "Legal name", hint: "Used on documents and the utility bar." },
   { key: "primaryPhone", label: "Primary phone", hint: "The number every call-to-action dials." },
   { key: "publicEmail", label: "Public email", type: "email" },
-  { key: "notificationEmail", label: "Notification email", type: "email", hint: "Where new-inquiry alerts are sent." },
+  // There is deliberately no "Notification email" field. It was here, it saved, and
+  // nothing that sends mail read it — the delivery address has its own screen now
+  // (/admin/notifications) and its own table (#93).
   { key: "address", label: "Address" },
   { key: "establishedYear", label: "Established year" },
   { key: "serviceArea", label: "Service area" },
@@ -78,7 +80,7 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle>Business information</CardTitle>
           <CardDescription>
-            {dirty ? "You have unsaved changes." : "Saved to this browser's local store."}
+            {dirty ? "You have unsaved changes." : "Saved to the server, not to this browser."}
           </CardDescription>
         </CardHeader>
         <CardContent>

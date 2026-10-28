@@ -71,6 +71,7 @@ caller is an admin.
 | `getSettings()` / `saveSettings(v)` | `SiteSettings` | `/api/settings?key=site` — **the read is public**, the write is admin-only |
 | `getProfile()` / `saveProfile(v)` | `AdminProfile` | `/api/settings?key=profile`, admin-only |
 | `getNotifications()` / `saveNotifications(v)` | `NotificationPrefs` | `/api/settings?key=notifications`, admin-only |
+| `getNotificationSettings()` / `saveNotificationSettings(v)` | `NotificationSettings` | `/api/notification-settings`, admin-only — **the delivery address**; the only screen that sets it since #93 |
 | `getSecurity()` / `saveSecurity(v)` | `SecurityState` | `localStorage` — **no callers**; see §8 |
 
 A key the server has never been written for comes back as `value: null` and the client
@@ -193,7 +194,7 @@ in `src/lib/data/api.ts` returns a *receipt* (the new id), not the stored row.
 | Shared | `api/_lib/adminSettings.ts` | The field spec for the three records, and their read/write |
 | Shared | `api/_lib/validate.ts` | The same rules the form applies, restated for a caller that is not the form — plus the minimum time-to-submit (#92) |
 | Shared | `api/_lib/db.ts` | Neon SQL-over-HTTP. No `pg`, no pool |
-| Shared | `api/_lib/notifications.ts` | Reads the settings row per send, then Resend |
+| Shared | `api/_lib/notifications.ts` | Reads the settings row and the preferences per send, applies `shouldNotify()`, then Resend. `emergencyAlerts` is a **floor, not a filter** (#93) |
 | Shared | `api/_lib/auth.ts` | Clerk session token + staff level → role and capabilities. Pure rules exported for tests |
 | Shared | `api/_lib/roles.ts` (2026-10-27) | The capability matrix: role → what it may do. No I/O, so it is tested directly |
 | Shared | `api/_lib/staff.ts` (2026-10-27) | The `staff` table: the hot-path lookup, the roster join, the upsert, and the pure rules for both |
@@ -247,21 +248,30 @@ compiler".
 server-owned: the function that sends the email reads `notification_settings`
 directly, so a "To:" field in the `site` record would look like it configured
 delivery while the sender kept its own value. `SiteSettings` is about how the site
-looks and says who to call; those four are about where mail goes.
+looks and says who to call; those four are about where mail goes. Since #93 that is
+enforced rather than merely intended: the duplicate field was removed, and
+`tests/backend.mjs` fails if a delivery-looking label reappears with no reader behind
+it.
 
 **What the server does not do yet**, named so it is not assumed:
 
 1. **One record is still browser-only.** `security` (`getSecurity`/`saveSecurity`) has
    no callers and no table — the Security page manages the account through Clerk. It is
    dead surface, not a plan.
-2. **`SiteSettings.notificationEmail` is a second copy of a delivery address.** It is
-   shown on the Settings page and read by nothing that sends mail, while
-   `notification_settings.to` is the one that matters. They agree today because both
-   were seeded with the same address; they can disagree. Reconciling them needs a UI
-   for the real setting first, which is why the duplicate is still there.
-3. **Spam protection is still the client-side captcha.** The honeypot is now also
+2. **Spam protection is still the client-side captcha.** The honeypot is now also
    checked on the server, which stops naive bots; a determined one is unaffected.
    That is proposal A6 and it is not in this change.
+
+**The duplicate delivery address is gone (2026-10-28, #93).** `SiteSettings` carried a
+`notificationEmail`, labelled *Where new-inquiry alerts are sent*, and no sender read
+it — `notification_settings.to` was the value that decided delivery, and it was
+settable only by `curl`. An operator changed the address, was told it saved, and every
+lead kept going to the old inbox. The field is deleted from the type, the seed, the
+validator and the Settings page; `/admin/notifications` now reads and writes the row
+the sender reads. Three checks hold it: a delivery address cannot be stored in the
+`site` record at all, the page's copy of the send rule agrees with the server's on
+every input, and a settings field whose label claims a delivery behaviour must have a
+reader under `api/`.
 
 **Unverified:** a *valid* Clerk session token was not exercised against
 `api/notification-settings`. This instance is a production instance, so
