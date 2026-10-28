@@ -5,7 +5,7 @@
 Every route the build serves, read out of `src/App.tsx` and `src/admin/routes.ts`.
 Regenerating is the only way to change this file.
 
-Generated 2026-10-27. `tests/policy.mjs` asserts that the router and the sidebar model
+Generated 2026-10-28. `tests/policy.mjs` asserts that the router and the sidebar model
 agree on every `/admin` page; this table is that agreement, printed.
 
 ---
@@ -14,10 +14,10 @@ agree on every `/admin` page; this table is that agreement, printed.
 
 | Path | Renders | Source | Lines |
 |---|---|---|---:|
-| `/` | `HomePage` | `src/marketing/pages/HomePage.tsx` | 1175 |
-| `/residential` | `ResidentialPage` | `src/marketing/pages/ResidentialPage.tsx` | 715 |
-| `/commercial` | `CommercialPage` | `src/marketing/pages/CommercialPage.tsx` | 696 |
-| `/contact` | `ContactPage` | `src/marketing/pages/ContactPage.tsx` | 654 |
+| `/` | `HomePage` | `src/marketing/pages/HomePage.tsx` | 1180 |
+| `/residential` | `ResidentialPage` | `src/marketing/pages/ResidentialPage.tsx` | 720 |
+| `/commercial` | `CommercialPage` | `src/marketing/pages/CommercialPage.tsx` | 701 |
+| `/contact` | `ContactPage` | `src/marketing/pages/ContactPage.tsx` | 693 |
 
 The first three are the marketing pages ported from `valvoro-prototype/`.
 `/contact` is a real page added on top — it is **not** a prototype mirror.
@@ -85,4 +85,4 @@ and each page's title. It is the file to edit when adding a page.
 
 ---
 
-*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `15e9a6b`.*
+*Source of truth: `src/App.tsx` and `src/admin/routes.ts`. HEAD: `7645316`.*

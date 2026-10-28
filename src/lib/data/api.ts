@@ -30,6 +30,27 @@ import type {
 } from "@/lib/data/types"
 
 /**
+ * A refusal the form can explain, as opposed to one it can only apologise for.
+ *
+ * `createInquiry` used to throw a bare `Error` on any non-2xx, which collapsed three
+ * different situations into "Something went wrong sending that" — a server that is
+ * down, a rate limit that will clear in a minute, and a form that needs reloading.
+ * Only the first is a fault. The other two are instructions, and #92 and #94 both ask
+ * for the refusal to be *visible* rather than a silent success, which a message the
+ * visitor can act on satisfies better than one they can only report.
+ */
+export class InquiryError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string,
+    readonly fields: Record<string, string> = {},
+  ) {
+    super(`inquiry POST failed: ${status} ${code}`)
+    this.name = "InquiryError"
+  }
+}
+
+/**
  * Simulated network latency. Small enough not to be annoying, large enough that
  * loading and in-flight button states are actually exercised during review —
  * a UI that only ever renders its loaded state is a UI whose loading state is
@@ -120,8 +141,17 @@ export const api = {
     return inquiry
   },
 
-  /** Called by the public inquiry form. */
-  async createInquiry(input: NewInquiry): Promise<Inquiry> {
+  /**
+   * Called by the public inquiry form.
+   *
+   * `openedAt` is when this form was rendered, in epoch milliseconds. The server
+   * refuses a submission that arrives sooner than its floor allows, and a body with
+   * no timestamp at all — which is what a bot that never runs this page sends. It is
+   * passed as an argument rather than folded into `NewInquiry` because it describes
+   * the *submission*, not the lead: `NewInquiry` is the shape a lead has, and putting
+   * a clock reading in it would also leak into the receipt returned below.
+   */
+  async createInquiry(input: NewInquiry, openedAt: number): Promise<Inquiry> {
     // The server owns this record now. Writing to `localStorage` as well would give
     // the site two sources of truth that disagree the moment a lead arrives by email
     // — which is the primary channel — so the browser keeps nothing.
@@ -132,14 +162,17 @@ export const api = {
     const res = await fetch("/api/inquiry", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, openedAt }),
     })
 
-    const body = (await res.json().catch(() => null)) as { id?: string } | null
+    const body = (await res.json().catch(() => null)) as
+      | { id?: string; error?: string; fields?: Record<string, string> }
+      | null
+
     if (!res.ok || !body?.id) {
       // Thrown, never swallowed: the form turns this into a visible failure with a
       // phone number. A lead must never be told it was sent when it was not.
-      throw new Error(`inquiry POST failed: ${res.status}`)
+      throw new InquiryError(res.status, body?.error ?? "unknown", body?.fields ?? {})
     }
 
     const now = new Date().toISOString()

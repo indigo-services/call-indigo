@@ -15,10 +15,23 @@
  * including this one. That is why that file now excludes `/api/`: without it this
  * handler is never reached and the POST returns the SPA shell with a 200, which
  * looks exactly like success.
+ *
+ * Four gates before a row exists, cheapest and least informative first:
+ *
+ *   1. **honeypot** — a filled `company` answers 200 and stores nothing;
+ *   2. **validation** — field rules, plus the minimum time-to-submit (#92);
+ *   3. **rate limit** — 5 per address per 10 minutes (#94);
+ *   4. the insert itself.
+ *
+ * Steps 1–3 write nothing, so a refused request costs no row and no email. The order
+ * is not cosmetic: the limit runs after the honeypot so a bot cannot discover it, and
+ * after validation so an attacker cannot spend a real visitor's budget with bodies
+ * that would have been rejected anyway.
  */
 import { body, methodNotAllowed, type ApiRequest, type ApiResponse } from "./_lib/http.js"
 import { insertInquiry } from "./_lib/inquiries.js"
 import { readNotificationSettings, sendInquiryEmail } from "./_lib/notifications.js"
+import { enforce } from "./_lib/throttle.js"
 import { validateInquiry } from "./_lib/validate.js"
 
 export default async function handler(req: ApiRequest, res: ApiResponse): Promise<void> {
@@ -33,6 +46,22 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
       return
     }
     res.status(422).json({ error: "validation_failed", fields: parsed.errors })
+    return
+  }
+
+  // #94. After the honeypot and after validation, deliberately:
+  //   · after the honeypot, so a bot cannot learn the limit by filling a field a
+  //     person never sees;
+  //   · after validation, because a request that fails it costs nothing — no row, no
+  //     email — and counting it would let an attacker exhaust a real visitor's budget
+  //     with bodies that were never going to be stored.
+  // A refusal here writes nothing and sends nothing, which is the property the tests
+  // assert by counting sends rather than by reading the status code.
+  const verdict = await enforce(req)
+  if (!verdict.allowed) {
+    const retryAfter = String(verdict.retryAfter ?? 60)
+    res.setHeader("Retry-After", retryAfter)
+    res.status(429).json({ error: "rate_limited", retryAfter: Number(retryAfter) })
     return
   }
 

@@ -35,6 +35,12 @@ const valid = {
   urgency: "soon",
   message: "Water is pooling under the kitchen sink.",
   member: "no",
+  /**
+   * The form's own opening time (#92). A minute old, so the time-to-submit floor is
+   * satisfied by construction and every other check here is testing the thing it
+   * names rather than accidentally testing the clock.
+   */
+  openedAt: Date.now() - 60_000,
 }
 
 /** Call a Vercel-style handler and capture what it answered. */
@@ -70,6 +76,7 @@ export async function run() {
   const me = await load("api/me.ts", "api-me")
   const staffApi = await load("api/staff.ts", "api-staff")
   const staff = await load("api/_lib/staff.ts", "server-staff")
+  const throttle = await load("api/_lib/throttle.ts", "server-throttle")
 
   // The async work, done once and asserted synchronously below.
   const anonPut = await callHandler(settings.default, "PUT", { body: { to: "attacker@example.com" } })
@@ -83,6 +90,46 @@ export async function run() {
   const anonStaffPost = await callHandler(staffApi.default, "POST")
   const honeypotPost = await callHandler(inquiry.default, "POST", { body: { ...valid, company: "Acme" } })
   const invalidPost = await callHandler(inquiry.default, "POST", { body: { ...valid, email: "nope" } })
+
+  /* ── The rate limit, driven through an injected counter (#94) ──────────────
+   *
+   * The real counter is a Postgres upsert, and CI has no database. Injecting the
+   * `record` function is what makes the REFUSAL branch testable at all — without it
+   * every check here would observe the fail-open path and prove nothing about the
+   * limit, which is the "green that means nothing" this suite exists to prevent.
+   */
+  const savedSalt = process.env.THROTTLE_SALT
+  const throttleReq = { headers: { "x-forwarded-for": "203.0.113.7, 10.0.0.1" } }
+  const keysSeen = []
+  const countingRecorder = async (key) => {
+    keysSeen.push(key)
+    return { hits: keysSeen.length, retryAfter: 42 }
+  }
+
+  process.env.THROTTLE_SALT = "test-salt"
+  const withinLimit = []
+  for (let i = 0; i < throttle.THROTTLE.limit; i++) {
+    withinLimit.push(await throttle.enforce(throttleReq, countingRecorder))
+  }
+  const overLimit = await throttle.enforce(throttleReq, countingRecorder)
+  const keyForAddress = throttle.throttleKey("203.0.113.7", "test-salt")
+  const keyWithoutSalt = throttle.throttleKey("203.0.113.7", "")
+  const ipFromList = throttle.clientIp(throttleReq)
+  const ipFromRealIp = throttle.clientIp({ headers: { "x-real-ip": "198.51.100.9" } })
+  const ipFromNothing = throttle.clientIp({ headers: {} })
+
+  // No salt: the key cannot be built, so the limit must decline to enforce AND say so.
+  process.env.THROTTLE_SALT = ""
+  const noSalt = await throttle.enforce(throttleReq, countingRecorder)
+  // Store unavailable: the catch branch, exercised without touching a real database.
+  process.env.THROTTLE_SALT = "test-salt"
+  const storeDown = await throttle.enforce(throttleReq, async () => {
+    throw new Error("no connection string")
+  })
+  // A request with no address at all.
+  const noAddress = await throttle.enforce({ headers: {} }, countingRecorder)
+  if (savedSalt === undefined) delete process.env.THROTTLE_SALT
+  else process.env.THROTTLE_SALT = savedSalt
 
   check("a submission the form would accept is accepted, and stored normalised", () => {
     const out = []
@@ -153,6 +200,123 @@ export async function run() {
     if (invalidPost.status !== 422) out.push(`answered ${invalidPost.status}, expected 422`)
     if (!invalidPost.payload?.fields?.email) out.push(`no field error for email: ${JSON.stringify(invalidPost.payload)}`)
     if (invalidPost.payload?.id) out.push("a refused submission returned an id")
+    return out
+  })
+
+  check("the rate limit accepts the limit and refuses the next one, with a retry time", () => {
+    // #94 acceptance 1. Both halves matter: a limit that refuses everything passes
+    // the "refused" half, and one that refuses nothing passes the other.
+    const out = []
+    const refusedInside = withinLimit.filter((v) => !v.allowed)
+    if (refusedInside.length > 0) {
+      out.push(`${refusedInside.length} of the first ${throttle.THROTTLE.limit} submissions were refused`)
+    }
+    if (overLimit.allowed) {
+      out.push(`submission ${throttle.THROTTLE.limit + 1} was accepted — the limit does nothing`)
+    }
+    if (overLimit.retryAfter !== 42) {
+      out.push(`retryAfter is ${overLimit.retryAfter}, expected the counter's 42 — Retry-After would lie`)
+    }
+    if (overLimit.unenforced) out.push(`the refusal was actually a fail-open (${overLimit.unenforced})`)
+    // One key for the whole run: a key that varied per request would never limit anyone.
+    if (new Set(keysSeen).size !== 1) out.push(`${new Set(keysSeen).size} distinct keys over one address`)
+    return out
+  })
+
+  check("the counter is keyed on a salted hash, never on the address itself", () => {
+    // The privacy decision #94 asked for. An unsalted hash of an IPv4 address is an
+    // encoding, not anonymisation — so "it is hashed" is not the property worth
+    // asserting; "it is hashed AND a salt is required" is.
+    const out = []
+    if (typeof keyForAddress !== "string" || !/^[0-9a-f]{64}$/.test(keyForAddress)) {
+      out.push(`the key is not a sha256 hex digest: ${keyForAddress}`)
+    }
+    if (keyForAddress && keyForAddress.includes("203.0.113.7")) {
+      out.push("the key contains the address — it is not a hash")
+    }
+    if (keyWithoutSalt !== null) {
+      out.push("a key was produced with an empty salt — the hash would be reversible by brute force")
+    }
+    // Two addresses must not collide, and one address must be stable.
+    if (throttle.throttleKey("203.0.113.7", "test-salt") !== keyForAddress) {
+      out.push("the same address and salt produced a different key")
+    }
+    if (throttle.throttleKey("203.0.113.8", "test-salt") === keyForAddress) {
+      out.push("two different addresses produced the same key")
+    }
+    return out
+  })
+
+  check("the client address is the first entry of x-forwarded-for", () => {
+    // Taking the last entry, or the whole list, buckets every visitor behind one
+    // proxy into a single counter — the limit would then refuse real people.
+    const out = []
+    if (ipFromList !== "203.0.113.7") out.push(`x-forwarded-for parsed as "${ipFromList}"`)
+    if (ipFromRealIp !== "198.51.100.9") out.push(`x-real-ip fallback parsed as "${ipFromRealIp}"`)
+    if (ipFromNothing !== "") out.push(`a request with no address headers parsed as "${ipFromNothing}"`)
+    return out
+  })
+
+  check("an unenforceable limit fails open, and says which reason", () => {
+    // #94's design note. A missing salt or a missing table must not refuse a lead —
+    // but a fail-open that is silent is indistinguishable from a limit that works,
+    // so the reason is part of the contract rather than only a log line.
+    const out = []
+    if (!noSalt.allowed) out.push("a missing THROTTLE_SALT refused a submission instead of failing open")
+    if (noSalt.unenforced !== "no-salt") out.push(`missing salt reported "${noSalt.unenforced}"`)
+    if (!storeDown.allowed) out.push("an unreachable counter refused a submission instead of failing open")
+    if (storeDown.unenforced !== "store-unavailable") {
+      out.push(`an unreachable counter reported "${storeDown.unenforced}"`)
+    }
+    if (!noAddress.allowed) out.push("a request with no address refused a submission instead of failing open")
+    if (noAddress.unenforced !== "no-ip") out.push(`no address reported "${noAddress.unenforced}"`)
+    return out
+  })
+
+  check("the limit is enforced after the honeypot and before anything is stored", () => {
+    // #94 acceptance 2, and the ordering is the point: a limit checked BEFORE the
+    // honeypot tells a bot exactly where the ceiling is, and one checked AFTER the
+    // insert has already written the row and sent the email it was meant to prevent.
+    // Only the source can show order — the status code cannot.
+    const src = readFileSync(path.join(ROOT, "api", "inquiry.ts"), "utf8")
+    const code = src.replace(/^\s*\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
+    const honeypotAt = code.indexOf('"honeypot" in parsed')
+    const enforceAt = code.indexOf("await enforce(")
+    const insertAt = code.indexOf("await insertInquiry(")
+    const out = []
+    if (honeypotAt < 0) out.push("api/inquiry.ts no longer checks the honeypot — this check would pass vacuously")
+    if (enforceAt < 0) out.push("api/inquiry.ts does not call enforce() — the limit is not wired in")
+    if (insertAt < 0) out.push("api/inquiry.ts does not call insertInquiry() — this check would pass vacuously")
+    if (honeypotAt >= 0 && enforceAt >= 0 && enforceAt < honeypotAt) {
+      out.push("the rate limit runs BEFORE the honeypot — a bot can discover the ceiling")
+    }
+    if (enforceAt >= 0 && insertAt >= 0 && enforceAt > insertAt) {
+      out.push("the rate limit runs AFTER the insert — a refused request would already be stored")
+    }
+    if (!/Retry-After/.test(src)) out.push("a 429 is returned without a Retry-After header")
+    return out
+  })
+
+  check("a submission faster than the floor is refused, and a missing timestamp is refused", () => {
+    // #92. The floor is what replaces a third-party captcha, and the case it exists
+    // for is the body with NO timestamp at all — that is a bot which never executed
+    // the page's JavaScript, and it is the majority of form spam.
+    const out = []
+    const now = 1_800_000_000_000
+    const instant = validate.validateInquiry({ ...valid, openedAt: now - 500 }, now)
+    const patient = validate.validateInquiry({ ...valid, openedAt: now - 10_000 }, now)
+    const absent = validate.validateInquiry({ ...valid, openedAt: undefined }, now)
+    const nulled = validate.validateInquiry({ ...valid, openedAt: null }, now)
+    const ahead = validate.validateInquiry({ ...valid, openedAt: now + 120_000 }, now)
+
+    if (instant.ok) out.push("a submission 0.5s after the form opened was accepted")
+    else if (!instant.errors.openedAt) out.push(`a too-fast submission did not name openedAt: ${JSON.stringify(instant.errors)}`)
+    if (!patient.ok) out.push(`a submission 10s after the form opened was refused: ${JSON.stringify(patient.errors ?? {})}`)
+    if (absent.ok) out.push("a submission with NO timestamp was accepted — a bot that runs no JS gets through")
+    else if (absent.errors.openedAt !== "missing") out.push(`a missing timestamp reported "${absent.errors.openedAt}"`)
+    if (nulled.ok) out.push("a null timestamp was accepted")
+    // A client clock ahead of ours must not lock a real person out forever.
+    if (!ahead.ok) out.push("a future timestamp was refused — a fast client clock would lose the lead")
     return out
   })
 
@@ -394,10 +558,25 @@ export async function run() {
     const page = readFileSync(path.join(ROOT, "src", "marketing", "pages", "ContactPage.tsx"), "utf8")
     if (!/setFailure\(/.test(page)) out.push("ContactPage no longer has a failure state")
     if (!/role="alert"/.test(page)) out.push("the failure is no longer announced to a screen reader")
-    const failure = page.match(/setFailure\("([^"]+)"\)/)
-    if (!failure) out.push("the failure message is no longer a literal — cannot check that it is actionable")
-    else if (!/\(\d{3}\)\s*\d{3}-\d{4}/.test(failure[1])) {
-      out.push("the failure message no longer offers a phone number")
+
+    // The messages moved into `describeFailure()` when #92 and #94 gave a refusal more
+    // than one cause to report. Checked there rather than at `setFailure(`, and still
+    // required to keep the phone number: it is the channel that works when the site
+    // does not. A check that looked only for a literal at the call site would now pass
+    // vacuously, which is the failure mode this suite exists to catch.
+    const describe = page.match(/function describeFailure\([\s\S]*?\n\}/)
+    if (!describe) {
+      out.push("ContactPage has no describeFailure() — cannot check that a refusal is actionable")
+    } else {
+      if (!/\(\d{3}\)\s*\d{3}-\d{4}/.test(describe[0])) {
+        out.push("no refusal message offers a phone number")
+      }
+      if (!/429/.test(describe[0])) {
+        out.push("describeFailure has no 429 branch — a rate-limited visitor gets the generic message")
+      }
+      if (!/fields\.openedAt/.test(describe[0])) {
+        out.push("describeFailure does not explain a too-fast submission (#92)")
+      }
     }
     return out
   })

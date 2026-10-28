@@ -17,11 +17,30 @@
  * small, and a form library would be the only thing in the marketing bundle
  * pulling its weight less than the form does.
  */
-import { useId, useRef, useState, type FormEvent } from "react"
+import { useEffect, useId, useRef, useState, type FormEvent } from "react"
 import { Captcha, type CaptchaHandle } from "@/marketing/Captcha"
-import { api } from "@/lib/data/api"
+import { api, InquiryError } from "@/lib/data/api"
 import { SERVICES, URGENCIES, MEMBER_ANSWERS, type MemberAnswer, type PropertyType, type Service, type Urgency } from "@/lib/data/types"
 import { SiteChrome } from "@/marketing/SiteChrome"
+
+/**
+ * The server's refusals, in words the visitor can act on.
+ *
+ * #92 and #94 both require a refusal to be visible rather than a silent success, and
+ * a message that says what to do is worth more than one that says something failed.
+ * The phone number stays in the fallback because it is the channel that always works.
+ */
+function describeFailure(err: unknown): string {
+  if (err instanceof InquiryError) {
+    if (err.status === 429) {
+      return "That is more than one connection can send at once. Please wait a minute and try again, or call (512) 608-4999."
+    }
+    if (err.status === 422 && err.fields.openedAt) {
+      return "That form was sent before it had finished opening. Please reload the page and send it again."
+    }
+  }
+  return "Something went wrong sending that. Please call (512) 608-4999 instead."
+}
 
 /* ── Form model ──────────────────────────────────────────────────────────── */
 
@@ -165,6 +184,20 @@ export default function ContactPage({ initialReference = null }: ContactPageProp
   const captchaInputRef = useRef<HTMLInputElement>(null)
   const captchaHandleRef = useRef<CaptchaHandle | null>(null)
 
+  /**
+   * When this form was opened, in epoch milliseconds — sent with the submission so
+   * the server can refuse one that arrives impossibly fast (#92).
+   *
+   * A ref rather than state: nothing renders it, and re-rendering on mount would be
+   * a state write in an effect, which the React Compiler rules here forbid. `0` means
+   * "not set yet"; `sendAnother()` re-stamps it, because a person sending a second
+   * inquiry has genuinely only just opened the form again.
+   */
+  const openedAtRef = useRef(0)
+  useEffect(() => {
+    openedAtRef.current = Date.now()
+  }, [])
+
   const formRef = useRef<HTMLFormElement>(null)
   const successRef = useRef<HTMLDivElement>(null)
 
@@ -213,26 +246,30 @@ export default function ContactPage({ initialReference = null }: ContactPageProp
 
     setPending(true)
     try {
-      const created = await api.createInquiry({
-        member: values.member as MemberAnswer,
-        name: values.name.trim(),
-        email: values.email.trim(),
-        phone: values.phone.trim(),
-        propertyType: values.propertyType as PropertyType,
-        service: values.service as Service,
-        urgency: values.urgency,
-        message: values.message.trim(),
-      })
+      const created = await api.createInquiry(
+        {
+          member: values.member as MemberAnswer,
+          name: values.name.trim(),
+          email: values.email.trim(),
+          phone: values.phone.trim(),
+          propertyType: values.propertyType as PropertyType,
+          service: values.service as Service,
+          urgency: values.urgency,
+          message: values.message.trim(),
+        },
+        openedAtRef.current,
+      )
       setReference(created.id)
       setValues(INITIAL)
       setErrors({})
       setSubmitted(false)
       setCaptchaError(false)
       captchaHandleRef.current?.reset()
+      openedAtRef.current = Date.now()
       // Focus the confirmation so screen-reader users hear the result.
       requestAnimationFrame(() => successRef.current?.focus())
-    } catch {
-      setFailure("Something went wrong sending that. Please call (512) 608-4999 instead.")
+    } catch (err) {
+      setFailure(describeFailure(err))
     } finally {
       setPending(false)
     }
@@ -250,6 +287,8 @@ export default function ContactPage({ initialReference = null }: ContactPageProp
   function sendAnother() {
     setReference(null)
     setFailure(null)
+    // The form is being opened again, so the time-to-submit floor restarts with it.
+    openedAtRef.current = Date.now()
     requestAnimationFrame(() => {
       formRef.current?.querySelector<HTMLElement>("input, select, textarea")?.focus()
     })

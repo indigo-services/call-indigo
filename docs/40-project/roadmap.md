@@ -1,6 +1,6 @@
 # Roadmap
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-27 against `cd7ed7b` (v2.3.0)
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-28 against `7645316` (v2.3.0)
 
 Two roadmaps, deliberately separate: **the product** and **the documentation**. They
 ship on their own clocks, and the documentation one exists because the product one had
@@ -72,8 +72,13 @@ from the server, and has been since v2.3.0.
 
 What is left is not smaller, it is **different**. Three things, in order:
 
-1. **The public endpoint is undefended** — no rate limit, no bot defence (#92, #94). A
-   backend that stores leads honestly and accepts every one of them is half a solution.
+1. ~~**The public endpoint is undefended** — no rate limit, no bot defence (#92, #94).~~
+   **Done in v2.4.0.** `POST /api/inquiry` is capped at 5 submissions per address per
+   10 minutes (`api/_lib/throttle.ts`, `inquiry_throttle`) and refuses a body that
+   arrives sooner than 3 s after the form opened, or with no opening time at all. The
+   arithmetic captcha was kept as a speed bump and **Turnstile was rejected** — it
+   would have broken the project's no-cookie invariant. See
+   [`security.md`](../30-operations/security.md) §3.
 2. **The address that receives the leads has no screen** (#93). It is settable only by
    `curl`, while the field an operator would use writes a row nothing reads.
 3. **A level change is unattributable** (#114). Roles are enforced; who granted one is

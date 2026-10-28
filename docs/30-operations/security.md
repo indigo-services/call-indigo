@@ -1,6 +1,6 @@
 # Security posture
 
-**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-27 in the working tree
+**Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-28 in the working tree
 
 The current identity decision is [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md).
 The former shared-credential prototype is retained only as a historical record in
@@ -109,13 +109,35 @@ was once allowed to read a customer's phone number.
   stores the lead in Postgres and emails it; a real browser submission on 2026-10-23
   landed in the inbox. A failed POST is shown to the visitor with a phone number rather
   than swallowed.
-- **The captcha is local arithmetic.** It is not a bot defence. The server now also
-  checks the form's hidden honeypot, which stops naive bots and nothing more.
+- **The captcha is local arithmetic, and it is not a bot defence.** It is checked in
+  the browser only, so a client that skips the page never answers it. What actually
+  stands in front of the endpoint now is a **minimum time-to-submit** — a body that
+  arrives sooner than 3 s after the form opened, or that carries no opening time at
+  all, is refused with a `422`. The missing-timestamp case is the one that matters: it
+  is a bot that did not execute the page's JavaScript. The arithmetic question is kept
+  as a speed bump for a person with devtools and nothing more, and the honeypot is
+  unchanged — a filled one answers `200` and stores nothing.
 - **The repository is public.** Source, demo fixtures, and the localStorage shape are
   readable by anyone. No secret is committed: `.env*` is ignored with `!.env.example`.
 - **No secret scanning or dependency-advisory build gate is configured in CI.**
-- **The API has no rate limit.** One IP can post as fast as it can connect; the only
-  ceilings are field lengths and the honeypot.
+- **The API has a rate limit on the one endpoint that writes.** `POST /api/inquiry` is
+  capped at **5 submissions per 10 minutes per address**, enforced in
+  `api/_lib/throttle.ts` against the `inquiry_throttle` table
+  (`db/migrations/0004_inquiry_throttle.sql`). A refusal answers `429` with
+  `Retry-After`, and it writes nothing and sends nothing.
+  - The key is **`sha256(ip + THROTTLE_SALT)`**, never the address. The salt is
+    required: without it the hash would be reversible over an IPv4 space of 2^32, so
+    the module refuses to build a key rather than falling back to a constant. **If
+    `THROTTLE_SALT` is unset the limit fails open and logs** — read the logs after a
+    deploy that adds it, because an unenforced limit is silent otherwise.
+  - `GET /api/settings?key=site` is **left unthrottled on purpose.** It is the only
+    un-gated read, it is on the marketing pages' critical path, and a shared address
+    (an office, a mobile carrier's NAT) would take the site's own settings down for
+    everyone behind it. The read is one indexed row; the write is the expensive part
+    and it is the part that is limited.
+  - The window is fixed, not sliding, and aligned to the epoch. A burst that straddles
+    a boundary can therefore reach twice the limit across two windows. That is a
+    deliberate trade for costing one statement per request.
 
 ## 4. Reporting a problem
 
@@ -124,4 +146,4 @@ repository is public, so an issue is a disclosure.
 
 ---
 
-**Last verified:** 2026-10-27 in the working tree
+**Last verified:** 2026-10-28 in the working tree
