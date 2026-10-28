@@ -11,7 +11,7 @@
  * ⚠️ Nothing here is authorization. `api/staff.ts` re-checks both capabilities;
  * this decides what is *offered*.
  */
-import type { StaffLevel, StaffMember } from "@/lib/data/types"
+import type { StaffAuditEntry, StaffLevel, StaffMember } from "@/lib/data/types"
 
 /** The three levels, strongest first, with what each one actually means. */
 export const LEVELS: ReadonlyArray<{ value: StaffLevel; label: string; hint: string }> = [
@@ -103,4 +103,61 @@ export function rowState(
     canRestore: managed && hasRow && !member.active,
     showInactive: !isClerkAdmin && hasRow && !member.active,
   }
+}
+
+/* ── The audit panel (#114) ───────────────────────────────────────────────── */
+
+/**
+ * A Clerk user id, as a name — when the roster still has one.
+ *
+ * Falls back to the id itself rather than to "someone". A record that cannot name
+ * its actor is still a record, and the id is the one thing that can be looked up
+ * in Clerk later; "someone" cannot be looked up at all. The fallback is reachable
+ * in normal use: a person who left the organization is dropped from the roster,
+ * and their past changes remain.
+ */
+export function personName(userId: string, roster: ReadonlyArray<StaffMember>): string {
+  return roster.find((member) => member.userId === userId)?.name ?? userId
+}
+
+/**
+ * One recorded change, as a sentence.
+ *
+ * The three shapes it can take, and why they are not one template:
+ *
+ *   · **A first assignment** has no previous level, so "No level → Service Rep"
+ *     would be a transition that never happened — nothing was changed *from*.
+ *     `Set to Service Rep` is what an operator did.
+ *   · **A role change** is a transition, and the arrow is the shortest way to
+ *     show both ends.
+ *   · **An access change** is not a level at all. `Service Rep → Service Rep`
+ *     would be a line that appears to do nothing; `Access withdrawn` is the fact,
+ *     and it is the one an incident asks about.
+ *
+ * When both change, both are said — that is the case where a summary loses
+ * information, and the one this function exists for.
+ *
+ * ⚠️ `fromActive` is `null` on a first assignment, not `false`. Reading it as
+ * falsy would make a brand-new row look like a restored leaver.
+ */
+export function changeText(entry: StaffAuditEntry): string {
+  const to = LEVEL_LABEL[entry.toRole]
+  const firstAssignment = entry.fromRole === null
+  const roleChanged = !firstAssignment && entry.fromRole !== entry.toRole
+  const wasActive = entry.fromActive === true
+  const accessChanged = !firstAssignment && wasActive !== entry.toActive
+
+  const parts: string[] = []
+  if (firstAssignment) parts.push(`Set to ${to}`)
+  else if (roleChanged) parts.push(`${LEVEL_LABEL[entry.fromRole!]} → ${to}`)
+
+  if (accessChanged) parts.push(entry.toActive ? "Access restored" : "Access withdrawn")
+  // A first assignment made with `active: false` — a level nobody can use yet.
+  // Rare, legal, and otherwise invisible: the row would read "Set to Service Rep"
+  // while the person still could not sign in.
+  else if (firstAssignment && !entry.toActive) parts.push("no access")
+
+  // Unreachable through the writer, which only records a change. If it ever
+  // happens, saying so is better than rendering an empty cell.
+  return parts.length > 0 ? parts.join(" · ") : "No change recorded"
 }

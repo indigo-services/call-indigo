@@ -1,8 +1,13 @@
 /**
  * `/api/staff` — the roster, and the level each person holds.
  *
- *   GET  /api/staff                 settings:read
- *   PUT  /api/staff  { userId, … }  settings:write
+ *   GET  /api/staff                 settings:read   → { staff, audit }
+ *   PUT  /api/staff  { userId, … }  settings:write  → { staff, audited }
+ *
+ * `audit` is the recent history of level changes — who changed whose level, from
+ * what, to what, when (#114). It rides on the roster read rather than its own
+ * endpoint: it is the same screen, the same capability, and a second round trip
+ * for a page already waiting on Clerk's pagination buys nothing.
  *
  * Until this existed the only way to give someone a level was a psql session
  * against production, and the only way to see who held which level was the same.
@@ -57,6 +62,7 @@ import { ORGANIZATION_ID, denialBody, requireCapability } from "./_lib/auth.js"
 import {
   buildRoster,
   listStaff,
+  listStaffAudit,
   membershipIncludes,
   staffRefusal,
   upsertStaffLevel,
@@ -117,7 +123,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
   try {
     if (method === "GET") {
       const members = await allMemberships(clerk)
-      res.status(200).json({ staff: buildRoster(members, await listStaff()) })
+      // The roster and the recent history in one response, because they are one
+      // screen. A second endpoint would mean a second `settings:read` check and a
+      // second round trip for a page that is already waiting on Clerk.
+      const [rows, audit] = await Promise.all([listStaff(), listStaffAudit()])
+      res.status(200).json({ staff: buildRoster(members, rows), audit })
       return
     }
 
@@ -151,7 +161,12 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
       return
     }
 
-    res.status(200).json({ staff: await upsertStaffLevel(valid.value) })
+    // `auth.userId`, not a field from the body: the actor is the session, and a
+    // caller who could name it could attribute their own change to someone else.
+    // `audited` is false when the row already said this — the level change and its
+    // audit row are one statement, so this is the database's answer, not a guess.
+    const change = await upsertStaffLevel(valid.value, auth.userId)
+    res.status(200).json({ staff: change.staff, audited: change.audited })
   } catch (err) {
     console.error("staff: request failed", err)
     res.status(503).json({ error: "unavailable" })
