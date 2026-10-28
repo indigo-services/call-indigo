@@ -23,6 +23,7 @@ npm run test:only # run the suites against the LAST build (does not rebuild)
 | `harness.mjs` | — | Assertions, the report, the TS loader, the HTML helpers |
 | `policy.mjs` | Component policy (PRD §7) | The registry rules hold in the source tree |
 | | Routing (PRD §5) | The sidebar, the router, the "no catch-all" rule and the **auth boundary** all agree |
+| | Sidebar home and account links (#106) | Every role is offered a labelled home link and account control, and a `service_rep` is never handed `/admin/profile` |
 | | Stack (PRD §4, §14) | Tailwind v4 is wired as specified and the tokens live in one file |
 | `service-area.mjs` | Service area (ZIP check) | The ZIP decision has boundaries |
 | `hero-rotation.mjs` | Hero rotation | The rotating word and the arch photograph cannot drift apart |
@@ -65,6 +66,23 @@ imports it. `react`, `react-dom`, `react-dom/server` and `lucide-react` are mark
 **`external`** so the rendered tree and the renderer share one React instance —
 bundling a second copy produces "Invalid hook call", which reads as a test failure and
 is not one.
+
+`react-remove-scroll` joined that list in #106, for the sibling reason: it ships CJS that
+calls `require("react")`, which esbuild turns into a shim that throws *"Dynamic require of
+react is not supported"* in ESM output. It arrives through `ui/sidebar` → `ui/sheet` →
+radix's dialog, so it is the first package to hit this when a component with a mobile
+drawer is rendered. ⚠️ **It appears to work under `node -e`**, which evaluates in a
+CommonJS scope where the shim finds a real `require`; it fails under `node tests/run.mjs`,
+which is what CI runs. Never judge a bundling change by a one-liner.
+
+**A component that reads the router needs `stubRouter`.** `react-router-dom` is bundled,
+not external, so a `MemoryRouter` the test imports itself is a *second copy* of the
+context — `useLocation()` throws and the message names the hook, not the cause.
+`load(path, name, { stubRouter: true })` swaps in a virtual module whose `Link` renders
+`<a href={to}>`, which is all a static render can see anyway. Its companion trap:
+**a provider and the component it wraps must come from one bundle**, or the context is a
+different object. `tests/fixtures/sidebar-entry.mjs` exists to put `SidebarProvider`,
+`AdminAccessContext.Provider` and `AppSidebar` in a single build for exactly this reason.
 
 Assertions run on **rendered output**, not on source text. That is the difference
 between "the file contains an anchor" and "the component renders an anchor", and it is
