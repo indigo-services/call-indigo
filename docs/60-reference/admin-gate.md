@@ -8,6 +8,15 @@
 > The shared username/password implementation described below has been removed. Do not
 > use its credential rotation procedure, session details, or screenshots as current
 > setup instructions.
+>
+> **And two claims below have come apart, which is the part worth reading twice.** *The
+> UI gate is cosmetic* is still true — a client-side guard can always be skipped, and
+> `RequireAuth.tsx` says so in its own header. *Nothing checks authorization* stopped
+> being true in v2.3.0: every admin endpoint calls `requireCapability()` before it
+> touches the database, so bypassing the UI gets a caller a shell and a `401` on every
+> request. The current posture is
+> [`../30-operations/security.md`](../30-operations/security.md), and the current gate
+> is [`../../src/admin/RequireAuth.tsx`](../../src/admin/RequireAuth.tsx).
 
 The client asked for a username and password on the dashboard. This document is the
 reconciliation: what was built, what it does and does not protect, how to rotate the

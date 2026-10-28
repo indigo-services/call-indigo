@@ -2,6 +2,13 @@
 
 **Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-16 in the uncommitted working tree
 
+> ⚠️ **Dated 2026-10-16, and one row is now wrong: `Data`.** The matrix says Preview and
+> Production hold data in "the visitor's own `localStorage`". Since v2.3.0 (#68) all
+> three environments read and write **Neon Postgres** through `/api/*` — and Local uses
+> the *same* database as Production, because `.env.local` carries the production
+> connection string. The matrix is kept as the record of what was true on its date;
+> [`../60-reference/data-layer.md`](../60-reference/data-layer.md) is the current answer.
+
 Three places this code runs. **What differs between them is smaller than you would
 expect** — and that is deliberate, because a difference between preview and production
 is a defect that only appears after a merge.

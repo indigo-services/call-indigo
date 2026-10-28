@@ -1,6 +1,6 @@
 # Architecture — the four seams
 
-**Kind:** living · **Owner:** the repo · **Last verified:** 2026-10-16 in the uncommitted working tree
+**Kind:** living · **Owner:** the repo · **Last verified:** 2026-10-28 at `6d39e06`
 
 This is a client-rendered React SPA. It has no server, and that single fact explains
 most of its architecture. What follows is not a file listing — it is the four places
@@ -93,29 +93,37 @@ Two catch-alls exist and they behave differently:
 ## Seam 2 — the data layer
 
 ```
-pages  →  api.ts  →  backend.ts  →  localStorage
-            ↑
-   the only seam; async on purpose
+pages  →  api.ts  →  /api/*  →  Neon (Postgres, over HTTP)
+            ↑                         └→  Resend (the notification email)
+   the only seam; async because
+   every call is a network call
 ```
 
 | File | Owns | Must never |
 |---|---|---|
 | `src/lib/data/types.ts` | The domain types, storage-agnostic | know about `localStorage` |
-| `src/lib/data/seed.ts` | First-run fixtures — 9 inquiries covering every status, both property types, all three urgency levels | be imported by a page |
-| `src/lib/data/backend.ts` | **The only file that knows where data physically lives.** Namespace `call-indigo:v1`. Synchronous and dumb on purpose | be imported by a page |
-| `src/lib/data/api.ts` | **The seam.** Every method is `async` even though the local backend is synchronous | — |
+| `src/lib/data/seed.ts` | The shipped defaults (`DEFAULT_SETTINGS`, `DEFAULT_PROFILE`, `DEFAULT_NOTIFICATIONS`) and the demo inbox fixture | be imported by a page |
+| `src/lib/data/api.ts` | **The seam.** Every method is `async` because every one of them is a network call | be bypassed by a page |
 | `src/lib/data/hooks.ts` | `useApiData` — the single read path | — |
 | `src/lib/data/use-draft.ts` | Draft state that survives a background refresh | — |
+| `src/lib/data/backend.ts` | **Vestigial.** `localStorage` under the `call-indigo:v1` namespace, reached only by `getSecurity` / `saveSecurity` and the "Reset demo data" control — none of which has a caller. The app's data left it in v2.3.0; the file goes with [#95](https://github.com/indigo-services/call-indigo/issues/95) | be imported by a page |
 
-### Why `api.ts` is `async` when nothing is asynchronous
+**The seam was built for this and it held.** `api.ts` was written `async` from the
+first commit, against a synchronous `localStorage` engine, so that replacing the
+storage would be a change to one file. It was: v2.3.0 (#68) and A2 replaced the bodies
+of its methods with `fetch` calls, and no page learned what a network is. The three
+methods still on `backend.ts` are the vestigial ones named above.
 
-The local backend is synchronous. The API is not, on purpose: **a real HTTP backend
-will not be**, so the call sites are already written for the world where this returns
-a network promise. Replacing `localStorage` with `fetch` is a change to `api.ts` alone
-(PRD §16.2 **F2**).
+### Why `api.ts` is `async`, and where the 140 ms went
 
-There is a 140 ms simulated latency for the same reason — a UI that only ever renders
-its loaded state is a UI whose loading state is untested.
+The seam was `async` on purpose *before* anything asynchronous existed, so that the
+call sites would already be written for the world where a method returns a network
+promise. That bet paid: `getSettings`, `saveSettings`, `listInquiries`, `createInquiry`
+and the rest became `fetch` without a call site changing shape.
+
+There is still a `LATENCY_MS = 140` in `api.ts`, and it now applies to exactly the
+three vestigial `backend.ts` calls — `readSecurity`, `writeSecurity` and `reset`. No
+live path waits for it. When #95 deletes those, the constant goes with them.
 
 ### Why a version counter, and not React state
 
@@ -132,13 +140,16 @@ would catch a missing dependency.
 
 ### The three honest limitations
 
-1. **`localStorage` is not a database.** Data is per-browser, is not shared between
-   users or devices, and is cleared with site data.
-2. **Corrupt JSON and a full quota both fall back rather than taking the page down.**
-   That is a resilience choice, and it means a write can fail silently by design.
-3. **Reset demo data** clears the whole namespace and restores the seed fixtures. It
-   does **not** sign the operator out — Clerk manages the auth session separately from
-   the app's `call-indigo:v1:` localStorage namespace (see seam 4).
+1. **The database is the only copy.** One Neon project holds every lead, every
+   settings record and the staff levels. Nothing in the app keeps a second one, so a
+   deleted row is gone unless Neon's own retention covers it.
+2. **The email is best-effort, and nothing retries it.** `api/inquiry.ts` stores the
+   lead first and emails second. A Resend failure returns `notified: false` and logs
+   why; it does not throw, because a mail outage must not cost the lead. The inbox at
+   `/admin/inquiries` is the channel that always works.
+3. **A preview deployment cannot provision its own database branch** (#96), so every
+   pull request's Vercel check is red for an account reason. `Gates` is the signal;
+   the Vercel check is not.
 
 Full detail: [`../60-reference/data-layer.md`](../60-reference/data-layer.md).
 
@@ -195,6 +206,6 @@ its limits.
 |---|---|
 | A state library (Redux, Zustand) | One integer and a listener `Set` covers it. See seam 2. |
 | SSR or pre-rendering | Client-rendered SPA. The SEO consequence is noted in PRD §15 R4. |
-| A backend | `localStorage` behind the `api.ts` seam. F2 is the replacement. |
+| A job queue or a scheduler | Nothing runs on a timer. Every write is triggered by a request, which is why the notification digest was **removed** rather than left as a switch with no scheduler (#115). |
 | A CMS | Copy is inline in the marketing pages. Editing Settings does **not** rewrite them, and the Settings page says so on screen. F4. |
 | A `tailwind.config.js` | Tailwind v4 is configured in CSS. See [`css-pipeline.md`](./css-pipeline.md). |

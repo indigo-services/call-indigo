@@ -90,8 +90,8 @@ onboarding-map.svg
 
 | Asset | Document | Type | Last Verified |
 |---|---|---|---|
-| `architecture-diagram.svg` | `docs/20-development/architecture.md` | Structural | 2026-09-27 |
-| `data-layer-diagram.svg` | `docs/60-reference/data-layer.md` | Flowchart | 2026-09-27 |
+| `architecture-diagram.svg` | `docs/20-development/architecture.md` | Structural | 2026-10-28 |
+| `data-layer-diagram.svg` | `docs/60-reference/data-layer.md` | Flowchart | 2026-10-28 |
 | `deployment-flow.svg` | `docs/30-operations/deployment.md` | Flowchart | 2026-09-27 |
 | `admin-gate-flow.svg` | `docs/60-reference/admin-gate.md` | Flowchart | 2026-09-27 |
 | `onboarding-map.svg` | `docs/10-onboarding/README.md` | Flowchart | 2026-09-27 |

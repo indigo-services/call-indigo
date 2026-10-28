@@ -148,8 +148,11 @@ The full table, with dependencies: [`roadmap.md` §2](./roadmap.md#2-the-product
 |---|---|---|
 | F1 (partly), F2, F3, F4, F5, F7, F8, F9, F10, F12 | **F6** | **F11** |
 
-**F2 is the roadmap** — the contact form currently writes to the submitter's own
-browser, so the business never receives a submission.
+> **Corrected 2026-10-28 (#116).** The line that stood here said F2 was the roadmap
+> because the contact form reached nobody. **F2 landed in v2.3.0 (#68):** a submission
+> POSTs to `/api/inquiry`, is stored in Postgres, and is emailed to the address in
+> `notification_settings`. The table above was accurate on 2026-10-16;
+> [`roadmap.md`](./roadmap.md) is what is open now.
 
 ## 5. The documentation milestone
 
