@@ -15,11 +15,14 @@
 import {
   Bell,
   BookOpen,
+  Briefcase,
+  Camera,
   Component,
   Fingerprint,
   GitBranch,
   Image,
   Inbox,
+  MapPin,
   Palette,
   Settings,
   Shield,
@@ -201,16 +204,32 @@ export interface AdminExternalNavGroup {
 }
 
 /**
- * The three dashboards an operator needs and this app does not host.
+ * The external links: two groups, seven addresses, none of them hosted here.
+ *
+ * `Dashboards` is the three vendor consoles an operator runs the business in.
+ * `Business accounts` (#105) is the business's own public profiles — the
+ * surfaces a customer sees, which are the ones an operator actually updates
+ * during a working day.
+ *
+ * **Both groups are `accounts:read`.** One capability for both, because the
+ * decision is the same one: these are accounts the business owns, and none of
+ * them is a page of this app. A second capability for the social group would be
+ * two names for one decision.
  *
  * **Hard-coded, not read from `VITE_*`.** These are not per-environment: the
- * Clerk dashboard, the Vercel project and the GitHub repository are the same
- * three addresses in local, preview and production. An env var would add three
- * required configuration values to every deploy to express something that never
- * varies, and a missing one would render a dead link instead of failing loudly.
- * If a URL ever does need to vary, that is the moment to add the variable — and
- * `tests/policy.mjs` asserts every href here is absolute, so the change cannot
- * be made silently.
+ * Clerk dashboard, the Vercel project, the GitHub repository and the business's
+ * own profiles are the same addresses in local, preview and production. An env
+ * var would add seven required configuration values to every deploy to express
+ * something that never varies, and a missing one would render a dead link
+ * instead of failing loudly. If a URL ever does need to vary, that is the moment
+ * to add the variable — and `tests/policy.mjs` asserts every href here is
+ * absolute, so the change cannot be made silently.
+ *
+ * ⚠️ **Icons are generic on purpose.** `lucide-react` 1.x dropped every brand
+ * glyph — `Facebook`, `Instagram` and `Linkedin` are gone exactly as `Github`
+ * was in #98 (verified against the 1.63.0 typings, not against `node_modules`,
+ * which still held 0.460.0 and would have said they exist). The label carries
+ * the meaning; the icon only has to be recognisable at 16px.
  */
 export const ADMIN_EXTERNAL_NAV: readonly AdminExternalNavGroup[] = [
   {
@@ -235,6 +254,48 @@ export const ADMIN_EXTERNAL_NAV: readonly AdminExternalNavGroup[] = [
         // `GitBranch` is the closest remaining source-control mark; the label
         // above is what a reader actually uses, and it is unchanged.
         icon: GitBranch,
+        feature: "accounts",
+      },
+    ],
+  },
+  {
+    // The business's own public profiles (#105). Admin-only for the same reason
+    // as the group above — `accounts:read` is held by admin alone — but the
+    // reason is worth stating separately: these are the pages a customer reads,
+    // and a rep editing them is a brand decision, not a desk task.
+    label: "Business accounts",
+    items: [
+      {
+        title: "Google Business Profile",
+        // The *location*, not the account home: this is a single service-area
+        // business, so the listing a customer finds is the useful link. The
+        // `maps.app.goo.gl/…` short form was supplied and resolves here; the
+        // canonical URL is stored so a reviewer can see the destination without
+        // following a redirect, and so the link does not depend on one.
+        href: "https://www.google.com/maps/place/Indigo+Home+%26+Facility+Services/@30.1415097,-97.9035957,13z",
+        icon: MapPin,
+        feature: "accounts",
+      },
+      {
+        title: "Facebook",
+        href: "https://www.facebook.com/ifpfamily/",
+        icon: Users,
+        feature: "accounts",
+      },
+      {
+        title: "Instagram",
+        href: "https://www.instagram.com/indigohfs/",
+        icon: Camera,
+        feature: "accounts",
+      },
+      {
+        // Not in #105's original three. Added because it was supplied with them
+        // and it is the same class of link — a profile the business owns and a
+        // customer may look for. The gating check is count-agnostic, so a fourth
+        // item does not weaken it.
+        title: "LinkedIn",
+        href: "https://www.linkedin.com/company/indigofp",
+        icon: Briefcase,
         feature: "accounts",
       },
     ],
