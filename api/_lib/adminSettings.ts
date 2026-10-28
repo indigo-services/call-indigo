@@ -31,7 +31,14 @@ export function isSettingsKey(value: unknown): value is SettingsKey {
  */
 export const PUBLIC_KEYS: readonly SettingsKey[] = ["site"]
 
-type Field = { kind: "text"; max: number } | { kind: "colour" } | { kind: "bool" } | { kind: "hour" }
+/**
+ * The kinds of field a settings record may hold.
+ *
+ * `hour` was here for `digestHour` and was removed with it (#93): a kind that no
+ * shape uses is a rule that no test can reach, and this repository has paid for
+ * unreachable rules often enough. It comes back with the digest in #115.
+ */
+type Field = { kind: "text"; max: number } | { kind: "colour" } | { kind: "bool" }
 
 const HEX = /^#[0-9a-f]{6}$/i
 
@@ -45,7 +52,12 @@ const SHAPES: Record<SettingsKey, Record<string, Field>> = {
     establishedYear: { kind: "text", max: 8 },
     serviceArea: { kind: "text", max: 200 },
     licenseNumber: { kind: "text", max: 60 },
-    notificationEmail: { kind: "text", max: 200 },
+    // ⚠️ No `notificationEmail`. It used to be here, it rendered on /admin/settings
+    // labelled "Where new-inquiry alerts are sent", and no sender read it — the
+    // address that decides delivery is `notification_settings.to` (#93). A delivery
+    // field in this record would be a second source of truth again, so it is not
+    // just unused: `tests/backend.mjs` fails if a field here claims a delivery
+    // behaviour that nothing in `api/` reads.
     themeHome: { kind: "colour" },
     themeResidential: { kind: "colour" },
     themeCommercial: { kind: "colour" },
@@ -58,11 +70,15 @@ const SHAPES: Record<SettingsKey, Record<string, Field>> = {
     bio: { kind: "text", max: 2000 },
     timezone: { kind: "text", max: 60 },
   },
+  /**
+   * Only the two fields something actually acts on.
+   *
+   * `weeklySummary` and `digestHour` were removed: a digest needs a scheduler, and a
+   * switch with no scheduler is a switch that lies. They return with #115.
+   */
   notifications: {
     emailOnLead: { kind: "bool" },
-    weeklySummary: { kind: "bool" },
     emergencyAlerts: { kind: "bool" },
-    digestHour: { kind: "hour" },
   },
 }
 
@@ -104,11 +120,6 @@ export function validateSettings(key: SettingsKey, input: unknown): Validation {
       case "bool":
         if (typeof raw !== "boolean") fields[name] = "true or false"
         else value[name] = raw
-        break
-      case "hour":
-        if (typeof raw !== "number" || !Number.isInteger(raw) || raw < 0 || raw > 23) {
-          fields[name] = "a whole hour, 0–23"
-        } else value[name] = raw
         break
     }
   }

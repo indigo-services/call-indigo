@@ -11,13 +11,77 @@
  * send rather than cached: a serverless instance may be minutes or days old, and a
  * cached address is how a destination change appears to work and does not.
  */
-import type { Inquiry, NotificationSettings } from "../../src/lib/data/types.js"
+import type { Inquiry, NotificationPrefs, NotificationSettings } from "../../src/lib/data/types.js"
+import { readSettings } from "./adminSettings.js"
 import { sql } from "./db.js"
 
 /** Verified on the Resend account. Overridable for a staging sender. */
 const fromAddress = (): string => process.env.INQUIRY_FROM ?? "Call Indigo <inquiries@call-indigo.com>"
 
 export const DEFAULT_SUBJECT = "New inquiry — {{name}} ({{service}})"
+
+/**
+ * What a send does before anyone has chosen otherwise.
+ *
+ * A **copy** of `DEFAULT_NOTIFICATIONS` in `src/lib/data/seed.ts`, for the reason
+ * `api/_lib/validate.ts` copies the service list: a runtime import of a `.ts` file
+ * outside `api/` is not in the deployed function's compiled graph, and the endpoint
+ * answers `FUNCTION_INVOCATION_FAILED` (measured 2026-10-23). A copy is only safe if
+ * it is compared, so `tests/backend.mjs` asserts the two agree.
+ */
+export const DEFAULT_PREFS: NotificationPrefs = {
+  emailOnLead: true,
+  emergencyAlerts: true,
+}
+
+/**
+ * Should this lead be announced?
+ *
+ * The whole of what the two switches on `/admin/notifications` mean, in one pure
+ * function, because the page and the sender must agree and a rule that exists twice
+ * is a rule that will disagree.
+ *
+ * - `emailOnLead` is the routine case: mail every lead.
+ * - `emergencyAlerts` is a **floor, not a filter**. It does not narrow the routine
+ *   mail; it guarantees an emergency-urgency lead is still announced when routine
+ *   mail is off. That is what the copy says — "even when routine alerts are off" —
+ *   and the wording is load-bearing: a person who switches routine mail off because
+ *   the inbox is noisy still wants the burst pipe.
+ *
+ * An unknown `urgency` is not treated as an emergency, so a malformed value cannot
+ * cause mail the preferences say should not be sent.
+ */
+export function shouldNotify(
+  prefs: NotificationPrefs,
+  inquiry: Pick<Inquiry, "urgency">,
+): boolean {
+  if (prefs.emailOnLead) return true
+  return prefs.emergencyAlerts && inquiry.urgency === "emergency"
+}
+
+/**
+ * The stored preferences, or the defaults when the row has never been written.
+ *
+ * Read per send rather than cached, for the same reason the destination is: a
+ * serverless instance may be days old, and a cached preference is how "I turned that
+ * off" appears to work and does not.
+ *
+ * Each field is taken only when it is the right type. `admin_settings.value` is
+ * `jsonb`, so a row written by an older build — or by hand — can hold anything, and
+ * `{ ...defaults, ...stored }` would let a stored `"false"` string (truthy) switch
+ * mail on. Two explicit checks are cheaper than that class of bug.
+ */
+export async function readNotificationPrefs(): Promise<NotificationPrefs> {
+  const stored = (await readSettings("notifications")) ?? {}
+  return {
+    emailOnLead:
+      typeof stored.emailOnLead === "boolean" ? stored.emailOnLead : DEFAULT_PREFS.emailOnLead,
+    emergencyAlerts:
+      typeof stored.emergencyAlerts === "boolean"
+        ? stored.emergencyAlerts
+        : DEFAULT_PREFS.emergencyAlerts,
+  }
+}
 
 export interface StoredSettings extends NotificationSettings {
   updatedAt: string

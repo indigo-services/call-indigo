@@ -23,6 +23,7 @@ import type {
   Inquiry,
   NewInquiry,
   NotificationPrefs,
+  NotificationSettings,
   SecurityState,
   SiteSettings,
   StaffLevel,
@@ -283,6 +284,42 @@ export const api = {
     const stored = await readJson<{ value: NotificationPrefs }>(res)
     bump()
     return stored.value
+  },
+
+  /**
+   * Where a lead is actually announced — a different record from the preferences
+   * above, and the one that decides delivery.
+   *
+   * ⚠️ Until #93 this was reachable only by `curl`: the endpoint existed and was
+   * admin-gated, but nothing in `src/` called it, while `/admin/settings` offered a
+   * "Notification email" field that saved to a row no sender read. So the address
+   * with a screen did nothing and the address that mattered had none.
+   *
+   * `settings` is `null` when the migration has not run. The page shows the form
+   * empty rather than inventing an address: a fabricated destination is exactly the
+   * defect being fixed.
+   */
+  async getNotificationSettings(token?: TokenGetter): Promise<NotificationSettings | null> {
+    const res = await fetch("/api/notification-settings", await withAuth(token))
+    const { settings } = await readJson<{ settings: NotificationSettings | null }>(res)
+    return settings
+  },
+
+  async saveNotificationSettings(
+    value: NotificationSettings,
+    token?: TokenGetter,
+  ): Promise<NotificationSettings> {
+    const res = await fetch(
+      "/api/notification-settings",
+      await withAuth(token, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(value),
+      }),
+    )
+    const { settings } = await readJson<{ settings: NotificationSettings }>(res)
+    bump()
+    return settings
   },
 
   /* ── Staff ── */

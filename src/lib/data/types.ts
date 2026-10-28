@@ -96,8 +96,20 @@ export interface SiteSettings {
   establishedYear: string
   serviceArea: string
   licenseNumber: string
-  /** Where new-inquiry notification emails are delivered. */
-  notificationEmail: string
+  /**
+   * ⚠️ There is deliberately no `notificationEmail` here.
+   *
+   * There was, and it was the worst kind of field: rendered on `/admin/settings`,
+   * labelled "Where new-inquiry alerts are sent", saved successfully — and read by
+   * nothing. The sender reads `notification_settings.to`, which had no screen at all.
+   * An operator changed the address, was told it saved, and every lead kept going to
+   * the old inbox (#93).
+   *
+   * One address, one row, one screen: `NotificationSettings.to`, edited on
+   * `/admin/notifications`. Do not reintroduce a delivery field into this record —
+   * `tests/backend.mjs` fails if one appears with a hint that claims a delivery
+   * behaviour.
+   */
   /**
    * Per-page marketing primaries, `#rrggbb`.
    *
@@ -147,12 +159,31 @@ export interface NotificationSettings {
   subjectTemplate: string
 }
 
+/**
+ * What the team is told about, as opposed to **where** it is told.
+ *
+ * Split from `NotificationSettings` because the two have different owners and
+ * different failure modes: the address is a delivery fact that one row must hold,
+ * these are preferences. Both live in Postgres (`admin_settings` key
+ * `notifications`, and `notification_settings`), and both are read by
+ * `api/_lib/notifications.ts` at send time.
+ *
+ * ⚠️ **Both fields are read by the sender.** `emailOnLead` suppresses routine mail;
+ * `emergencyAlerts` is a floor under that suppression, so an emergency-urgency lead
+ * is still announced when routine alerts are off. A switch here that nothing read is
+ * the defect #93 removed, so any field added to this interface needs a reader in
+ * `api/` before it gets a control on the page.
+ *
+ * There is deliberately no `weeklySummary` and no `digestHour`. They were here, they
+ * were editable, and they were read by nothing but the page that rendered them: a
+ * digest needs a scheduler, and a switch with no scheduler is a switch that lies.
+ * Both return with #115, and the type is the right place to reintroduce them.
+ */
 export interface NotificationPrefs {
+  /** Routine mail: send an email for every lead that arrives. */
   emailOnLead: boolean
-  weeklySummary: boolean
+  /** A floor, not a filter — emergencies are announced even when the above is off. */
   emergencyAlerts: boolean
-  /** Daily digest hour, 0–23. */
-  digestHour: number
 }
 
 export interface SecurityState {
