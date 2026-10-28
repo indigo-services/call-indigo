@@ -1,6 +1,6 @@
 # Data layer
 
-**Kind:** dated · **Owner:** `src/lib/data/` · **Last verified:** 2026-10-27 in the working tree
+**Kind:** dated · **Owner:** `src/lib/data/` · **Last verified:** 2026-10-28 in the working tree
 
 The full surface. The *reasoning* is in
 [`../40-project/decisions/0003-localstorage-behind-an-async-seam.md`](../40-project/decisions/0003-localstorage-behind-an-async-seam.md);
@@ -191,15 +191,17 @@ in `src/lib/data/api.ts` returns a *receipt* (the new id), not the stored row.
 | Endpoint | `api/me.ts` (2026-10-27) | `GET` → the caller's own role and capability list. The admin shell's nav is built from it |
 | Endpoint | `api/staff.ts` (2026-10-27) | `GET` → the roster (Clerk members + levels), `settings:read`. `PUT` → set one level, `settings:write` |
 | Shared | `api/_lib/adminSettings.ts` | The field spec for the three records, and their read/write |
-| Shared | `api/_lib/validate.ts` | The same rules the form applies, restated for a caller that is not the form |
+| Shared | `api/_lib/validate.ts` | The same rules the form applies, restated for a caller that is not the form — plus the minimum time-to-submit (#92) |
 | Shared | `api/_lib/db.ts` | Neon SQL-over-HTTP. No `pg`, no pool |
 | Shared | `api/_lib/notifications.ts` | Reads the settings row per send, then Resend |
 | Shared | `api/_lib/auth.ts` | Clerk session token + staff level → role and capabilities. Pure rules exported for tests |
 | Shared | `api/_lib/roles.ts` (2026-10-27) | The capability matrix: role → what it may do. No I/O, so it is tested directly |
 | Shared | `api/_lib/staff.ts` (2026-10-27) | The `staff` table: the hot-path lookup, the roster join, the upsert, and the pure rules for both |
+| Shared | `api/_lib/throttle.ts` (2026-10-28) | The `inquiry_throttle` counter: `sha256(ip + THROTTLE_SALT)`, one upsert, and the fail-open rules for when it cannot enforce (#94) |
 | Schema | `db/migrations/0001_*.sql` | `inquiries`, `notification_settings`, `schema_migrations` |
 | Schema | `db/migrations/0002_*.sql` | `admin_settings` — one `jsonb` row per key |
 | Schema | `db/migrations/0003_*.sql` (2026-10-27) | `staff` — one row per person, holding their level |
+| Schema | `db/migrations/0004_*.sql` (2026-10-28) | `inquiry_throttle` — one row per hashed address per window. Holds no address, and no lead |
 | Runner | `scripts/_db_migrate.cjs` | Applies pending files; `--check` for the gate |
 
 **Setting a level.** Custom Clerk organization roles are plan-gated — measured
@@ -312,4 +314,4 @@ Production has `RESEND_API_KEY` but not `DATABASE_URL` or `CLERK_SECRET_KEY`.
 
 ---
 
-**Last verified:** 2026-10-27 in the working tree
+**Last verified:** 2026-10-28 in the working tree

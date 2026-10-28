@@ -35,6 +35,36 @@ export const MEMBER_ANSWERS: readonly MemberAnswer[] = ["yes", "no"]
 /** Field limits. Chosen to be generous for a person and useless for a script. */
 const MAX = { name: 120, email: 200, phone: 40, message: 4000, source: 32 } as const
 
+/**
+ * The minimum time between the form opening and being submitted — #92.
+ *
+ * Chosen over Cloudflare Turnstile because this project's recorded invariant is *no
+ * cookie, no analytics*: Turnstile processes the visitor's IP address, TLS
+ * fingerprint and User-Agent, may set a cookie, and would need a new processor named
+ * in the privacy policy. A time floor needs no vendor and no notice change.
+ *
+ * It is a speed bump, not a wall, and that is the honest description: a script that
+ * reads this file can send any timestamp it likes. What it stops is the naive case —
+ * a bot that fetches the page and POSTs immediately, and a bot that does not run the
+ * page's JavaScript at all and so cannot send `openedAt`. That second class is the
+ * majority of form spam, and refusing a missing timestamp is what catches it.
+ *
+ * ⚠️ Three seconds is deliberately short. A person filling nine fields in under three
+ * seconds is not a thing; a person who pastes a prepared message and clicks send
+ * immediately is, and they are a customer.
+ */
+export const MIN_FILL_MS = 3000
+
+/**
+ * How far ahead of us a client's clock may be before we stop trusting the delta.
+ *
+ * A clock five minutes fast makes `now - openedAt` negative, which would otherwise
+ * read as "submitted instantly" and reject a real person **forever**. Losing a lead
+ * to a skewed clock is a worse failure than letting a bot through a check it could
+ * bypass by sending an older timestamp anyway, so a future timestamp is accepted.
+ */
+export const CLOCK_SKEW_MS = 60_000
+
 /** Deliberately loose: the only thing worth rejecting here is "obviously not an address". */
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -52,7 +82,12 @@ function str(value: unknown): string {
   return typeof value === "string" ? value.trim() : ""
 }
 
-export function validateInquiry(input: unknown): ValidationResult {
+/**
+ * `now` is a parameter so the timing rule is testable without waiting three seconds.
+ * It defaults to the real clock at the call site, which is the only place that
+ * should decide what "now" means.
+ */
+export function validateInquiry(input: unknown, now: number = Date.now()): ValidationResult {
   if (typeof input !== "object" || input === null) {
     return { ok: false, errors: { body: "expected a JSON object" } }
   }
@@ -64,6 +99,18 @@ export function validateInquiry(input: unknown): ValidationResult {
   if (str(body.company) !== "") return { ok: false, honeypot: true }
 
   const errors: Record<string, string> = {}
+
+  // Time-to-submit (#92). See MIN_FILL_MS for why this is a floor and not a captcha.
+  // A missing timestamp is refused — that is the whole point, since a bot that does
+  // not execute the page's JavaScript cannot invent one.
+  const openedAt = Number(body.openedAt)
+  if (body.openedAt === undefined || body.openedAt === null || !Number.isFinite(openedAt)) {
+    errors.openedAt = "missing"
+  } else if (openedAt <= now && now - openedAt < MIN_FILL_MS) {
+    errors.openedAt = "submitted too quickly"
+  }
+  // A timestamp in the future is accepted, up to and beyond CLOCK_SKEW_MS: a fast
+  // client clock is not evidence of a bot, and the check is bypassable regardless.
 
   const name = str(body.name)
   if (name.length === 0) errors.name = "required"

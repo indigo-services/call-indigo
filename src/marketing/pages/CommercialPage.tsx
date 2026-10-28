@@ -585,7 +585,7 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
         <button type="button" class="legal-x" data-legal-x data-legal-close aria-label="Close Privacy Policy">✕</button>
       </header>
       <div class="legal-body">
-        <p class="legal-meta">Effective September 18, 2026 · Last updated September 18, 2026</p>
+        <p class="legal-meta">Effective September 18, 2026 · Last updated October 28, 2026</p>
 
         <h3>1. Overview</h3>
         <p>Call Indigo LLC respects your privacy. This policy explains what we collect when you call us,
@@ -602,6 +602,11 @@ const BODY_HTML = `<!-- ======================= TOP UTILITY BAR ================
           <li><strong>Our hosting provider logs:</strong> the IP address, browser type, and pages
             requested in standard server logs, which are kept for security and to keep the site running.
             This site runs no analytics, advertising, or third-party tracking scripts.</li>
+          <li><strong>We derive:</strong> a <em>salted, one-way hash</em> of the IP address your
+            request arrives from, used for one purpose — limiting how many inquiries a single
+            connection can submit in a ten-minute window, so the form cannot be used to flood us.
+            The address itself is never stored, the hash cannot be turned back into an address
+            without a secret held on the server, and it is deleted within a day.</li>
         </ul>
 
         <h3>3. How We Use Information</h3>
