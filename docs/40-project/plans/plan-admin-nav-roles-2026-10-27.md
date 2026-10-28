@@ -150,7 +150,7 @@ Each capability maps to exactly one release. Nothing here is a page redesign.
 |---|---|---|---|
 | **C1** | The external groups are gated by a capability, not by the shell | v2.4.0 | #104 |
 | **C2** | One new read capability, `accounts:read`, held by admin alone, present on both sides of the list | v2.4.0 | #104 |
-| **C3** | A `Business accounts` group: Google Business Profile, Facebook, Instagram | v2.4.0 | #105 |
+| **C3** | A `Business accounts` group: Google Business Profile, Facebook, Instagram, **LinkedIn** | v2.4.0 | #105 |
 | **C4** | Every role gets a labelled home link and a labelled account control | v2.4.0 | #106 |
 | **C5** | An admin can add, edit, remove and reorder **external** links without a deploy | v2.5.0 | #107 |
 | **C6** | The roadmap's product table matches the tree | shipped in v2.3.0 | #108 |
@@ -298,20 +298,28 @@ renders (the existing `:254`) cannot see this defect — the group *did* render,
 
 ### v2.4.0 — R2: the Business accounts group (#105)
 
-**In scope:** a second `AdminExternalNavGroup` with three items, gated `accounts` from the
+**In scope:** a second `AdminExternalNavGroup` with four items, gated `accounts` from the
 start.
 
-**NOT in scope:** a URL-management UI (#107). The three hrefs are hard-coded.
+**NOT in scope:** a URL-management UI (#107). The four hrefs are hard-coded.
 
-**Blocking input:** the three exact URLs (§9 Q2). Recommended: ship with the management homes
-(`business.google.com`, `business.facebook.com`, `instagram.com`) so the group lands with the
-gating, then replace three strings.
+**Blocking input — supplied, 2026-10-28.** The owner provided all four addresses, so the
+"ship with the management homes and replace later" fallback is not needed. Two notes on how
+they were stored:
+
+- **Google is the Maps *location*, not `business.google.com`.** The `maps.app.goo.gl/…` short
+  form was supplied; it 302s to a `google.com/maps/place/Indigo+Home+%26+Facility+Services/@…`
+  URL, and **that canonical form is what is stored**. A short link hides its destination from a
+  reviewer reading `routes.ts`, and makes the nav depend on a redirect service. The canonical
+  URL returns 200 directly.
+- **LinkedIn was supplied as a fourth** and is included. It was not in this issue's three; the
+  gating check is count-agnostic, so the fourth does not weaken it.
 
 **Exit criteria**
 
 ```bash
-git grep -c "business.google.com" src/admin/routes.ts   # 1
-node tests/run.mjs                                      # green; the absolute-https check covers the new three
+git grep -c "google.com/maps/place" src/admin/routes.ts   # 1
+node tests/run.mjs                                        # green; the absolute-https check covers all four
 ```
 
 ### v2.4.0 — R3: home and account links for every role (#106)
@@ -395,7 +403,7 @@ strictly safer than a half-done R2: until R1c lands, nothing is gated and nothin
 | **K4** | The `app-sidebar.tsx` comment is deleted rather than replaced | The next reviewer re-asks the same question, and the next guard change goes unnoticed again | R1e is a task, not a cleanup | Mitigated |
 | **K5** | R4's pane accepts a stored `javascript:` href | Admin-authored script injection into the sidebar | Runtime https-only validation at the write boundary; `tests/policy.mjs:205` only covers static hrefs | **Open — R4** |
 | **K6** | Internal pages get dragged into R4's scope ("while we're here") | The nav tests have to be weakened; a regroup can retag access | §3.3 and the per-release NOT-in-scope lists | Fenced |
-| **K7** | The three URLs arrive late and block R2 | A release waits on three strings | Ship with the management homes; replace later (§9 Q2) | Mitigated |
+| **K7** | The URLs arrive late and block R2 | A release waits on strings | **Closed — supplied 2026-10-28**, all four, before R2 was started | **Closed** |
 | **K8** | The tree is edited under this document by another session | Line citations drift and a commit can swallow another agent's work | This happened: `#102` landed as `1944fa7` (#110) and moved every citation below `routes.ts:103`. All citations re-pinned to `27da05a` (§10); commit only this document's paths, never `git add -A` | **Live — recurred** |
 | **K9** | The sidebar is not the only place a role is promised something it cannot do | The same class of defect reappears | This is #101's lesson, one level down. `tests/policy.mjs` has no general assertion that a visible control is an enabled one — the honest answer is that this class needs a review habit, not a test | Accepted |
 
@@ -426,7 +434,7 @@ strictly safer than a half-done R2: until R1c lands, nothing is gated and nothin
 | # | Question | Recommendation |
 |---|---|---|
 | **Q1** | **Which version number?** `v2.2.0` (continue the tag line, correct three documents) or `v2.3.0` (leave a hole, correct nothing)? | **Answered — `v2.3.0`.** Tagged 2026-10-27 (`74544e1`), `package.json` is `2.3.0`, `roadmap.md:32-37` names it the product release. This work is `v2.4.0`. Do not tag `v2.2.0` retroactively (§1.3). |
-| **Q2** | **The three exact URLs** for Google Business Profile, Facebook Page, Instagram. Is "service business account" the service-area profile, or a second account? | Ship R2 with the three management homes and replace the strings when supplied — a URL question should not hold a role question. |
+| **Q2** | **The exact URLs** for Google Business Profile, Facebook Page, Instagram (and LinkedIn). Is "service business account" the service-area profile, or a second account? | **Answered 2026-10-28.** Supplied: the Maps *location* for Google (confirming the service-area reading), the Facebook Page, the Instagram handle, and a LinkedIn company page as a fourth. Stored canonical, not as the short link — see R2. |
 | **Q3** | **Should a rep be able to edit their own profile?** Today they cannot, and `/admin/profile` is admin/manager-only. | **Not now.** It is a per-key capability in `api/settings.ts`, which is a server change. Clerk's account modal covers the real need (name, email, password) for every role. File it separately if the owner wants our profile page to be self-service. |
 | **Q4** | **Does a `service_manager` see the vendor dashboards?** The request says admin-only; a manager holds `settings:read` and runs the desk. | **Admin only**, as asked. `accounts:read` is granted to admin alone. If a manager needs Vercel, that is a one-line change to `CAPABILITIES` and a decision about whether a manager should see the GitHub repository. |
 

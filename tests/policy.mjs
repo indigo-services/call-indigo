@@ -293,7 +293,28 @@ export async function run() {
     }
 
     // An empty group label is still a promise of something a rep cannot reach.
-    if (/Dashboards/.test(repExternalHtml)) out.push("a service_rep sees the Dashboards group label")
+    for (const group of routesModel.ADMIN_EXTERNAL_NAV) {
+      if (repExternalHtml.includes(group.label)) out.push(`a service_rep sees the "${group.label}" group label`)
+    }
+
+    // The groups are asserted BY NAME, not counted. Every count above is derived
+    // from `ADMIN_EXTERNAL_NAV`, so a group deleted from the array leaves all of
+    // them green — the checks would be measuring a smaller thing and calling it
+    // correct. `policy.mjs` hard-codes the internal nav's shape for exactly this
+    // reason (`:279`, `:286`), and this is the external half of it.
+    const labels = routesModel.ADMIN_EXTERNAL_NAV.map((g) => g.label).join(", ")
+    if (labels !== "Dashboards, Business accounts") {
+      out.push(`the external groups are "${labels}", expected "Dashboards, Business accounts"`)
+    }
+
+    // Each item must name a feature area, and all of them are `accounts` today.
+    // A missing `feature` is a type error, but a *wrong* one is not, and it is
+    // the only thing between a social profile and a rep's sidebar.
+    for (const item of externalItems) {
+      if (item.feature !== "accounts") {
+        out.push(`${item.title} — feature is "${item.feature}", expected "accounts"`)
+      }
+    }
 
     // The decision must be the capability, not a role string. If either of
     // these flips, the gate moved to a second rule that can drift from the
