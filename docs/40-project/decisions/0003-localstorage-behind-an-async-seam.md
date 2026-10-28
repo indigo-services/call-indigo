@@ -1,7 +1,23 @@
 # ADR 0003 — `localStorage` behind an async API seam
 
-**Kind:** dated · **Status:** accepted · **Date:** 2026-09-27 (formalised; the seam
-shipped earlier) · **Last verified:** 2026-09-27 at `2f009a2` · **Deciders:** the repo
+**Kind:** dated · **Status:** **superseded** (2026-10-28, #95) · **Date:** 2026-09-27
+(formalised; the seam shipped earlier) · **Last verified:** 2026-09-27 at `2f009a2` —
+the date the decision below was true · **Deciders:** the repo
+
+> ⚠️ **Superseded — the decision below is history, not the current design.**
+>
+> `localStorage` is gone. Every record the dashboard reads is a row in Postgres behind
+> `/api/*`, and `backend.ts` — the engine this ADR is about — was deleted in #95. Read
+> [`../../60-reference/data-layer.md`](../../60-reference/data-layer.md) for the current
+> shape, and [ADR 0005](./0005-clerk-admin-identity.md) for how identity and
+> authorization work now.
+>
+> **Kept, not deleted, because the reason the seam was built this way is why replacing
+> it cost one file.** The four consequences this ADR promised all held: no call site
+> changed shape, the loading states were already exercised, cross-page reactivity needed
+> no store, and `useApiData(key, …)` stayed lint-checkable. An ADR that turned out to be
+> right is the most useful kind of record — but only if a reader can tell it is no longer
+> the design.
 
 ---
 

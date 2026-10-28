@@ -207,6 +207,20 @@ export function stripComments(html) {
 }
 
 /**
+ * The same idea for TypeScript: source with its comments removed, before any
+ * identifier scan. The docblocks in this repo are long and explain what the code
+ * *used to* do, so they name the very identifiers a scan looks for — measured
+ * 2026-10-28, a check for `notificationEmail` matched only the comment explaining
+ * its removal. A grep cannot tell a comment from code.
+ *
+ * Lives here rather than in one suite because two suites now scan JSX text, and
+ * two copies of a stripper drift in the direction of whichever is stricter.
+ */
+export function stripJsComments(src) {
+  return src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^[ \t]*\/\/.*$/gm, " ")
+}
+
+/**
  * Attribute values, anchored so `aria-invalid="false"` is not read as `id`.
  * Without the lookbehind this returns 6 phantom `id="false"` values on /contact.
  */

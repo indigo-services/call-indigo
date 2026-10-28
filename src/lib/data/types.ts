@@ -2,8 +2,10 @@
  * Domain types for the dashboard's data layer.
  *
  * These are deliberately storage-agnostic: they describe the shape the pages
- * consume, not how it is persisted. The localStorage backend in `backend.ts`
- * and any future HTTP backend must both satisfy them (PRD §16.2 F2).
+ * consume, not how it is persisted. Every one of them now crosses `/api/*` as
+ * JSON, so they are also the contract with `api/` — which keeps its own copies,
+ * because a runtime import from `src/` fails inside the deployed function
+ * (PRD §16.2 F2).
  */
 
 /* ── Inquiries ───────────────────────────────────────────────────────────── */
@@ -184,13 +186,6 @@ export interface NotificationPrefs {
   emailOnLead: boolean
   /** A floor, not a filter — emergencies are announced even when the above is off. */
   emergencyAlerts: boolean
-}
-
-export interface SecurityState {
-  twoFactorEnabled: boolean
-  /** ISO 8601 or null when the account has never rotated its password. */
-  passwordChangedAt: string | null
-  sessionTimeoutMinutes: number
 }
 
 /* ── Staff ───────────────────────────────────────────────────────────────── */

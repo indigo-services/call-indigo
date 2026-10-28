@@ -266,9 +266,9 @@ Components are not hand-written, not copied from a blog, not re-implemented.
 | **Import discipline** | No `src/admin/**` file may import from `src/marketing/**` | Pre-merge grep |
 | **Route count** | `/admin` routes match `src/admin/routes.ts` exactly, and `/admin/*` has no catch-all page — unknown paths redirect (§5.2, `docs/dashboard-scope.md`) | Pre-merge assertion |
 | **Nav model** | Every `/admin` page is listed in `src/admin/routes.ts` — a page cannot exist without a sidebar entry and a breadcrumb | Pre-merge review |
-| **Auth boundary** | `@clerk/react` owns browser identity; `RequireAuth` fails closed unless Clerk reports a signed-in user with the `admin` public-metadata role. This gates UI only; data authorization remains a backend responsibility (ADR 0005) | `tests/auth.mjs` |
+| **Auth boundary** | `@clerk/react` owns browser identity. `RequireAuth` fails closed unless Clerk reports a signed-in user **who is a member of the `Indigo Services` organization** — since #74 it is not a public-metadata flag. This gates UI only; every admin endpoint verifies the session and re-checks the capability (ADR 0005) | `tests/auth.mjs` |
 | **Secret boundary** | Vite may expose only the Clerk publishable key mapped from Vercel's `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`; `CLERK_SECRET_KEY` must never be placed in a client-visible variable | `tests/auth.mjs` |
-| **Storage containment** | Only `src/lib/data/backend.ts` may access app `localStorage`; Clerk manages its own authentication state. Every other app-data access goes through `src/lib/data/api.ts` | Pre-merge grep |
+| **Storage containment** | **The browser stores no app data.** Only `src/lib/data/api.ts` may call `/api/*`; every other module goes through it. Clerk manages its own authentication state under Clerk's keys | `tests/policy.mjs` |
 | **Design-system coverage** | Every component class used in the marketing markup is defined in `src/index.css` — the count of missing classes must be zero | Pre-merge script |
 
 ### Custom-component exceptions
@@ -411,5 +411,5 @@ Recorded from experience in this workspace and Jaden's broader conventions.
 | Counting CR bytes with `grep -c $'\r'` | An unexpanded `$'\r'` is an empty pattern that matches **every** line. Count bytes: `tr -cd '\r' \| wc -c`. |
 | Hardcoding Unix timestamps | Use `date +%s` / `[DateTimeOffset]::Now.ToUnixTimeSeconds()`. |
 | Trusting a headless preview for animation or scroll behaviour | `IntersectionObserver` and CSS transitions do not run there. Verify the cascade directly, then confirm in a real tab — see §5. |
-| Adding an `@/admin/**` import of `@/lib/data/backend` | Pages import `@/lib/data/api`. `backend.ts` is the swappable storage engine (PRD §16.2 F2). |
+| Adding a `fetch("/api/…")` outside `src/lib/data/api.ts` | Pages import `@/lib/data/api`. The facade is the only place that knows an endpoint exists (PRD §16.2 F2), and `tests/policy.mjs` fails on the bypass. |
 | Writing a guard that cannot see its target | A source-text scan cannot see a CSS rule, a probe that prints its own array cannot see the DOM, and a scan of `src/` cannot see `README.md`. **Every check must be negative-controlled** — run it against a fixture that contains the defect and confirm it fails. |

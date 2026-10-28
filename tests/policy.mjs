@@ -10,7 +10,7 @@
  */
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
 import path from "node:path"
-import { ROOT, check, load, suite } from "./harness.mjs"
+import { ROOT, check, load, stripJsComments, suite } from "./harness.mjs"
 
 function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {
@@ -27,14 +27,6 @@ function read(p) {
 
 function rel(p) {
   return path.relative(ROOT, p).replace(/\\/g, "/")
-}
-
-/**
- * Source with its comments removed, before identifier scans. This prevents
- * explanatory comments from being mistaken for imports or code paths.
- */
-function stripJsComments(src) {
-  return src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^[ \t]*\/\/.*$/gm, " ")
 }
 
 export async function run() {
@@ -62,36 +54,42 @@ export async function run() {
       .map((f) => rel(f)),
   )
 
-  // The THIRD import boundary, and until now the only one with no test.
+  // The THIRD import boundary, and until #95 it was the only one with no test.
   //
-  // `CONTRIBUTING.md` lists it under "What we will not merge": *"A page importing
-  // `@/lib/data/backend` directly instead of going through `@/lib/data/api`."* A
-  // promise in a contributing guide that no check can see is the exact defect this
-  // suite exists to close — and it is the shape of the rule, not an accident: the
-  // two boundaries above were asserted, so this one read as asserted too.
+  // `CONTRIBUTING.md` lists it under "What we will not merge": *"A page calling
+  // `/api/*` directly instead of going through `@/lib/data/api`."* A promise in a
+  // contributing guide that no check can see is the exact defect this suite exists
+  // to close — and it is the shape of the rule, not an accident: the two boundaries
+  // above were asserted, so this one read as asserted too.
   //
-  // `backend.ts` is the storage engine; `api.ts` is the only facade onto it. A page
-  // that reaches past the facade to the engine is what PRD §16.2 F2 is about.
-  const BACKEND_OWNER = "src/lib/data/api.ts"
-  const BACKEND_IMPORT = /from\s+["']@\/lib\/data\/backend["']/
+  // The rule used to be phrased against `backend.ts`, a local engine that only
+  // `api.ts` might import. #95 deleted the engine, so the old assertion had nothing
+  // left to measure — its own positive control ("the facade must import the engine")
+  // would have failed the build for a correct deletion. The boundary it was standing
+  // for did not go away, though: it moved outwards. Pages still must not reach past
+  // the facade, and the thing they would reach for now is `fetch("/api/…")`.
+  const API_OWNER = "src/lib/data/api.ts"
+  const API_CALL = /fetch\(\s*[`"']\/api\//
 
-  check("only the data-layer facade imports the backend (CONTRIBUTING.md, PRD §16.2 F2)", () => {
+  check("only the data-layer facade calls the API (CONTRIBUTING.md, PRD §16.2 F2)", () => {
     const out = []
-    if (!existsSync(path.join(ROOT, BACKEND_OWNER))) {
-      return [`${BACKEND_OWNER} is missing — the facade this rule names does not exist`]
+    if (!existsSync(path.join(ROOT, API_OWNER))) {
+      return [`${API_OWNER} is missing — the facade this rule names does not exist`]
     }
     for (const f of srcFiles) {
-      if (rel(f) === BACKEND_OWNER) continue
-      if (BACKEND_IMPORT.test(stripJsComments(read(f)))) {
-        out.push(`${rel(f)} imports @/lib/data/backend directly; go through @/lib/data/api`)
+      if (rel(f) === API_OWNER) continue
+      if (API_CALL.test(stripJsComments(read(f)))) {
+        out.push(`${rel(f)} calls /api/* directly; go through @/lib/data/api`)
       }
     }
-    // POSITIVE CONTROL. Every file above could pass while the data layer was
-    // disconnected — if the facade stopped importing the engine, the scan would find
-    // no offenders because there would be no edge left to offend. Assert the ONE
-    // allowed edge, so a broken facade fails here instead of reading as compliance.
-    if (!BACKEND_IMPORT.test(stripJsComments(read(path.join(ROOT, BACKEND_OWNER))))) {
-      out.push(`${BACKEND_OWNER} no longer imports the backend — the allowed edge is gone, so this check is measuring nothing`)
+    // POSITIVE CONTROL. Every file above could pass while the facade was the one
+    // bypassed — if `api.ts` stopped calling the API, the scan would find no
+    // offenders because there would be no calls left to offend. Assert the allowed
+    // edge, so a facade that fetches nothing fails here instead of reading as
+    // compliance. The count is not asserted: it is a number that moves every time a
+    // screen is added, and a stale minimum would fail for the wrong reason.
+    if (!API_CALL.test(stripJsComments(read(path.join(ROOT, API_OWNER))))) {
+      out.push(`${API_OWNER} no longer calls /api/* — the allowed edge is gone, so this check is measuring nothing`)
     }
     return out
   })

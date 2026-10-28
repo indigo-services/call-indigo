@@ -7,6 +7,13 @@
 > by [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md) on 2026-10-16.
 > The route and data-layer descriptions remain a record of that release, not current
 > Clerk setup guidance.
+>
+> **The data layer described here no longer exists.** §"The data layer" below names
+> `backend.ts`, `call-indigo:v1:*` and a seeded inbox: the store was replaced by
+> Postgres behind `/api/*` on 2026-10-22 (#68), and the last record and its reset
+> control were deleted on 2026-10-28 (#95). For the current shape read
+> [`data-layer.md`](./data-layer.md). The session flag in §"Session" is likewise gone —
+> Clerk owns the session now.
 
 The PRD describes rc1's `/admin` as a **mockup**: exactly three entries, `useState`
 only, no authentication, no persistence, no API. This build is not that. Every

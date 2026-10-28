@@ -16,13 +16,14 @@ a **documented, deliberate limitation** rather than a defect.
 
 | Surface | Reality |
 |---|---|
-| **The `/admin` sign-in** | Clerk React sign-in; the intended policy is Invite-only plus a client check for `publicMetadata.role === "admin"`. This is not server-side data authorization. See `docs/40-project/decisions/0005-clerk-admin-identity.md`. |
-| **Dashboard data** | `localStorage`, per-browser, not shared, not a database. The app has no server-side record store. |
-| **The contact form** | Writes to the submitter's `localStorage`. The captcha is **local arithmetic**, not a bot defence. The form does not collect an address. The public marketing pages run no analytics or advertising. |
-| **Authentication data** | Clerk manages admin identity and session cookies. `CLERK_SECRET_KEY` is not loaded into the client bundle. The app has no authenticated backend, so Clerk does not protect the browser-local records. |
+| **The `/admin` sign-in** | Clerk React sign-in, Invite-only, plus a membership of the `Indigo Services` organization. The browser check decides which screens are **shown**; it is not the authorization boundary. Every admin endpoint verifies the Clerk session token and re-checks the caller's capability before it touches the database. See `docs/40-project/decisions/0005-clerk-admin-identity.md`. |
+| **Dashboard data** | Neon Postgres, over HTTP, through `/api/*`. One copy: leads, settings, staff levels and the audit log. **The browser stores no app data** — `localStorage` was removed on 2026-10-28 (#95). |
+| **The contact form** | `POST /api/inquiry`, stored in Postgres, then emailed. The captcha is **local arithmetic**, not a bot defence; the endpoint also has a per-address throttle that fails open when it cannot enforce. The public marketing pages run no analytics or advertising. |
+| **Authentication data** | Clerk manages admin identity and session cookies. `CLERK_SECRET_KEY` is not loaded into the client bundle; it is read only by the server, which verifies each request's session token. |
 
-The role check is client-side UI gating only. Add a backend that verifies Clerk sessions
-and enforces role permissions before storing or serving shared or sensitive data.
+The browser gate is UI gating only, and is documented as such. Authorization is enforced
+per endpoint, and the gaps that remain — ranked — are in
+`docs/30-operations/security.md`.
 
 ## What *is* in scope
 
