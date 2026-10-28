@@ -106,6 +106,11 @@ const session = {
   signOut: async () => {},
   openSignIn: () => {},
   openSignUp: () => {},
+  // #106 opens Clerk's account modal from the sidebar footer. Present so the
+  // stub matches the real useClerk() shape: an absent method would render
+  // fine (the handler never runs in static markup) and hide a typo in the name.
+  // ⚠️ No backticks in here — this object is inside a template literal.
+  openUserProfile: () => {},
 }
 export const useAuth = () => session
 export const useClerk = () => session
@@ -119,6 +124,32 @@ export const SignInButton = ({ children }) => children ?? null
 export const SignUpButton = ({ children }) => children ?? null
 export const SignedIn = ({ children }) => children ?? null
 export const SignedOut = ({ children }) => children ?? null
+`
+
+/**
+ * A router that renders links as plain anchors, for `stubRouter`.
+ *
+ * Needed because `react-router-dom` is **bundled into** each `load()` output
+ * (only React and lucide are external), so a `MemoryRouter` imported by the test
+ * from `node_modules` would be a *different* context object than the one the
+ * bundled component reads — `useLocation()` would throw, and nothing would say
+ * why. A virtual module replaces it inside the bundle instead.
+ *
+ * It is faithful for the only thing a static render can check: which `href` a
+ * `to` produces. `Link` renders an `<a>` with the resolved href, exactly as the
+ * real component does for a path that needs no basename. What it cannot model is
+ * navigation — which is not a claim any assertion here makes, because
+ * `renderToStaticMarkup` runs no effects and handles no clicks.
+ */
+const ROUTER_STUB = `
+import { createElement } from "react"
+const location = { pathname: "/admin/inquiries", search: "", hash: "", state: null, key: "static" }
+export const useLocation = () => location
+export const useNavigate = () => () => {}
+export const useParams = () => ({})
+export const Link = ({ to, children, ref, ...rest }) => createElement("a", { href: to, ...rest }, children)
+export const NavLink = Link
+export const Outlet = () => null
 `
 
 /**
@@ -141,6 +172,11 @@ export const SignedOut = ({ children }) => children ?? null
  * this gate could reach would be the ones that need no session. It is not a
  * substitute for authorization testing: a stubbed session proves the page
  * renders, and nothing about who is allowed to see it.
+ *
+ * `stubRouter` does the same for `react-router-dom`, for a sharper reason: that
+ * package is *bundled into* the output rather than left external, so a
+ * `MemoryRouter` imported by the test would be a second copy of the context and
+ * could not satisfy the component's `useLocation()`. See `ROUTER_STUB`.
  */
 export async function load(relativePath, name, options = {}) {
   if (loaded.has(name)) return loaded.get(name)
@@ -157,26 +193,63 @@ export async function load(relativePath, name, options = {}) {
     target: "node22",
     jsx: "automatic",
     tsconfig: path.join(ROOT, "tsconfig.app.json"),
-    external: ["react", "react-dom", "react-dom/server", "react/jsx-runtime", "lucide-react"],
+    // `react-remove-scroll` is external for the same reason as `lucide-react`
+    // (#106): it ships CJS that calls `require("react")`, and esbuild turns that
+    // into a `__require` shim which throws *"Dynamic require of react is not
+    // supported"* in ESM output. It arrives through `ui/sidebar` → `ui/sheet` →
+    // radix's dialog, which the sidebar imports for its mobile drawer — so the
+    // first component that bundles the sidebar could not be imported at all, and
+    // the failure is at import time, before any check runs.
+    //
+    // ⚠️ It *appears* to work under `node -e`, which evaluates in a CommonJS
+    // scope where the shim finds a real `require`. Under `node tests/run.mjs` —
+    // which is what CI runs — it throws. Do not judge this by a one-liner.
+    external: [
+      "react",
+      "react-dom",
+      "react-dom/server",
+      "react/jsx-runtime",
+      "lucide-react",
+      "react-remove-scroll",
+    ],
     define: { "process.env.NODE_ENV": '"test"' },
     logLevel: "silent",
-    plugins: options.stubClerk
-      ? [
-          {
-            name: "clerk-stub",
-            setup(b) {
-              b.onResolve({ filter: /^@clerk\/react$/ }, () => ({
-                path: "@clerk/react",
-                namespace: "clerk-stub",
-              }))
-              b.onLoad({ filter: /.*/, namespace: "clerk-stub" }, () => ({
-                contents: CLERK_STUB,
-                loader: "js",
-              }))
+    plugins: [
+      ...(options.stubClerk
+        ? [
+            {
+              name: "clerk-stub",
+              setup(b) {
+                b.onResolve({ filter: /^@clerk\/react$/ }, () => ({
+                  path: "@clerk/react",
+                  namespace: "clerk-stub",
+                }))
+                b.onLoad({ filter: /.*/, namespace: "clerk-stub" }, () => ({
+                  contents: CLERK_STUB,
+                  loader: "js",
+                }))
+              },
             },
-          },
-        ]
-      : [],
+          ]
+        : []),
+      ...(options.stubRouter
+        ? [
+            {
+              name: "router-stub",
+              setup(b) {
+                b.onResolve({ filter: /^react-router(-dom)?$/ }, () => ({
+                  path: "react-router-dom",
+                  namespace: "router-stub",
+                }))
+                b.onLoad({ filter: /.*/, namespace: "router-stub" }, () => ({
+                  contents: ROUTER_STUB,
+                  loader: "js",
+                }))
+              },
+            },
+          ]
+        : []),
+    ],
   })
 
   const mod = await import(pathToFileURL(outfile).href)

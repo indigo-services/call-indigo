@@ -408,6 +408,94 @@ export async function run() {
     return out
   })
 
+  /* ── The two links every role gets (issue #106) ───────────────────────────
+   *
+   * The defect was never an absence. The home link and an account control both
+   * existed for every role — as a 12px footnote and as a bare `<UserButton />`
+   * avatar — and the client reported both as missing, which is the correct
+   * reading of a screenshot. So the assertions that carry this are per ROLE and
+   * on rendered markup: "the sidebar contains a `Your account` control" would
+   * have been satisfied by a treatment nobody could find.
+   *
+   * ⚠️ The load-bearing half is a NEGATIVE, and it is the issue's title: a
+   * `service_rep` must not be sent to `/admin/profile`. That page is tagged
+   * `settings`, so `AdminLayout` swaps the outlet for the refusal screen, and
+   * `PUT /api/settings?key=profile` answers 403 even if it rendered. The thing
+   * to catch is a future "tidy-up" pointing the account control there — which
+   * works for an admin, and therefore survives review by one. Hence the admin
+   * sidebar is the positive control for the rep's zero.
+   *
+   * Rendered through `tests/fixtures/sidebar-entry.mjs`; see that file for why
+   * the provider, the component and the access context must come from one
+   * bundle, and `ROUTER_STUB` in `harness.mjs` for why the router is virtual.
+   */
+
+  suite("Sidebar home and account links (issue #106)", "tests/policy.mjs")
+
+  const sidebarEntry = await load("tests/fixtures/sidebar-entry.mjs", "sidebar-entry", {
+    stubClerk: true,
+    stubRouter: true,
+  })
+
+  const renderSidebar = (access) =>
+    renderToStaticMarkup(
+      createElement(
+        sidebarEntry.SidebarProvider,
+        null,
+        createElement(
+          sidebarEntry.AdminAccessContext.Provider,
+          { value: access },
+          createElement(sidebarEntry.AppSidebar),
+        ),
+      ),
+    )
+
+  const adminSidebar = renderSidebar(adminAccess)
+  const repSidebar = renderSidebar(repAccess)
+
+  /** Every anchor tag in a rendered string, as its source text. */
+  const anchorTags = (html) => [...html.matchAll(/<a\b[^>]*>/g)].map((m) => m[0])
+
+  check("an admin and a rep are both offered a labelled home link and a labelled account control", () => {
+    const out = []
+    for (const [who, html] of [["an admin", adminSidebar], ["a service_rep", repSidebar]]) {
+      if (!html.includes("Back to the site")) out.push(`${who} is not shown the home link by name`)
+      if (!html.includes("Your account")) out.push(`${who} is not shown a labelled account control`)
+      // Counted, not merely found: two anchors to "/" would mean the footnote
+      // survived beside the nav item, which is the treatment #106 removed.
+      const home = anchorTags(html).filter((a) => /href="\/"/.test(a))
+      if (home.length !== 1) {
+        out.push(`${who} has ${home.length} anchors to "/", expected exactly 1`)
+      }
+    }
+    // POSITIVE CONTROL. If the component rendered nothing, the `includes` above
+    // would each report themselves — but if it rendered without its nav, only
+    // this sees it. The brand header links to the inbox for every role.
+    if (!adminSidebar.includes('href="/admin/inquiries"')) {
+      out.push("the rendered admin sidebar has no link to /admin/inquiries — the render is empty or the header is gone")
+    }
+    return out
+  })
+
+  check("a rep is never handed a link to /admin/profile", () => {
+    const out = []
+    const count = (html) => anchorTags(html).filter((a) => /href="\/admin\/profile"/.test(a)).length
+
+    const rep = count(repSidebar)
+    if (rep !== 0) {
+      out.push(`a service_rep is shown ${rep} links to /admin/profile — AdminLayout refuses that page for them`)
+    }
+
+    // POSITIVE CONTROL: the same scan finds the page for an admin, through
+    // Settings > Profile. Without it an empty render, or a broken pattern, would
+    // satisfy the rep case and read as a pass.
+    const admin = count(adminSidebar)
+    if (admin !== 1) {
+      out.push(`an admin is shown ${admin} links to /admin/profile, expected 1 (Settings > Profile)`)
+    }
+    return out
+  })
+
   /* ── Stack (PRD §4, §14) ───────────────────────────────────────────────── */
 
   suite("Stack (PRD §4, §14)", "tests/policy.mjs")

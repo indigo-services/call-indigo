@@ -2,18 +2,41 @@
  * AppSidebar — the dashboard's single inset sidebar (registry block sidebar-08).
  *
  * Every item is now a real route driven by `src/admin/routes.ts`, so the sidebar
- * and the breadcrumb cannot disagree. Two things are live rather than static:
+ * and the breadcrumb cannot disagree. Three things are live rather than static:
  *
  *   · the Inquiries item carries a badge with the number of unread leads
  *   · the footer shows the profile from the store, so editing Profile is
  *     reflected here without a reload
+ *   · the footer's account control opens Clerk's own modal (#106)
  *
  * Navigation uses react-router `Link` rather than `<a href>` so moving between
  * dashboard pages is client-side and keeps the loaded state warm instead of
  * re-fetching every page's data on each click.
+ *
+ * ── The two links every role gets (#106) ────────────────────────────────────
+ *
+ * Both halves of "a home link and an account link" already existed, and neither
+ * read that way on screen: the home link was a 12px footnote sharing a row with
+ * the sign-out text, and the account control was a bare `<UserButton />` avatar
+ * with no words beside it. The client reported both as missing, which is the
+ * correct reading of a screenshot — an operator who has not been told what the
+ * circle is has no account link. The treatment was the defect, not the presence.
+ *
+ * ⚠️ **The account control is Clerk's modal, NOT `/admin/profile`.** That page is
+ * tagged `settings` (`src/admin/routes.ts`), a `service_rep` holds
+ * `inbox:read`/`inbox:write` and nothing else (`api/_lib/roles.ts`), so
+ * `AdminLayout` replaces the outlet with the refusal screen — and
+ * `PUT /api/settings?key=profile` would answer 403 even if it rendered. A rep's
+ * "your account" surface is Clerk's own account modal — name, email, password,
+ * sessions — which every signed-in person has regardless of staff level.
+ * `openUserProfile()` is one call, no route, no capability.
+ *
+ * Do not "tidy" this into a `<Link to="/admin/profile">`. It would work for an
+ * admin, which is exactly why the mistake would survive a review by one.
  */
 import { Link, useLocation } from "react-router-dom"
-import { UserButton, useAuth, useClerk, useUser } from "@clerk/react"
+import { useAuth, useClerk, useUser } from "@clerk/react"
+import { House, LogOut, UserRound } from "lucide-react"
 
 import {
   Sidebar,
@@ -37,7 +60,7 @@ import { useApiData } from "@/lib/data/hooks"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation()
-  const { signOut } = useClerk()
+  const { openUserProfile, signOut } = useClerk()
   const { user } = useUser()
   const { getToken } = useAuth()
   // Resolved once by <RequireAuth>. Reading it here rather than calling
@@ -147,6 +170,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             comparison here — two access rules beside each other is the drift
             #100 spent a release removing. */}
         <ExternalNavLinks access={access} />
+
+        {/* The way out, for every role (#106). Its own group at the bottom of
+            the nav rather than a footnote in the footer: the same link, one
+            treatment up, where it is reachable without reading small print.
+
+            ⚠️ Deliberately NOT an `AdminNavItem`. `path` there is a *route* —
+            `findAdminRoute()` resolves it for the breadcrumb, and
+            `tests/policy.mjs` asserts every one of those is mounted in
+            `App.tsx`. `/` is the marketing site, not a page of this app, and
+            putting it in `ADMIN_ROUTES` would make the crumb read "Not found"
+            on the home page.
+
+            ⚠️ And no `can()` — that is the requirement, not an omission. The
+            site is public, so every level including a `service_rep` may leave
+            for it. A `feature` on this item would be the one nav decision the
+            capability model does not own, which is the drift #104 removed. */}
+        <SidebarGroup>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Back to the site">
+                <Link to="/">
+                  <House />
+                  <span>Back to the site</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter>
@@ -156,22 +207,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </p>
           <p className="truncate">{email}</p>
         </div>
-        <div className="flex items-center justify-between gap-2 px-3 pb-2">
-          <Link
-            to="/"
-            className="text-xs text-sidebar-foreground/60 underline-offset-2 hover:text-sidebar-foreground hover:underline"
-          >
-            ← Back to the site
-          </Link>
-          <UserButton />
-          <button
-            type="button"
-            onClick={() => void signOut({ redirectUrl: "/" })}
-            className="text-xs text-sidebar-foreground/60 underline-offset-2 hover:text-sidebar-foreground hover:underline"
-          >
-            Sign out
-          </button>
-        </div>
+        {/* Two labelled controls of one shape. `<UserButton />` stood here as a
+            bare avatar: it opens the same modal as `openUserProfile()` and
+            carries no words, which is why the account settings could not be
+            found on screen. Nothing is lost by replacing it — the name and the
+            address directly above are the identity it was showing — and the
+            avatar was the only unlabelled control left in the sidebar. */}
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              type="button"
+              tooltip="Your account"
+              onClick={() => openUserProfile()}
+            >
+              <UserRound />
+              <span>Your account</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              type="button"
+              tooltip="Sign out"
+              onClick={() => void signOut({ redirectUrl: "/" })}
+            >
+              <LogOut />
+              <span>Sign out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

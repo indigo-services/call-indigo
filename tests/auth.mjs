@@ -437,18 +437,33 @@ export async function run() {
 
   check("the sidebar displays Clerk identity and exposes account management and sign-out", () => {
     const src = read("src/components/app-sidebar.tsx")
+    // ⚠️ Asserted against CODE, with the comments stripped. #106 replaced
+    // `<UserButton />` — a bare avatar — with a labelled control, and the
+    // docblock above the component names both `openUserProfile` and the label
+    // while explaining why the avatar went. A raw match on this file would pass
+    // on that explanation alone, which is the trap #93's first guard fell into.
+    const code = stripJsComments(src)
     const out = []
     // Checked per name rather than as one literal string: the import list gained
     // `useAuth` when the inbox moved to the server (A2), and an assertion on the
     // exact text would call a correct change a regression.
-    for (const name of ["UserButton", "useClerk", "useUser"]) {
+    for (const name of ["useClerk", "useUser"]) {
       if (!new RegExp(`import \\{[^}]*\\b${name}\\b[^}]*\\} from "@clerk/react"`).test(src)) {
         out.push(`sidebar does not import ${name} from @clerk/react`)
       }
     }
-    if (!/user\?\.fullName/.test(src)) out.push("sidebar does not show the Clerk user's name")
-    if (!/<UserButton\s*\/>/.test(src)) out.push("sidebar has no Clerk account menu")
-    if (!/signOut\(\{ redirectUrl: "\/" \}\)/.test(src)) out.push("sidebar has no Clerk sign-out action")
+    if (!/user\?\.fullName/.test(code)) out.push("sidebar does not show the Clerk user's name")
+    // One call site, no route, no capability: Clerk's own modal is the only
+    // account surface a `service_rep` can use (issue #106).
+    const calls = (code.match(/openUserProfile\(\)/g) ?? []).length
+    if (calls !== 1) out.push(`${calls} calls to openUserProfile(), expected exactly 1`)
+    if (!/>\s*Your account\s*</.test(code)) {
+      out.push("the account control carries no visible label — an unlabelled avatar is what #106 replaced")
+    }
+    if (/<UserButton/.test(code)) {
+      out.push("the sidebar renders Clerk's unlabelled avatar again — if the avatar is wanted beside the label, change this check deliberately")
+    }
+    if (!/signOut\(\{ redirectUrl: "\/" \}\)/.test(code)) out.push("sidebar has no Clerk sign-out action")
     if (/from "@\/admin\/auth"/.test(src)) out.push("sidebar still imports the removed auth module")
     return out
   })
