@@ -28,6 +28,19 @@
  * difference between this and a settings form whose every control is disabled.
  * Who works here is not a secret from the person who runs the desk.
  *
+ * ── The fourth card: what changed, and who changed it ───────────────────────
+ *
+ * The roster says what everyone's level *is*. It cannot say how it got that way,
+ * which is the question an incident asks — and until #114 the answer was nowhere,
+ * because `staff.updated_at` records *when* and never *who*. `Recent changes`
+ * reads `staff_audit`, which the server writes in the same statement as the
+ * change itself, so a row here cannot describe something that did not happen.
+ *
+ * The sentence for each row comes from `changeText()` in `team-roster.ts`, not
+ * from a template in this file: a first assignment has no previous level, and an
+ * access change is not a level change at all — both are wrong the moment they are
+ * squeezed through one `a → b` template.
+ *
  * ⚠️ **Nothing here is authorization**, and the rules are not in this file:
  * `team-roster.ts` decides which control belongs on a row (so it can be tested —
  * Radix's `Select` cannot be imported into the runner), and `api/staff.ts`
@@ -56,18 +69,22 @@ import {
 } from "@/components/ui/table"
 import { PageHeader } from "@/admin/PageHeader"
 import { useAdminAccess } from "@/admin/access-context"
-import { LEVELS, LEVEL_LABEL, accessText, refusalText, rowState } from "@/admin/team-roster"
+import { LEVELS, LEVEL_LABEL, accessText, changeText, personName, refusalText, rowState } from "@/admin/team-roster"
 import { useAuth } from "@clerk/react"
 import { api } from "@/lib/data/api"
 import { useApiData } from "@/lib/data/hooks"
 import type { StaffLevel, StaffMember } from "@/lib/data/types"
-import { initials } from "@/lib/format"
+import { formatRelative, initials } from "@/lib/format"
 
 export default function TeamPage() {
   const { getToken, userId } = useAuth()
   const access = useAdminAccess()
   const canWrite = access.capabilities.has("settings:write")
-  const { data, loading, error } = useApiData("admin-staff", () => api.listStaff(getToken))
+  const { data, loading, error } = useApiData("admin-staff", () => api.getTeam(getToken))
+  // Both come from one request, so they cannot describe different moments. `?? []`
+  // covers the first render, before the response lands.
+  const roster = data?.staff ?? []
+  const audit = data?.audit ?? []
   const [pending, setPending] = useState<string | null>(null)
 
   async function change(member: StaffMember, patch: { role?: StaffLevel; active?: boolean }) {
@@ -129,7 +146,7 @@ export default function TeamPage() {
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : !data || data.length === 0 ? (
+          ) : roster.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Nobody is in Indigo Services yet. Add people in the Clerk dashboard, then come back.
             </p>
@@ -143,7 +160,7 @@ export default function TeamPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.map((member) => {
+                {roster.map((member) => {
                   const isSelf = member.userId === userId
                   const isClerkAdmin = member.orgRole === "org:admin"
                   const state = rowState(member, { canWrite, isSelf })
@@ -241,6 +258,56 @@ export default function TeamPage() {
                 })}
               </TableBody>
             </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── Who changed whose level (#114) ────────────────────────────────────
+       *
+       * `staff.updated_at` says when a level last changed and never said who
+       * changed it, so the two questions an incident asks — who made this person
+       * a manager, who withdrew this person's access — were unanswerable from the
+       * data. This reads `staff_audit`, which the write below records in the same
+       * statement as the change itself.
+       */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent changes</CardTitle>
+          <CardDescription>
+            Who changed whose level, and when. Each row was written in the same statement as the
+            change it describes, so there is no change here that did not happen — and no level
+            change that went unrecorded.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading && !data ? (
+            <Skeleton className="h-12 w-full" />
+          ) : audit.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No level has been changed since this record began. It fills the first time someone
+              changes one.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {audit.map((entry) => (
+                <li
+                  key={entry.id}
+                  className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-border pb-3 text-sm last:border-0 last:pb-0"
+                >
+                  <span className="text-muted-foreground">
+                    <strong className="font-medium text-foreground">
+                      {personName(entry.actorId, roster)}
+                    </strong>{" "}
+                    changed{" "}
+                    <strong className="font-medium text-foreground">
+                      {personName(entry.subjectId, roster)}
+                    </strong>
+                  </span>
+                  <span className="text-foreground">{changeText(entry)}</span>
+                  <span className="text-xs text-muted-foreground">{formatRelative(entry.at)}</span>
+                </li>
+              ))}
+            </ul>
           )}
         </CardContent>
       </Card>

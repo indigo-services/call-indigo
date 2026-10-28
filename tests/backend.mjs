@@ -1399,4 +1399,188 @@ export async function run() {
     if (roster[0]?.userId !== "user_2boss") out.push(`the roster leads with ${roster[0]?.userId}, expected the Clerk admin`)
     return out
   })
+
+  /* ── Who changed whose level (#114) ────────────────────────────────────────
+   *
+   * `staff.updated_at` says *when* a level changed and never said *who* changed
+   * it. #102 made the change a button on `/admin/team`, which turned an
+   * unattributable fact into an unattributable action — so the two questions an
+   * incident asks had no answer in the data, only in a function log retained for
+   * hours.
+   *
+   * CI has no database, so "one statement" and "no row when nothing changed" have
+   * to be read from the source and from a pure rule. That is weaker than running
+   * the SQL, and it is the strongest thing that can run on every push — the live
+   * proof is recorded in the PR, not here.
+   */
+  suite("A record of who changed whose level (#114)", "api/_lib/staff.ts")
+
+  check("a level change and its audit row are one statement, and the actor is the session", () => {
+    const out = []
+    const src = readFileSync(path.join(ROOT, "api", "_lib", "staff.ts"), "utf8")
+    const at = src.indexOf("export async function upsertStaffLevel")
+    const stop = src.indexOf("/* ── The audit log")
+    if (at === -1) return ["upsertStaffLevel is gone — this check would skip it"]
+    if (stop === -1 || stop < at) return ["the audit-log section marker moved — this check cannot delimit the function"]
+    const fn = src.slice(at, stop)
+
+    // The whole point: ONE round trip. Two statements leave a window in which the
+    // level committed and its record did not, which is the failure the issue calls
+    // worse than neither — a promotion indistinguishable from one made before the
+    // audit existed.
+    const statements = fn.match(/await sql[<(]/g) ?? []
+    if (statements.length !== 1) {
+      out.push(`upsertStaffLevel issues ${statements.length} statements — the change and its record must be one`)
+    }
+    for (const fragment of ["insert into staff (", "insert into staff_audit ("]) {
+      if (!fn.includes(fragment)) out.push(`the statement no longer contains "${fragment}"`)
+    }
+    // A data-modifying CTE is the only way to do both here: the driver prepares one
+    // statement at a time, so begin/commit is not available.
+    if (!/with previous as \(/.test(fn) || !/logged as \(/.test(fn)) {
+      out.push("the write is no longer a single WITH query — check that the audit is still atomic with the change")
+    }
+
+    // The audit row is guarded, not unconditional: `logged` must carry the
+    // predicate, or every repeated save would append a row saying nothing happened.
+    const loggedAt = fn.indexOf("logged as (")
+    const loggedEnd = fn.indexOf("returning id")
+    if (loggedAt === -1 || loggedEnd === -1 || loggedEnd < loggedAt) {
+      out.push("the audit insert is no longer delimited by `logged as (` … `returning id`")
+    } else {
+      const logged = fn.slice(loggedAt, loggedEnd)
+      if (!/p\.role is distinct from u\.role/.test(logged)) {
+        out.push("the audit insert is not guarded on the role changing")
+      }
+      if (!/p\.active is distinct from u\.active/.test(logged)) {
+        out.push("the audit insert is not guarded on `active` changing")
+      }
+    }
+
+    // The actor is the fourth parameter, and it comes from the session. A body
+    // field would let a caller attribute their own change to someone else, which
+    // is worse than no attribution: it is a false one.
+    if (!/update\.active,\s*actorId\s*\]/.test(fn)) {
+      out.push("actorId is not the parameter the statement writes as the actor")
+    }
+    const endpoint = readFileSync(path.join(ROOT, "api", "staff.ts"), "utf8")
+    if (!/upsertStaffLevel\(valid\.value,\s*auth\.userId\)/.test(endpoint)) {
+      out.push("api/staff.ts does not pass the authenticated user as the actor")
+    }
+    const smuggled = staff.validateStaffUpdate({
+      userId: "user_2abcdef",
+      role: "service_rep",
+      actorId: "user_2victim",
+    })
+    if (smuggled.ok && "actorId" in smuggled.value) {
+      out.push("a request body can name the actor — attribution would be forgeable")
+    }
+
+    // One writer. A second `insert into staff_audit` elsewhere would be a path that
+    // records a change without making one, or makes one without recording it.
+    const writers = []
+    const walk = (dir) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name)
+        if (entry.isDirectory()) walk(full)
+        else if (entry.name.endsWith(".ts")) {
+          const body = readFileSync(full, "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "")
+          if (/insert into staff_audit/i.test(body)) writers.push(rel(full))
+        }
+      }
+    }
+    walk(path.join(ROOT, "api"))
+    if (writers.length !== 1 || writers[0] !== "api/_lib/staff.ts") {
+      out.push(`staff_audit is written from ${JSON.stringify(writers)}, expected only api/_lib/staff.ts`)
+    }
+    return out
+  })
+
+  check("only a real change is recorded, and the SQL applies the rule this test holds", () => {
+    // The two halves of #114's fourth requirement: a PUT that changes nothing
+    // writes no audit row, and a PUT that changes a level writes exactly one. The
+    // truth table is pure; the predicate is asserted to be the same one, because a
+    // rule that exists twice is a rule that will disagree.
+    const out = []
+    const cases = [
+      [null, { role: "service_rep", active: true }, true, "a first assignment"],
+      [
+        { role: "service_rep", active: true },
+        { role: "service_rep", active: true },
+        false,
+        "a repeat of the level already stored",
+      ],
+      [
+        { role: "service_rep", active: true },
+        { role: "service_manager", active: true },
+        true,
+        "a promotion",
+      ],
+      [
+        { role: "service_rep", active: true },
+        { role: "service_rep", active: false },
+        true,
+        "a withdrawal",
+      ],
+      [
+        { role: "service_rep", active: false },
+        { role: "service_rep", active: true },
+        true,
+        "a restoration",
+      ],
+      [
+        { role: "service_rep", active: false },
+        { role: "service_manager", active: false },
+        true,
+        "a level change on someone already withdrawn",
+      ],
+    ]
+    for (const [before, after, expected, why] of cases) {
+      if (staff.changesLevel(before, after) !== expected) {
+        out.push(`changesLevel is wrong about ${why} — expected ${expected}`)
+      }
+    }
+
+    // ⚠️ `is distinct from`, never `<>`. On a first assignment `previous.role` is
+    // NULL, and `NULL <> 'admin'` is NULL — which `where` reads as false, so `<>`
+    // would silently drop the audit row for the transition that matters most:
+    // "who made this person a manager" is usually "nobody, it was set up on the
+    // first day".
+    const src = readFileSync(path.join(ROOT, "api", "_lib", "staff.ts"), "utf8")
+    const at = src.indexOf("export async function upsertStaffLevel")
+    const stop = src.indexOf("/* ── The audit log")
+    const fn = at === -1 || stop === -1 ? "" : src.slice(at, stop)
+    if (/p\.role\s*<>\s*u\.role|p\.active\s*<>\s*u\.active/.test(fn)) {
+      out.push("the audit predicate uses `<>` — a NULL from_role makes that NULL, and WHERE reads it as false")
+    }
+    return out
+  })
+
+  check("the audit is readable on the roster read, and a record nobody reads is not a record", () => {
+    // Criterion 3. #95 is the precedent: the `security` record was stored, gated
+    // and rendered by nothing, which is dead surface rather than a feature.
+    const out = []
+    const endpoint = readFileSync(path.join(ROOT, "api", "staff.ts"), "utf8")
+    if (!/listStaffAudit/.test(endpoint)) out.push("api/staff.ts never reads the audit")
+    if (!/json\(\{ staff: buildRoster\(members, rows\), audit \}\)/.test(endpoint)) {
+      out.push("GET no longer returns the audit alongside the roster")
+    }
+    // Same capability as the roster: who changed whose level is not a secret from
+    // the manager who can already see every level.
+    if (!/requireCapability\(req, method === "GET" \? "settings:read" : "settings:write"\)/.test(endpoint)) {
+      out.push("the read/write capability split changed — the audit may now be open to the wrong side")
+    }
+
+    const lib = readFileSync(path.join(ROOT, "api", "_lib", "staff.ts"), "utf8")
+    if (!/limit \$1/.test(lib)) out.push("listStaffAudit has no limit — the panel would read the whole table")
+    if (!/order by at desc, id desc/.test(lib)) {
+      out.push("the audit is not ordered newest-first with a tiebreak — same-millisecond changes would jitter")
+    }
+
+    // And the screen has to consume it, or it is the same dead surface one level up.
+    const page = readFileSync(path.join(ROOT, "src", "admin", "TeamPage.tsx"), "utf8")
+    if (!/data\?\.audit/.test(page)) out.push("TeamPage.tsx does not read the audit off the response")
+    if (!/audit\.map\(/.test(page)) out.push("TeamPage.tsx never renders the audit")
+    return out
+  })
 }

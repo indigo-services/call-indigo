@@ -310,6 +310,78 @@ export async function run() {
     return out
   })
 
+  check("a recorded level change reads as what happened, including the first assignment", () => {
+    // #114. The audit panel is the only place these facts are visible, so a wrong
+    // sentence is a wrong record. The three shapes are not one template: a first
+    // assignment has nothing to transition *from*, and an access change is not a
+    // level change at all — `Service Rep → Service Rep` would be a line that
+    // appears to do nothing.
+    const entry = (over) => ({
+      id: 1,
+      actorId: "user_2boss",
+      subjectId: "user_2rep",
+      fromRole: null,
+      toRole: "service_rep",
+      fromActive: null,
+      toActive: true,
+      at: "2026-10-28T12:00:00Z",
+      ...over,
+    })
+    const out = []
+    const says = (over, expected, why) => {
+      const got = roster.changeText(entry(over))
+      if (got !== expected) out.push(`${why}: said ${JSON.stringify(got)}, expected ${JSON.stringify(expected)}`)
+    }
+
+    says({}, "Set to Service Rep", "a first assignment")
+    // A first assignment with `active: false` — a level nobody can use yet. It is
+    // legal and rare, and without this branch the row would claim a level while the
+    // person still could not sign in.
+    says({ toActive: false }, "Set to Service Rep · no access", "a first assignment with no access")
+    says(
+      { fromRole: "service_rep", fromActive: true, toRole: "service_manager" },
+      "Service Rep → Service Manager",
+      "a promotion",
+    )
+    says(
+      { fromRole: "service_rep", fromActive: true, toRole: "service_rep", toActive: false },
+      "Access withdrawn",
+      "a withdrawal",
+    )
+    says(
+      { fromRole: "service_rep", fromActive: false, toRole: "service_rep", toActive: true },
+      "Access restored",
+      "a restoration",
+    )
+    // Both at once: the case where a summary loses information, and the one this
+    // function exists for.
+    says(
+      { fromRole: "service_rep", fromActive: true, toRole: "service_manager", toActive: false },
+      "Service Rep → Service Manager · Access withdrawn",
+      "a promotion and a withdrawal in one write",
+    )
+    // ⚠️ The no-op case is unreachable through the writer — the SQL only records a
+    // change — but the renderer still has to say something honest if a row ever
+    // arrives that records none, rather than drawing an empty cell.
+    says(
+      { fromRole: "service_rep", fromActive: true, toRole: "service_rep", toActive: true },
+      "No change recorded",
+      "a row that records no change",
+    )
+
+    // The actor is an id, resolved against the roster. A person who has left the
+    // organization is dropped from the roster and their past changes remain, so the
+    // fallback has to be the id — "someone" cannot be looked up in Clerk later.
+    const people = [{ userId: "user_2boss", name: "Jaden Black" }]
+    if (roster.personName("user_2boss", people) !== "Jaden Black") {
+      out.push("a known actor was not resolved to their name")
+    }
+    if (roster.personName("user_2gone", people) !== "user_2gone") {
+      out.push("an actor no longer on the roster did not fall back to their id")
+    }
+    return out
+  })
+
   check("a route the nav hides cannot be reached by typing its URL", () => {
     // The sidebar filters links; it does not unmount routes. Without a guard at the
     // outlet, a Service Rep who types /admin/settings gets a page that loads (the

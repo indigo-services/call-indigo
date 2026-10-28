@@ -190,19 +190,20 @@ in `src/lib/data/api.ts` returns a *receipt* (the new id), not the stored row.
 | Endpoint | `api/inquiries.ts` | `GET`/`PATCH`/`DELETE` the inbox, one capability per method, authorises before it reads |
 | Endpoint | `api/settings.ts` | `GET`/`PUT ?key=site\|profile\|notifications. Only the `site` read is un-gated |
 | Endpoint | `api/me.ts` (2026-10-27) | `GET` → the caller's own role and capability list. The admin shell's nav is built from it |
-| Endpoint | `api/staff.ts` (2026-10-27) | `GET` → the roster (Clerk members + levels), `settings:read`. `PUT` → set one level, `settings:write` |
+| Endpoint | `api/staff.ts` (2026-10-27) | `GET` → the roster (Clerk members + levels) **and the recent audit**, `settings:read`. `PUT` → set one level, `settings:write`, recording the actor |
 | Shared | `api/_lib/adminSettings.ts` | The field spec for the three records, and their read/write |
 | Shared | `api/_lib/validate.ts` | The same rules the form applies, restated for a caller that is not the form — plus the minimum time-to-submit (#92) |
 | Shared | `api/_lib/db.ts` | Neon SQL-over-HTTP. No `pg`, no pool |
 | Shared | `api/_lib/notifications.ts` | Reads the settings row and the preferences per send, applies `shouldNotify()`, then Resend. `emergencyAlerts` is a **floor, not a filter** (#93) |
 | Shared | `api/_lib/auth.ts` | Clerk session token + staff level → role and capabilities. Pure rules exported for tests |
 | Shared | `api/_lib/roles.ts` (2026-10-27) | The capability matrix: role → what it may do. No I/O, so it is tested directly |
-| Shared | `api/_lib/staff.ts` (2026-10-27) | The `staff` table: the hot-path lookup, the roster join, the upsert, and the pure rules for both |
+| Shared | `api/_lib/staff.ts` (2026-10-27) | The `staff` table: the hot-path lookup, the roster join, the audited upsert, and the pure rules for all of it |
 | Shared | `api/_lib/throttle.ts` (2026-10-28) | The `inquiry_throttle` counter: `sha256(ip + THROTTLE_SALT)`, one upsert, and the fail-open rules for when it cannot enforce (#94) |
 | Schema | `db/migrations/0001_*.sql` | `inquiries`, `notification_settings`, `schema_migrations` |
 | Schema | `db/migrations/0002_*.sql` | `admin_settings` — one `jsonb` row per key |
 | Schema | `db/migrations/0003_*.sql` (2026-10-27) | `staff` — one row per person, holding their level |
 | Schema | `db/migrations/0004_*.sql` (2026-10-28) | `inquiry_throttle` — one row per hashed address per window. Holds no address, and no lead |
+| Schema | `db/migrations/0005_*.sql` (2026-10-28) | `staff_audit` — one row per level change: who changed whose level, from what, to what, when |
 | Runner | `scripts/_db_migrate.cjs` | Applies pending files; `--check` for the gate |
 
 **Setting a level.** Custom Clerk organization roles are plan-gated — measured
@@ -213,8 +214,34 @@ set on **`/admin/team`**, through `api/staff.ts`:
 
 | Method | Capability | What it does |
 |---|---|---|
-| `GET /api/staff` | `settings:read` | Clerk's members of `Indigo Services`, each with their level — the roster, not just the rows, so a member with **no row** appears as *no level set* |
-| `PUT /api/staff` | `settings:write` | `{ userId, role, active? }` → one upsert. `422 not_a_member` if Clerk says they are not in the organization; `422 cannot_change_own_level` if it is the caller's own row |
+| `GET /api/staff` | `settings:read` | Clerk's members of `Indigo Services`, each with their level — the roster, not just the rows, so a member with **no row** appears as *no level set*. Also returns `audit`: the recent level changes |
+| `PUT /api/staff` | `settings:write` | `{ userId, role, active? }` → one upsert **and its audit row in the same statement**. `422 not_a_member` if Clerk says they are not in the organization; `422 cannot_change_own_level` if it is the caller's own row |
+
+**Who changed whose level (2026-10-28, #114).** `staff.updated_at` said *when* and
+never *who*, so the two questions an incident asks — who made this person a
+manager, who withdrew this person's access — had no answer in the data. The only
+trace was a function log retained for hours. `staff_audit` records every
+transition, and the level change and its record are one statement:
+
+```sql
+with previous as (select role, active from staff where clerk_user_id = $1),
+     upserted as (insert into staff … returning …),
+     logged   as (insert into staff_audit (actor_id, subject_id, …)
+                  select $4, u.clerk_user_id, p.role, u.role, p.active, u.active
+                    from upserted u left join previous p on true
+                   where p.role is distinct from u.role
+                      or p.active is distinct from u.active
+                  returning id)
+select …, (select count(*) from logged) as audit_rows from upserted u
+```
+
+Two requests would leave a window in which the level committed and its record did
+not — a promotion indistinguishable from one made before the audit existed. A
+data-modifying `WITH` is the only way to avoid that here, because the driver
+prepares one statement at a time. `is distinct from` rather than `<>`: on a first
+assignment `previous.role` is NULL, and `NULL <> 'admin'` is NULL, which `where`
+reads as false. `actor_id` is `auth.userId` from the verified session and never a
+body field, or a caller could attribute their own change to someone else.
 
 The join is the server's because `useUser()` only carries the signed-in user's own
 memberships — a browser-side roster would need `useOrganization()` and its own

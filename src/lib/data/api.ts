@@ -26,6 +26,7 @@ import type {
   NotificationSettings,
   SecurityState,
   SiteSettings,
+  StaffAuditEntry,
   StaffLevel,
   StaffMember,
 } from "@/lib/data/types"
@@ -325,19 +326,27 @@ export const api = {
   /* ── Staff ── */
 
   /**
-   * The roster: Clerk's members, each with the level Postgres holds for them.
+   * The roster, and the recent history of level changes.
    *
    * One call rather than two because the join is the server's: `useUser()` only
    * carries the signed-in user's own memberships, so a browser-side join would
-   * need `useOrganization()` and its own pagination to see the same list.
+   * need `useOrganization()` and its own pagination to see the same list. The
+   * history rides along for the same reason — it is the same screen and the same
+   * capability, and a second request would make the page wait twice.
    *
    * `role === null` is a real answer — a member with no row, whom the server
    * treats as read-only. It is not an error and not an empty state.
+   *
+   * `audit` defaults to `[]` rather than throwing: a server that stops sending it
+   * should leave the panel empty, not break the roster above it. The panel is the
+   * part of the page that is allowed to be missing.
    */
-  async listStaff(token?: TokenGetter): Promise<StaffMember[]> {
+  async getTeam(
+    token?: TokenGetter,
+  ): Promise<{ staff: StaffMember[]; audit: StaffAuditEntry[] }> {
     const res = await fetch("/api/staff", await withAuth(token))
-    const { staff } = await readJson<{ staff: StaffMember[] }>(res)
-    return staff
+    const body = await readJson<{ staff: StaffMember[]; audit?: StaffAuditEntry[] }>(res)
+    return { staff: body.staff, audit: body.audit ?? [] }
   },
 
   /**

@@ -35,6 +35,20 @@
  *      leaver's role does not quietly restore their access. Withdrawing access
  *      is an explicit `false`, which is also why deleting is not offered: the
  *      row is the record of who was once allowed to read a customer's number.
+ *
+ * ── And a fourth thing the row cannot hold: who did it ──────────────────────
+ *
+ * `staff.updated_at` says when a level changed and never said who changed it, so
+ * #102 turned an unattributable fact into an unattributable action. `staff_audit`
+ * records every transition — including the ones a single `updated_by` column
+ * would overwrite — and the write below puts the level change and its audit row in
+ * ONE statement. Two requests would leave the failure #114 calls worse than
+ * neither: a promotion that committed with no record of who made it, which is
+ * indistinguishable from a promotion made before the audit existed.
+ *
+ * ⚠️ The actor is `auth.userId` from the verified session, never a body field.
+ * A body field would let a caller attribute their own change to someone else,
+ * which is worse than no attribution at all — it is a false one.
  */
 import { sql } from "./db.js"
 import { isStaffRole, type StaffRole } from "./roles.js"
@@ -110,7 +124,38 @@ export async function listStaff(): Promise<StaffRecord[]> {
 }
 
 /**
- * Set a level, and return the stored row.
+ * Did this write change anything?
+ *
+ * The pure statement of the rule the SQL below applies in `where`. It is exported
+ * so the truth table can be asserted offline — CI has no database, and "a PUT that
+ * changes nothing writes no audit row" is the half of #114 that would otherwise
+ * only ever be tested by a person with a psql session.
+ *
+ * ⚠️ `before === null` is a change. A first assignment moves someone from *no
+ * level* to *a level*, which is the transition most worth recording: "who made
+ * this person a manager" is usually the answer "nobody's predecessor, it was set
+ * up on the first day".
+ */
+export function changesLevel(before: LevelState | null, after: LevelState): boolean {
+  if (!before) return true
+  return before.role !== after.role || before.active !== after.active
+}
+
+/** A level as the database holds it, without the timestamps. */
+export interface LevelState {
+  role: StaffRole
+  active: boolean
+}
+
+/** What a level change produced, and whether it was worth recording. */
+export interface StaffChange {
+  staff: StaffRecord
+  /** False when the row already said this — no audit row was written. */
+  audited: boolean
+}
+
+/**
+ * Set a level, record who set it, and return the stored row.
  *
  * ⚠️ `coalesce($3, staff.active)` on the conflict branch, not `excluded.active`:
  * an update that did not mention `active` must not resurrect a deactivated
@@ -118,24 +163,127 @@ export async function listStaff(): Promise<StaffRecord[]> {
  * from the other side — a new row defaults to active, which is the only case
  * where "unspecified" can safely mean "yes".
  *
- * One statement, so there is no window in which a row exists with a half-applied
- * change. `returning` means the caller echoes what the database stored rather
- * than what it was asked to store.
+ * ── One statement, and why that is not an optimisation ──────────────────────
+ *
+ * The level change and its audit row are the same statement, so there is no
+ * window in which one has committed and the other has not. Two requests would
+ * give exactly the failure #114 says is worse than neither: a promotion with no
+ * record of who made it, indistinguishable from a promotion made before the audit
+ * existed.
+ *
+ * A data-modifying `WITH` is the only way to do that here — the driver prepares
+ * one statement at a time, so `begin … commit` is not available. The three CTEs
+ * are:
+ *
+ *   `previous` — the row as it was. Every sub-statement of a `WITH` query sees
+ *                the SAME snapshot, so this reads the pre-statement state even
+ *                though `upserted` writes the table.
+ *   `upserted` — the write, returning what the database stored.
+ *   `logged`   — the audit row, inserted only when `previous` and `upserted`
+ *                disagree on the role or on `active`.
+ *
+ * `is distinct from` rather than `<>` throughout: on a first assignment
+ * `previous.role` is NULL, and `NULL <> 'admin'` is NULL, which `where` reads as
+ * false — so `<>` would silently drop the audit row for the one transition that
+ * matters most.
+ *
+ * `audited` is returned rather than inferred by the caller, because the caller
+ * cannot see which branch ran. It is the count of rows `logged` wrote.
  */
-export async function upsertStaffLevel(update: StaffUpdate): Promise<StaffRecord> {
-  const rows = await sql<DbRow>(
-    `insert into staff (clerk_user_id, role, active)
-     values ($1, $2, coalesce($3::boolean, true))
-     on conflict (clerk_user_id) do update
-        set role = excluded.role,
-            active = coalesce($3::boolean, staff.active),
-            updated_at = now()
-     returning clerk_user_id, role, active, created_at, updated_at`,
-    [update.userId, update.role, update.active],
+export async function upsertStaffLevel(
+  update: StaffUpdate,
+  actorId: string,
+): Promise<StaffChange> {
+  const rows = await sql<DbRow & { audit_rows: number | string }>(
+    `with previous as (
+       select role, active from staff where clerk_user_id = $1
+     ), upserted as (
+       insert into staff (clerk_user_id, role, active)
+       values ($1, $2, coalesce($3::boolean, true))
+       on conflict (clerk_user_id) do update
+          set role = excluded.role,
+              active = coalesce($3::boolean, staff.active),
+              updated_at = now()
+       returning clerk_user_id, role, active, created_at, updated_at
+     ), logged as (
+       insert into staff_audit (actor_id, subject_id, from_role, to_role, from_active, to_active)
+       select $4, u.clerk_user_id, p.role, u.role, p.active, u.active
+         from upserted u
+         left join previous p on true
+        where p.role is distinct from u.role
+           or p.active is distinct from u.active
+       returning id
+     )
+     select u.clerk_user_id, u.role, u.active, u.created_at, u.updated_at,
+            (select count(*) from logged) as audit_rows
+       from upserted u`,
+    [update.userId, update.role, update.active, actorId],
   )
   const row = rows[0]
   if (!row) throw new Error("staff upsert returned no row")
-  return toRecord(row)
+  return { staff: toRecord(row), audited: Number(row.audit_rows) > 0 }
+}
+
+/* ── The audit log ───────────────────────────────────────────────────────── */
+
+/** One recorded transition, as the API and the Team screen use it. */
+export interface StaffAuditRecord {
+  id: number
+  /** Who made the change. A Clerk user id — see the migration on why it is not a foreign key. */
+  actorId: string
+  /** Whose level changed. */
+  subjectId: string
+  /** Null on a first assignment: there was no previous level. */
+  fromRole: StaffRole | null
+  toRole: StaffRole
+  fromActive: boolean | null
+  toActive: boolean
+  /** ISO 8601, as Neon returns `timestamptz`. */
+  at: string
+}
+
+interface DbAuditRow {
+  id: number | string
+  actor_id: string
+  subject_id: string
+  from_role: string | null
+  to_role: string
+  from_active: boolean | null
+  to_active: boolean
+  at: string
+}
+
+/**
+ * The most recent transitions, newest first.
+ *
+ * A limit rather than pagination: the panel answers "what changed lately", and a
+ * screen that has to paginate an audit log is a screen nobody reads. The full
+ * history for one person is a query away and is not built yet — #114 asks for a
+ * record that can be read, not for a compliance export.
+ *
+ * `id` is `bigint`, which Neon may return as a string to avoid losing precision
+ * past 2^53. Coerced here so the type is honest rather than "number, usually".
+ */
+export async function listStaffAudit(limit = 25): Promise<StaffAuditRecord[]> {
+  const rows = await sql<DbAuditRow>(
+    `select id, actor_id, subject_id, from_role, to_role, from_active, to_active, at
+       from staff_audit
+      order by at desc, id desc
+      limit $1`,
+    [limit],
+  )
+  return rows.map((row) => ({
+    id: Number(row.id),
+    actorId: row.actor_id,
+    subjectId: row.subject_id,
+    // `from_role` is genuinely nullable and must stay so: "from nothing" is a
+    // fact, and a default here would invent a promotion that never happened.
+    fromRole: isStaffRole(row.from_role) ? row.from_role : null,
+    toRole: isStaffRole(row.to_role) ? row.to_role : "service_rep",
+    fromActive: row.from_active === null ? null : row.from_active === true,
+    toActive: row.to_active === true,
+    at: row.at,
+  }))
 }
 
 /* ── The roster: Clerk's membership, Postgres's level ─────────────────────── */

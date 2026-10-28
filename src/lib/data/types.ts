@@ -224,6 +224,31 @@ export interface StaffMember {
   active: boolean
 }
 
+/**
+ * One recorded level change — who changed whose level, from what, to what, when.
+ *
+ * ⚠️ `fromRole` and `fromActive` are **null on a first assignment**, and that is a
+ * fact rather than a gap: "promoted from nothing" and "promoted from rep" are
+ * different events, and a default would erase the difference. `fromActive: false`
+ * with `toActive: true` is a restored leaver; `fromActive: null` is a person who
+ * had never been given access at all.
+ *
+ * `actorId` is a Clerk user id, not a name: the log records the id, and the screen
+ * resolves it against the roster — falling back to the id when that person has
+ * since left, because a record that cannot name its actor is still a record.
+ */
+export interface StaffAuditEntry {
+  id: number
+  actorId: string
+  subjectId: string
+  fromRole: StaffLevel | null
+  toRole: StaffLevel
+  fromActive: boolean | null
+  toActive: boolean
+  /** ISO 8601. */
+  at: string
+}
+
 /* ── Assets ──────────────────────────────────────────────────────────────── */
 
 export type AssetGroup = "Brand" | "Photography" | "Icons" | "Logos"
