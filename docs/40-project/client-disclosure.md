@@ -2,9 +2,14 @@
 
 **Kind:** dated · **Owner:** the repo · **Prepared for:** the client · **Last verified:** 2026-09-27 at `322d842`
 
-> **Historical snapshot dated 2026-09-27.** Its authentication section describes the
-> earlier shared-credential prototype, and its visitor-data, cookie, and third-party
-> service sections predate Clerk. The current integration and disclosure are recorded in
+> **Historical snapshot dated 2026-09-27.** It predates the server. **§3.3 and the
+> "Known limitations" table describe a contact form that wrote to the submitter's
+> browser and told the business nothing — that stopped being true in v2.3.0 (#68).** A
+> submission now POSTs to `/api/inquiry`, is stored in Postgres, and is emailed to the
+> address in `notification_settings`; the email can fail and the lead is stored anyway.
+> Its authentication section describes the earlier shared-credential prototype, and its
+> visitor-data, cookie, and third-party service sections predate Clerk. The current
+> integration and disclosure are recorded in
 > [ADR 0005](./decisions/0005-clerk-admin-identity.md), the current [security posture](../30-operations/security.md),
 > and the live policy copy.
 
@@ -321,6 +326,13 @@ third-party captcha."* A future change that adds analytics therefore **reverses 
 decision**, and would have to be agreed rather than made quietly. See §7.3.
 
 ### 3.3 ⚠️ The submission goes to the submitter's own browser
+
+> **Superseded — this section describes 2026-09-27, and is kept as written because this
+> document is the record of what was disclosed on its date.** Since v2.3.0 (#68) the
+> form POSTs to `/api/inquiry`; the lead is stored in Postgres and emailed to the
+> business, and **if that email fails the lead is still stored**. The current answer is
+> [`../60-reference/data-layer.md`](../60-reference/data-layer.md) §9 and the live
+> privacy copy.
 
 > **`/contact` writes the inquiry to the submitter's `localStorage`. The business never
 > receives it.**

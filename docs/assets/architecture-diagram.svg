@@ -70,7 +70,7 @@
 <g class="c-blue">
 <rect x="420" y="200" width="180" height="56" rx="8" fill="#042C53" stroke="#185FA5" stroke-width="0.5"/>
 <text class="th" x="510" y="222" text-anchor="middle" fill="#B5D4F4" font-size="13" font-weight="500">Seam 2 — Data Layer</text>
-<text class="ts" x="510" y="240" text-anchor="middle" fill="#85B7EB" font-size="12">api.ts → backend.ts</text>
+<text class="ts" x="510" y="240" text-anchor="middle" fill="#85B7EB" font-size="12">api.ts → /api/* → Neon</text>
 </g>
 
 <g class="c-blue">
@@ -82,7 +82,7 @@
 <g class="c-blue">
 <rect x="420" y="340" width="180" height="56" rx="8" fill="#042C53" stroke="#185FA5" stroke-width="0.5"/>
 <text class="th" x="510" y="362" text-anchor="middle" fill="#B5D4F4" font-size="13" font-weight="500">Seam 4 — Auth Gate</text>
-<text class="ts" x="510" y="380" text-anchor="middle" fill="#85B7EB" font-size="12">Client-side credential</text>
+<text class="ts" x="510" y="380" text-anchor="middle" fill="#85B7EB" font-size="12">Clerk + server checks</text>
 </g>
 
 <path d="M340 380 L410 380" fill="none" stroke="#185FA5" stroke-width="1" stroke-dasharray="3,3"/>

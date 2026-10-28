@@ -30,8 +30,8 @@ Four things a new reader assumes, and should not:
 
 | Assumption | Reality |
 |---|---|
-| "The dashboard stores data somewhere." | It stores data in **`localStorage`**, behind an async API seam designed to be swapped for a real backend. It is a working demonstration of the workflow, not a shipped backend. |
-| "The `/admin` sign-in protects the data." | Clerk sign-in and the admin-role check control which UI is shown. There is no server-side authorization, and dashboard data is still browser-local. Do not put shared or sensitive data here. See [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md). |
+| "The dashboard stores data somewhere." | It stores data in **Postgres (Neon)**, read and written through `/api/*`. Leads, the business settings and the notification address all live there, so a change made on one machine is visible on another. |
+| "The `/admin` sign-in protects the data." | Clerk decides **who** may sign in; every admin endpoint then re-checks the caller's capabilities with `requireCapability()` before it touches the database. The client-side gate is a courtesy — hiding UI is not the boundary. See [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md) and [`../30-operations/security.md`](../30-operations/security.md). |
 | "The design was built from scratch." | The marketing pages were **ported from a purchased HTML template** — the static prototype in `valvoro-prototype/` — and re-implemented in React and Tailwind. Some images are byte-identical to the template's. See [`../60-reference/parity.md`](../60-reference/parity.md) and [`../60-reference/third-party-assets.md`](../60-reference/third-party-assets.md). |
 | "CI has always run the gates." | CI is **new** (Phase 2). Before it, the suite ran when a human typed `npm test`, while `tests/README.md` claimed it ran in CI. That claim was false and is one of the findings the documentation refactor closed. |
 

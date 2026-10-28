@@ -39,6 +39,13 @@ pages  →  api.ts  ─┬→  backend.ts  →  localStorage   (the `security` r
 call-indigo:v1:<key>
 ```
 
+> ⚠️ **Nothing the app displays lives here any more.** Since v2.3.0 (#68) and A2, leads,
+> settings, the staff levels and the notification address are rows in Postgres, read
+> through `/api/*` — see §9. What is left under this namespace is the `security` record,
+> which has no callers, and the reset control that clears it. Both go with
+> [#95](https://github.com/indigo-services/call-indigo/issues/95), which is why this
+> section is kept: it describes the thing that removal ends.
+
 **Versioned on purpose.** A shape change bumps `v1` rather than migrating, and a stale
 key is inert rather than corrupting.
 
