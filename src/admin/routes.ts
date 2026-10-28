@@ -182,6 +182,17 @@ export interface AdminExternalNavItem {
   /** Absolute URL. Validated as such by `tests/policy.mjs`. */
   href: string
   icon: LucideIcon
+  /**
+   * The access area this link belongs to, filtered by the same `can()` the
+   * internal items use.
+   *
+   * Added by #104. Without it `ExternalNavLinks` had nothing to filter on and
+   * mapped the whole array, so a `service_rep` was shown Clerk, Vercel and
+   * GitHub — three organization-level vendor accounts they cannot open. The
+   * field is required, not optional, so a new external link has to state who it
+   * is for; an optional field would default to "everyone" silently.
+   */
+  feature: AdminFeature
 }
 
 export interface AdminExternalNavGroup {
@@ -209,11 +220,13 @@ export const ADMIN_EXTERNAL_NAV: readonly AdminExternalNavGroup[] = [
         title: "Clerk",
         href: "https://dashboard.clerk.com",
         icon: Fingerprint,
+        feature: "accounts",
       },
       {
         title: "Vercel",
         href: "https://vercel.com/indigo-projects",
         icon: Triangle,
+        feature: "accounts",
       },
       {
         title: "GitHub",
@@ -222,6 +235,7 @@ export const ADMIN_EXTERNAL_NAV: readonly AdminExternalNavGroup[] = [
         // `GitBranch` is the closest remaining source-control mark; the label
         // above is what a reader actually uses, and it is unchanged.
         icon: GitBranch,
+        feature: "accounts",
       },
     ],
   },

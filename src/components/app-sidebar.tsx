@@ -127,16 +127,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             `src/admin/ExternalNav.tsx` for why, and for the `noopener` /
             `noreferrer` reasoning.
 
-            ⚠️ This group is NOT role-gated, and that is deliberate rather than an
-            oversight. `RequireAuth` already refuses to render `AdminLayout` — and
-            therefore this sidebar — to anyone without the admin role, so a
-            `visibleTo` predicate here would be tautologically true for every
-            render that can reach it. Issue #70 asks for the group to be
-            admin-only; it already is, by the shell, and adding a second check
-            that can never fail would read as a gate that does something. When
-            #74 splits the admin role into per-feature permissions, THIS is the
-            place to put the predicate — not before. */}
-        <ExternalNavLinks />
+            ✅ This group IS gated, by `accounts:read` (#104). It was not until
+            then, and the comment that used to sit here is worth remembering
+            because it was confidently wrong: it argued the group needed no gate
+            since `RequireAuth` refused anyone without the admin role, making a
+            predicate "tautologically true for every render that can reach it".
+
+            That held while there was one admin role. #100 split it into three
+            staff levels, `RequireAuth.tsx` refuses only when
+            `access.features.size === 0`, and a `service_rep` holds `inbox:read`
+            — so the size was 1, the shell rendered, and the rep was shown three
+            organization-level vendor accounts they cannot open. Nothing failed:
+            a comment that explains why a guard is absent stops anyone looking
+            for the guard when the premise changes.
+
+            So the rule is the internal groups' rule, and it lives in the
+            component: `ExternalNavLinks` filters each item with `can()`, and
+            `access` is a required prop. Do not replace that with a `role`
+            comparison here — two access rules beside each other is the drift
+            #100 spent a release removing. */}
+        <ExternalNavLinks access={access} />
       </SidebarContent>
 
       <SidebarFooter>
