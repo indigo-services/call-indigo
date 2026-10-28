@@ -46,7 +46,7 @@ there is one thing to be wrong.
 
 - A file under `src/components/ui/` that was not produced by the shadcn CLI (PRD §7).
 - A `src/admin/**` file importing from `src/marketing/**`, or the reverse (PRD §7.4.2).
-- A page importing `@/lib/data/backend` directly instead of going through
+- A page calling `/api/*` directly instead of going through
   `@/lib/data/api` (PRD §16.2 F2).
 - A raise to the lint ceiling in `.github/workflows/ci.yml` to make a build pass.
 - A document that states a number nobody measured.

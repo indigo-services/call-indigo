@@ -378,6 +378,14 @@ export function run() {
       { re: /There is no automated suite yet/, what: "F3 — says there is no automated suite" },
       { re: /\b67 checks\b/, what: "F2 — the 60-releases-stale check count" },
       { re: /no `LICENSE` file in this repository yet/, what: "F8 — says LICENSE is missing" },
+      // F9 — measured 2026-10-28, while deleting the last browser record (#95): the
+      // README still described the dashboard as browser-local, in three separate
+      // places, a release after the data moved. Each of these was true once and none
+      // of them was in this list, which is why it survived #116's sweep of the docs.
+      { re: /browser-local demo data/, what: "F9 — says the dashboard's data is browser-local" },
+      { re: /`localStorage` behind an async API seam/, what: "F9 — names the deleted storage engine as the current design" },
+      { re: /writes to the\s+submitter's own browser/, what: "F9 — says the contact form writes to the visitor's browser" },
+      { re: /publicMetadata\.role === "admin"/, what: "F9 — says access comes from public metadata, not an organization membership" },
     ]
     for (const { re, what } of STALE) {
       if (re.test(readme)) problems.push(`README.md: ${what}`)

@@ -1,11 +1,12 @@
 # Architecture — the four seams
 
-**Kind:** living · **Owner:** the repo · **Last verified:** 2026-10-28 at `6d39e06`
+**Kind:** living · **Owner:** the repo · **Last verified:** 2026-10-28 in the working tree
 
-This is a client-rendered React SPA. It has no server, and that single fact explains
-most of its architecture. What follows is not a file listing — it is the four places
-where a decision was **isolated so it can be replaced**, plus the reason each one is
-shaped the way it is.
+This is a client-rendered React SPA **in front of a small server.** The browser holds
+the routes and the rendering; `api/` holds Vercel functions, and they are the only
+thing that touches the database. That split explains most of its architecture. What
+follows is not a file listing — it is the four places where a decision was **isolated
+so it can be replaced**, plus the reason each one is shaped the way it is.
 
 > A **seam** is one file that owns a decision. The test of a seam is that replacing
 > the decision changes that file and nothing else. Most defects in this codebase are
@@ -46,9 +47,8 @@ shaped the way it is.
   └───────────────────┘    └───────────┬────────────┘
                                        ▼
                            ┌────────────────────────┐
-                           │ backend.ts             │  seam 2b
-                           │ the ONLY file that     │
-                           │ knows it is localStorage│
+                           │ /api/*  →  Postgres    │
+                           │ Vercel functions       │
                            └────────────────────────┘
 ```
 
@@ -58,13 +58,14 @@ shaped the way it is.
 |---|---|
 | `src/admin/**` may not import from `src/marketing/**`, or the reverse (PRD §7.4.2) | `tests/policy.mjs` — two checks, one per direction |
 | A file under `src/components/ui/` that the shadcn CLI did not produce is a PRD §7 violation | `tests/policy.mjs` — "every src/components/ui file is a documented registry component" |
-| No page may import `@/lib/data/backend` directly — pages call `api` | **Nothing.** [M: `grep -rn "data/backend" tests/` returns only transpiled copies under the gitignored `tests/.tmp/`] |
+| No module but `api.ts` may call `/api/*` — pages call `api` | `tests/policy.mjs` — "only the data-layer facade calls the API", **with a positive control** |
 
-> ⚠️ **The third rule is stated in `CONTRIBUTING.md`'s "What we will not merge" and is
-> not checked by anything.** It is currently enforced by review and by the fact that
-> nobody has broken it. That is the same shape as every other defect this repo has
-> paid for — *an assertion that cannot see the thing it claims to check passes
-> forever*. Adding the check is tracked in [`../40-project/tasks.md`](../40-project/tasks.md).
+> **This rule was unchecked for two releases, and the note saying so outlived the fix.**
+> Until #95 the assertion named `@/lib/data/backend`, a file that no longer exists; the
+> note above it still claimed nothing checked the boundary. Deleting the engine moved
+> the boundary outwards to `fetch("/api/…")` and the check moved with it. **A note that
+> describes the state of a guard is a claim like any other** — it has to be re-measured
+> when the guard changes, or it becomes the reason nobody looks.
 
 ---
 
@@ -102,17 +103,17 @@ pages  →  api.ts  →  /api/*  →  Neon (Postgres, over HTTP)
 | File | Owns | Must never |
 |---|---|---|
 | `src/lib/data/types.ts` | The domain types, storage-agnostic | know about `localStorage` |
-| `src/lib/data/seed.ts` | The shipped defaults (`DEFAULT_SETTINGS`, `DEFAULT_PROFILE`, `DEFAULT_NOTIFICATIONS`) and the demo inbox fixture | be imported by a page |
-| `src/lib/data/api.ts` | **The seam.** Every method is `async` because every one of them is a network call | be bypassed by a page |
+| `src/lib/data/seed.ts` | The shipped defaults (`DEFAULT_SETTINGS`, `DEFAULT_PROFILE`, `DEFAULT_NOTIFICATIONS`) — what the client merges when the server has never been written for a key | be imported by a page |
+| `src/lib/data/api.ts` | **The seam.** Every method is `async` because every one of them is a network call, and the only module that calls `/api/*` | be bypassed by a page |
 | `src/lib/data/hooks.ts` | `useApiData` — the single read path | — |
 | `src/lib/data/use-draft.ts` | Draft state that survives a background refresh | — |
-| `src/lib/data/backend.ts` | **Vestigial.** `localStorage` under the `call-indigo:v1` namespace, reached only by `getSecurity` / `saveSecurity` and the "Reset demo data" control — none of which has a caller. The app's data left it in v2.3.0; the file goes with [#95](https://github.com/indigo-services/call-indigo/issues/95) | be imported by a page |
 
 **The seam was built for this and it held.** `api.ts` was written `async` from the
 first commit, against a synchronous `localStorage` engine, so that replacing the
 storage would be a change to one file. It was: v2.3.0 (#68) and A2 replaced the bodies
-of its methods with `fetch` calls, and no page learned what a network is. The three
-methods still on `backend.ts` are the vestigial ones named above.
+of its methods with `fetch` calls, and no page learned what a network is. The engine
+itself outlived its last reader by a release and was deleted in #95 — there is no
+`backend.ts`, and no app data in the browser at all.
 
 ### Why `api.ts` is `async`, and where the 140 ms went
 
@@ -121,9 +122,11 @@ call sites would already be written for the world where a method returns a netwo
 promise. That bet paid: `getSettings`, `saveSettings`, `listInquiries`, `createInquiry`
 and the rest became `fetch` without a call site changing shape.
 
-There is still a `LATENCY_MS = 140` in `api.ts`, and it now applies to exactly the
-three vestigial `backend.ts` calls — `readSecurity`, `writeSecurity` and `reset`. No
-live path waits for it. When #95 deletes those, the constant goes with them.
+`LATENCY_MS = 140` was the simulated delay that made loading and in-flight states
+visible while the storage was local. It survived one release longer than it deserved,
+applying only to the three vestigial `backend.ts` calls, and went with them in #95.
+**There is no artificial latency now**, so a loading state is only seen when the
+network is actually slow — which on a cold Vercel function it is.
 
 ### Why a version counter, and not React state
 

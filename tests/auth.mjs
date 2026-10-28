@@ -7,7 +7,7 @@
  */
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
 import path from "node:path"
-import { ROOT, check, load, suite } from "./harness.mjs"
+import { ROOT, check, load, stripJsComments, suite } from "./harness.mjs"
 
 const read = (relativePath) => readFileSync(path.join(ROOT, relativePath), "utf8")
 
@@ -468,12 +468,34 @@ export async function run() {
   check("security copy distinguishes Clerk identity from server authorization", () => {
     const guard = read("src/admin/RequireAuth.tsx")
     const security = read("src/admin/SecurityPage.tsx")
+    // The docblock above the component explains what was removed and names the
+    // control it removed, so a raw match would fail on the explanation. Only the
+    // rendered code counts — the same trap that made #93's first guard red.
+    const code = stripJsComments(security)
     const out = []
     if (!/not server authorization/i.test(guard)) out.push("RequireAuth does not state its client-side authorization limit")
-    if (!/Clerk manages your password, multi-factor authentication, and active sessions/.test(security)) {
+    if (!/Clerk manages your password, multi-factor authentication, and active sessions/.test(code)) {
       out.push("SecurityPage still suggests local controls manage real account security")
     }
-    if (/src\/admin\/auth\.ts|prototype gate|Change password/.test(security)) out.push("SecurityPage retains copy from the retired credential prototype")
+    if (/src\/admin\/auth\.ts|prototype gate|Change password/.test(code)) out.push("SecurityPage retains copy from the retired credential prototype")
+
+    // #95's acceptance criterion, which had nothing watching it: the page shows
+    // the Clerk card and nothing else. `resetDemoData` cleared a browser record
+    // that no screen read; the control is gone, and a control that clears nothing
+    // must not come back.
+    if (/resetDemoData|Reset demo data/.test(code)) {
+      out.push("SecurityPage offers a reset control again — the browser store it cleared no longer exists")
+    }
+    // Access has come from an organization membership since #74, not from a flag on
+    // the user. The card said "the admin role in your Clerk public metadata" until
+    // #95, which described an authorization rule that had been wrong for months on
+    // the one page whose subject is access.
+    if (/public metadata|publicMetadata/i.test(code)) {
+      out.push("SecurityPage says access comes from public metadata; it comes from an organization membership")
+    }
+    if (!/Indigo Services/.test(code)) {
+      out.push("SecurityPage does not name the organization that grants access")
+    }
     return out
   })
 

@@ -26,7 +26,7 @@ From `PRD.md` Appendix B.
 
 | Term | Meaning | Where it bites |
 |---|---|---|
-| **Seam** | A single file that isolates a decision so it can be replaced without touching call sites. This repo has four: `src/lib/data/api.ts`, `src/lib/data/backend.ts`, `src/admin/routes.ts`, `src/marketing/chrome.ts`. | A change that reaches *past* a seam is the change that hurts. Pages must never import `backend.ts`. |
+| **Seam** | A single file that isolates a decision so it can be replaced without touching call sites. This repo has four: `src/App.tsx` (the route table), `src/lib/data/api.ts` (the data layer), `src/marketing/chrome.ts` (the shared marketing chrome), and `src/admin/RequireAuth.tsx` (identity). | A change that reaches *past* a seam is the change that hurts. Pages must never call `/api/*` themselves — that is what `api.ts` is for. |
 | **The chrome** | The top bar, header, mobile drawer, footer and legal modals. | **It is not shared.** It is duplicated inside all three marketing pages' `BODY_HTML` literals. A `chrome.ts` change reaches **one page of four**. |
 | **`BODY_HTML`** | A page's markup held as a string literal and injected with `dangerouslySetInnerHTML`. Three marketing pages do this. | It is the only place raw HTML enters the DOM, and the reason `chrome.ts` exists. |
 | **The admin gate** | Clerk sign-in plus a membership of the `Indigo Services` organization, resolved by `resolveOrgAccess()` around the `/admin` UI. | It decides which screens are **shown** and authorizes nothing; every endpoint re-checks with `requireCapability()`. See [ADR 0005](../40-project/decisions/0005-clerk-admin-identity.md). |

@@ -56,8 +56,8 @@ release entries and [PRD.md](./PRD.md) for the full product requirements documen
 | Routing | React Router 7 | SPA with client-side fallback |
 | Icons | lucide-react | Matches shadcn `iconLibrary` |
 | Toasts | sonner | Dashboard save confirmations |
-| Dashboard data | `localStorage` behind an async API seam | Demo only — see [Data layer](#data-layer) |
-| Dashboard access | Clerk sign-in plus an admin-role UI check | Does not authorize data on a server — see [Admin sign-in](#admin-sign-in) |
+| Dashboard data | Neon Postgres behind `/api/*` | The browser stores nothing — see [Data layer](#data-layer) |
+| Dashboard access | Clerk sign-in, an organization membership, and a staff level | Every endpoint re-checks it — see [Admin sign-in](#admin-sign-in) |
 | Path alias | `@/*` → `src/*` | Required by the shadcn CLI |
 | Node | `^20.19.0 \|\| >=22.12.0` | `package.json` `engines`, pinned in `.nvmrc` |
 
@@ -131,7 +131,7 @@ The generated route table, with each page's file and line count, is
 | `/admin/settings` | Business details (`General`) — persisted |
 | `/admin/profile` | The signed-in operator's own details — persisted |
 | `/admin/notifications` | What the team is told about, and when — persisted |
-| `/admin/security` | Clerk account management and reset demo data |
+| `/admin/security` | Clerk account management — the account itself, nothing stored here |
 | `/admin/design` | Design System — read-only brand token display |
 | `/admin/assets` | The images the marketing pages serve, discovered from disk |
 | `/admin/components` | The registry primitives and their exports, discovered from disk |
@@ -172,9 +172,8 @@ indigo/
       theme.ts, use-theme.ts     Theme token authoring behind the Design System page
       data/                      Dashboard data layer (see below)
         types.ts                 Storage-agnostic domain types
-        seed.ts                  First-run fixtures — 9 inquiries
-        backend.ts               The only file that knows data lives in localStorage
-        api.ts                   The async seam every page calls
+        seed.ts                  The shipped DEFAULT_* records
+        api.ts                   The async seam every page calls — and the only file that calls /api/*
         hooks.ts                 useApiData — the single read path
         use-draft.ts             Draft state that survives background refreshes
     components/
@@ -231,47 +230,52 @@ aspiration.
 
 ## Data layer
 
-The dashboard's data lives in `localStorage` under the versioned namespace
-`call-indigo:v1:*`. The shape of the layer is what matters, because it is designed to be
-replaced:
+The dashboard's data lives in Neon Postgres and is read through Vercel functions under
+`/api/*`. **The browser stores none of it.** The shape of the layer is what matters,
+because it is what made that move cheap:
 
 ```
-pages  →  api.ts  →  backend.ts  →  localStorage
+pages  →  api.ts  →  /api/*  →  Postgres
             ↑
-   the only seam; async on purpose
+   the only seam; async because
+   every call is a network call
 ```
 
-- **Pages never import `backend.ts`.** They call `api.ts`, which is `async` even though
-  the local backend is synchronous — so swapping in `fetch` is a change to one file
-  (PRD §16.2 F2).
-- **`backend.ts` is the only file that knows where data physically lives.** It is
-  synchronous and dumb on purpose. Corrupt JSON and a full quota both fall back rather
-  than taking the page down.
+- **Pages never call `/api/*` directly.** They call `api.ts`, which is `async` because
+  every one of its methods is a network call. `tests/policy.mjs` fails if another file
+  under `src/` fetches an API path — the boundary is asserted, not just documented.
+- **`api.ts` is the only file that knows an endpoint exists.** Swapping the storage was
+  a change to this one file, because the seam was written `async` before anything
+  asynchronous existed (PRD §16.2 F2).
 - **Mutations bump a version counter** that `useApiData` subscribes to via
   `useSyncExternalStore`. This is why submitting on `/contact` repaints the dashboard
   inbox without either page knowing the other exists.
 
-Full surface — every method, the namespace, the seed, and the failure modes:
+Full surface — every method, every endpoint, the seed, and the failure modes:
 [docs/60-reference/data-layer.md](./docs/60-reference/data-layer.md).
 
-**`localStorage` is not a database.** Data is per-browser, is not shared between users or
-devices, and is cleared with site data. This demonstrates the workflow; it is not a
-shipped backend. **The contact form tells the business nothing** — it writes to the
-submitter's own browser. Say so before a demo.
+**One copy, and it is the database.** A lead submitted on `/contact` is a row the
+dashboard reads from any device, and the mail that announces it is sent by the server.
+Until 2026-10-28 a single dead record still sat in `localStorage`, reachable only by a
+"Reset demo data" button that cleared nothing; both were removed in
+[#95](https://github.com/indigo-services/call-indigo/issues/95).
 
 ## Admin sign-in
 
-The `/admin` route lazy-loads Clerk React sign-in and requires both an invited account
-and `publicMetadata.role === "admin"`. Set the Clerk instance's Access mode to
-**Invite-only**, invite each admin, and assign the role through Clerk's trusted dashboard
-or backend. The Clerk Vercel integration supplies the public publishable key;
+The `/admin` route lazy-loads Clerk React sign-in. Access requires **an invited account
+and a membership in the `Indigo Services` organization** — since #74 it is not a flag on
+the user's public metadata, and a `publicMetadata.role` will not let anyone in. Set the
+Clerk instance's Access mode to **Invite-only** and invite each person; then set their
+level — Admin, Service Manager or Service Rep — on `/admin/team`, which writes the
+`staff` table. The Clerk Vercel integration supplies the public publishable key;
 `vite.config.ts` maps it to Vite without exposing `CLERK_SECRET_KEY`.
 
-This is still a client-rendered Vite SPA with browser-local demo data. The Clerk role
-check controls which dashboard UI is shown; it does not protect data with server-side
-authorization. The app needs an authenticated backend before shared or sensitive data is
-stored. See [the current Clerk decision](./docs/40-project/decisions/0005-clerk-admin-identity.md)
-and [security posture](./docs/30-operations/security.md).
+This is a client-rendered Vite SPA. Access is gated twice: Clerk decides who is signed
+in and which organization they belong to, and every admin endpoint re-checks the
+caller's capability before it touches the database — so the browser gate decides which
+screens are *shown*, and the server decides what is *allowed*. See
+[the Clerk decision](./docs/40-project/decisions/0005-clerk-admin-identity.md) and
+[security posture](./docs/30-operations/security.md).
 
 ## Parity
 

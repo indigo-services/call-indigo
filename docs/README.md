@@ -131,7 +131,7 @@ declares for itself — see `00-meta/conventions.md` §2.
 |---|---|---|
 | [`60-reference/README.md`](./60-reference/README.md) | index | What this domain is, and why `routes.md` is the odd one out |
 | [`60-reference/routes.md`](./60-reference/routes.md) | derived | Every route, its page file and its line count — **generated** |
-| [`60-reference/data-layer.md`](./60-reference/data-layer.md) | dated | `api → backend → localStorage` in full: surface, namespace, seed, failure modes |
+| [`60-reference/data-layer.md`](./60-reference/data-layer.md) | dated | `api → /api/* → Postgres` in full: surface, endpoints, the seed, failure modes |
 | [`60-reference/admin-gate.md`](./60-reference/admin-gate.md) | dated | The gate: threat model, rotation, verification, risk register |
 | [`60-reference/dashboard-scope.md`](./60-reference/dashboard-scope.md) | dated | Where the build departs from `PRD.md` §5.2 / §9.1, and why |
 | [`60-reference/component-exceptions.md`](./60-reference/component-exceptions.md) | dated | The PRD §7.5 exception record for `ColourSwatch` |

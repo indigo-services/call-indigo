@@ -1,22 +1,22 @@
 /**
  * The data API — the seam every page talks to.
  *
- * Pages never touch `backend.ts`. They call these methods, which are **async on
- * purpose**: the local backend is synchronous, but a real HTTP backend will not
- * be, so the call sites are already written for the world where this returns a
- * network promise.
+ * Pages call these methods, and only these. Every one is **async on purpose**:
+ * when this module was written the storage behind it was synchronous, so the call
+ * sites were already written for the world where a method returns a network
+ * promise. That promise has been cashed — every method now fetches `/api/…` — and
+ * the asynchrony is what made cashing it a change to this file rather than to every
+ * call site.
  *
- * **The promise has been cashed.** Inquiries, settings, profile and notification
- * preferences all go through `/api/…` now; the browser keeps nothing that a
- * second device would disagree with. What is left in `backend.ts` is the `security`
- * record, which has no server-side meaning yet (#95). See
- * `docs/60-reference/data-layer.md` §9.
+ * **The browser stores nothing.** There is no local engine behind this module any
+ * more: `backend.ts` held one `security` record that nothing read and a "Reset
+ * demo data" control that cleared it, and both went in #95. A second device sees
+ * the same rows because there is only one copy, in Postgres.
  *
  * Mutations bump a version counter. `useApiData` subscribes to it, so a change made
  * on one admin page repaints another without either page knowing about the other.
  * `createInquiry` deliberately does **not** bump: it writes nothing here.
  */
-import { backend } from "@/lib/data/backend"
 import { DEFAULT_NOTIFICATIONS, DEFAULT_PROFILE, DEFAULT_SETTINGS } from "@/lib/data/seed"
 import type {
   AdminProfile,
@@ -24,7 +24,6 @@ import type {
   NewInquiry,
   NotificationPrefs,
   NotificationSettings,
-  SecurityState,
   SiteSettings,
   StaffAuditEntry,
   StaffLevel,
@@ -50,18 +49,6 @@ export class InquiryError extends Error {
     super(`inquiry POST failed: ${status} ${code}`)
     this.name = "InquiryError"
   }
-}
-
-/**
- * Simulated network latency. Small enough not to be annoying, large enough that
- * loading and in-flight button states are actually exercised during review —
- * a UI that only ever renders its loaded state is a UI whose loading state is
- * untested.
- */
-const LATENCY_MS = 140
-
-function delay<T>(value: T): Promise<T> {
-  return new Promise((resolve) => setTimeout(() => resolve(value), LATENCY_MS))
 }
 
 /* ── Change notification ─────────────────────────────────────────────────── */
@@ -380,26 +367,5 @@ export const api = {
     const { staff } = await readJson<{ staff: StaffMember }>(res)
     bump()
     return staff
-  },
-
-  /* ── Security ── */
-
-  async getSecurity(): Promise<SecurityState> {
-    return delay(backend.readSecurity())
-  },
-
-  async saveSecurity(value: SecurityState): Promise<SecurityState> {
-    backend.writeSecurity(value)
-    bump()
-    return delay(value)
-  },
-
-  /* ── Demo housekeeping ── */
-
-  /** Clears every stored key and restores the seed fixtures. */
-  async resetDemoData(): Promise<void> {
-    backend.reset()
-    bump()
-    await delay(null)
   },
 }

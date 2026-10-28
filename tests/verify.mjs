@@ -1736,8 +1736,11 @@ export async function run() {
   })
 
   check("an invalid colour is dropped rather than applied", () => {
-    // The load-bearing safety property. A corrupt localStorage record must not be
-    // able to paint the site black, and a half-typed value must not blank a token.
+    // The load-bearing safety property. A corrupt record must not be able to paint
+    // the site black, and a half-typed value must not blank a token. The record
+    // arrives from `GET /api/settings?key=site` — the one un-gated settings read —
+    // so it is JSON from a database rather than JSON from a browser, and a
+    // hand-edited or half-migrated row is still the failure this covers.
     const applied = {}
     theme.applyTheme(
       { style: { setProperty: (k, v) => (applied[k] = v) } },

@@ -3,8 +3,10 @@
 **Kind:** dated · **Owner:** `src/lib/data/` · **Last verified:** 2026-10-28 in the working tree
 
 The full surface. The *reasoning* is in
-[`../40-project/decisions/0003-localstorage-behind-an-async-seam.md`](../40-project/decisions/0003-localstorage-behind-an-async-seam.md);
-the *shape* is in [`../20-development/architecture.md`](../20-development/architecture.md#seam-2--the-data-layer).
+[`../40-project/decisions/0003-localstorage-behind-an-async-seam.md`](../40-project/decisions/0003-localstorage-behind-an-async-seam.md)
+— **superseded**, and kept because the reason the seam was built that way is why
+replacing it cost one file; the *shape* is in
+[`../20-development/architecture.md`](../20-development/architecture.md#seam-2--the-data-layer).
 This document is the lookup table.
 
 ---
@@ -13,49 +15,69 @@ This document is the lookup table.
 
 ![Data layer diagram](../assets/data-layer-diagram.svg)
 
-*Figure 1 — The async seam: pages call `api.ts`, which calls `backend.ts`, which reads from `localStorage`. Replacing the storage means replacing one file.*
+*Figure 1 — The async seam: pages call `api.ts`, which is the only module that calls `/api/*`. Nothing is stored in the browser.*
 
 ```
-pages  →  api.ts  ─┬→  backend.ts  →  localStorage   (the `security` record only)
-                    └→  fetch       →  /api/*       →  Postgres
-            ↑
-   the only seam; async on purpose
+pages  →  api.ts  →  /api/*  →  Postgres
+            ↑                    └→  Resend (the notification email)
+   the only seam; async because
+   every call is a network call
 ```
 
 | File | Lines | Owns |
 |---|---:|---|
-| `types.ts` | 189 | The domain types, storage-agnostic |
-| `seed.ts` | 199 | The shipped `DEFAULT_*` records, and the first-run fixtures |
-| `backend.ts` | 136 | The browser store. Since A2 it holds one record |
-| `api.ts` | 257 | **The seam.** Every method `async`; the only module a page may import |
+| `types.ts` | 271 | The domain types, storage-agnostic |
+| `seed.ts` | 66 | The shipped `DEFAULT_*` records — what the client merges when the server has no value |
+| `api.ts` | 371 | **The seam.** Every method `async`; the only module that calls `/api/*` |
 | `hooks.ts` | 82 | `useApiData` — the single read path |
 | `use-draft.ts` | 60 | Draft state that survives a background refresh |
 
+*Counted 2026-10-28 with `wc -l`. The previous column had drifted — it said `types.ts`
+was 189 lines and `api.ts` 257, both measured before the staff model (#110, #114) added
+its types and its two methods. Nothing compares this table to the files, so it rots
+silently; the numbers are here for orientation, and `wc -l` is the answer.*
+
 [M: `src/lib/data/` owns app data; Clerk authentication is managed separately by `@clerk/react`.]
 
-## 2. The storage namespace
+**There is no `backend.ts`.** It was a `localStorage` engine behind this facade, and
+it outlived its last reader by a release: by 2026-10-28 it held one `security` record
+that no screen read, reachable only through a "Reset demo data" button. Both went in
+[#95](https://github.com/indigo-services/call-indigo/issues/95). §2 is what that
+removal ended.
 
-```
-call-indigo:v1:<key>
-```
+## 2. The browser stores nothing
 
-> ⚠️ **Nothing the app displays lives here any more.** Since v2.3.0 (#68) and A2, leads,
-> settings, the staff levels and the notification address are rows in Postgres, read
-> through `/api/*` — see §9. What is left under this namespace is the `security` record,
-> which has no callers, and the reset control that clears it. Both go with
-> [#95](https://github.com/indigo-services/call-indigo/issues/95), which is why this
-> section is kept: it describes the thing that removal ends.
+There is no storage namespace. `call-indigo:v1:*` is gone from the codebase, and
+`grep -rn "localStorage" src/` returns **comments only** — no `getItem`, no `setItem`.
+The one thing that still uses the browser's storage is Clerk, under Clerk's own keys,
+which is a session and not app data.
 
-**Versioned on purpose.** A shape change bumps `v1` rather than migrating, and a stale
-key is inert rather than corrupting.
+| Was | Now |
+|---|---|
+| `call-indigo:v1:inquiries` | the `inquiries` table, read through `/api/inquiries` |
+| `call-indigo:v1:settings` | `admin_settings`, `/api/settings?key=site` |
+| `call-indigo:v1:profile` | `admin_settings`, `/api/settings?key=profile` |
+| `call-indigo:v1:notifications` | `admin_settings`, `/api/settings?key=notifications` |
+| `call-indigo:v1:security` | **deleted** — no table, no reader, no screen (#95) |
 
-Clerk owns the authentication session separately from this app-data namespace. The
-`resetDemoData()` operation clears only `call-indigo:v1:*` and does not call Clerk's
-sign-out method.
+**Why the security record was deleted rather than given a table.** It held
+`twoFactorEnabled`, `passwordChangedAt` and `sessionTimeoutMinutes`. All three are
+Clerk's facts, and a copy of them here would be a second source of truth that drifts
+the first time someone enrols a second factor. A row in Postgres would have made the
+record *look* like a setting the dashboard owned. The Security page manages the
+account through Clerk instead — see §8.
+
+**Why the reset control was deleted with it.** "Reset demo data" cleared every key and
+re-seeded the demo inbox. With the keys gone it cleared nothing, and it was the only
+way to discover that: an operator pressed a destructive-looking button, was told "This
+browser's data cleared", and nothing happened anywhere. A control that reports success
+and does nothing is worse than an absent one.
 
 ## 3. The API surface
 
-Every method returns a promise. **`api.ts` is the only module a page may import.**
+Every method returns a promise. **`api.ts` is the only module a page may import, and
+the only one that calls `/api/*`** — `tests/policy.mjs` fails if another file under
+`src/` fetches an API path directly.
 
 ### Inquiries
 
@@ -67,7 +89,7 @@ Every method returns a promise. **`api.ts` is the only module a page may import.
 | `updateInquiry(id, patch)` | `Inquiry` | **Throws** `No inquiry with id <id>` if the id is unknown. Stamps `updatedAt` |
 | `deleteInquiry(id)` | `void` | |
 
-### Settings, profile, notifications, security
+### Settings, profile, notifications
 
 Every one of these takes an optional `TokenGetter` as its last argument and sends the
 result as `Authorization: Bearer …`; the server — not the page — decides whether the
@@ -79,17 +101,17 @@ caller is an admin.
 | `getProfile()` / `saveProfile(v)` | `AdminProfile` | `/api/settings?key=profile`, admin-only |
 | `getNotifications()` / `saveNotifications(v)` | `NotificationPrefs` | `/api/settings?key=notifications`, admin-only |
 | `getNotificationSettings()` / `saveNotificationSettings(v)` | `NotificationSettings` | `/api/notification-settings`, admin-only — **the delivery address**; the only screen that sets it since #93 |
-| `getSecurity()` / `saveSecurity(v)` | `SecurityState` | `localStorage` — **no callers**; see §8 |
 
 A key the server has never been written for comes back as `value: null` and the client
 merges the `DEFAULT_*` record from `seed.ts`. The server does not seed itself on a
 `GET`: a read that writes is a read that cannot be cached or retried safely.
 
-### Housekeeping
+### Staff
 
-| Method | Does |
-|---|---|
-| `resetDemoData()` | **Clears every key and restores the seed fixtures.** Does not touch the session |
+| Method | Returns | Capability |
+|---|---|---|
+| `getTeam()` | `{ staff, audit }` | `settings:read` |
+| `setStaffLevel(input)` | `{ staff, audited }` | `settings:write` |
 
 ### Subscription
 
@@ -113,24 +135,36 @@ otherwise catch a missing dependency.
 
 ## 5. The seed
 
-**9 inquiries** covering:
-- every status,
-- both property types,
-- all three urgency levels.
+`seed.ts` holds three records and no fixtures:
 
-Restored by **Settings → Security → Reset demo data**.
+| Record | Used when |
+|---|---|
+| `DEFAULT_SETTINGS` | `GET /api/settings?key=site` answers `value: null` |
+| `DEFAULT_PROFILE` | `GET /api/settings?key=profile` answers `value: null` |
+| `DEFAULT_NOTIFICATIONS` | `GET /api/settings?key=notifications` answers `value: null` |
 
-## 6. Latency, and why it is there
+`DEFAULT_SETTINGS` carries the site's published facts — phone, address, licence
+number — and the shipped theme tokens, because those are what the marketing pages must
+render on a cold database.
 
-```js
-const LATENCY_MS = 140
-```
+**The nine-inquiry demo inbox is gone (#95).** It existed to populate an empty browser
+store on first run, and `resetDemoData()` restored it. Once the inbox read Postgres, the
+only way to see those rows was to believe the dashboard was showing real work — so the
+fixture outlived its purpose by a release and was deleted with the store. `seed.ts` now
+contains no inquiry, and nothing in the app can create one except the public form.
 
-Small enough not to be annoying, large enough that **loading and in-flight button states
-are actually exercised during review.** A UI that only ever renders its loaded state is a
+## 6. Latency, and why it was there
+
+`LATENCY_MS = 140` was a simulated delay, so **loading and in-flight button states were
+actually exercised during review** — a UI that only ever renders its loaded state is a
 UI whose loading state is untested.
 
-> ⚠️ **The consequence for verification:** every `useApiData` page renders as
+It survived one release longer than it deserved: by 2026-10-28 it applied only to the
+three vestigial `backend.ts` calls, and it went with them in #95. **There is no
+artificial latency now.** A loading state is only seen when the network is actually
+slow, which on a cold Vercel function it is.
+
+> ⚠️ **The consequence for verification, unchanged:** every `useApiData` page renders as
 > **skeletons** in the headless suite, because the effect that would resolve the promise
 > never runs. **No data-driven admin UI is checkable from `npm test`.** See
 > [`../20-development/testing.md` §4.3](../20-development/testing.md#43-every-data-driven-admin-page).
@@ -139,38 +173,52 @@ UI whose loading state is untested.
 
 | Failure | Behaviour | Why |
 |---|---|---|
-| **Corrupt JSON** in a key | Falls back rather than throwing | A demo must not be taken down by its own storage |
-| **Quota exceeded** | Falls back rather than throwing | Same |
-| **`crypto.randomUUID` absent** | Falls back to a timestamp + random id | Older browsers |
-| **A write fails** | **It can fail silently.** This is the cost of the two fallbacks above | ⚠️ The deliberate trade: resilience over loudness |
+| **A `GET` answers `value: null`** | The `DEFAULT_*` record is merged underneath | A cold database must render the real phone number, not a blank field |
+| **A read fails** | `useApiData` keeps `data` null and the page shows its empty or skeleton state | A failed read must not be rendered as an empty record |
+| **A write is refused** | The page shows the server's message and the save button re-enables | The server is the authority; a refusal is information |
+| **A corrupt stored colour** | Dropped rather than applied | A half-typed or hand-edited hex must not blank a token — asserted in `tests/verify.mjs` |
 
-## 8. What is still browser-only, stated plainly
+The failure modes this table used to carry are gone with the store, and each one is
+worth naming because each was a real behaviour someone might still expect:
 
-The seam did its job: replacing the storage was a change to `api.ts` and a handful of
-call sites, and no page learned what a `fetch` is. What is left in `localStorage` is
-one record.
+- **Corrupt JSON** and **quota exceeded** — nothing in the browser is parsed or stored.
+- **A silent write failure** — the cost the old table accepted. `saveSettings` and its
+  siblings throw on a non-2xx and the page reports it.
+- **`crypto.randomUUID` absent** — the browser no longer mints ids. `api/_lib/inquiries.ts`
+  calls `crypto.randomUUID()` on the server and returns the id, so a browser without it
+  is not a browser that cannot submit.
+
+## 8. What is browser-only, stated plainly
+
+**Nothing.** The seam did its job — replacing the storage was a change to `api.ts` and a
+handful of call sites, and no page learned what a `fetch` is — and then the engine
+behind it outlived its last reader and was deleted.
 
 | Record | Where it lives now | Since |
 |---|---|---|
 | Inquiries | `inquiries` (Postgres) | 2026-10-22 (#68) |
 | Notification delivery | `notification_settings` (Postgres) | 2026-10-22 (#68) |
 | `site`, `profile`, `notifications` | `admin_settings` (Postgres) | 2026-10-23 (A2) |
-| `security` | `localStorage` | — |
+| Staff levels | `staff` (Postgres) | 2026-10-27 (#110) |
+| Who changed whose level | `staff_audit` (Postgres) | 2026-10-28 (#114) |
+| ~~`security`~~ | **deleted** — Clerk owns 2FA, the password and the session | #95 |
 
-**`security` is a placeholder, not a setting.** `getSecurity`/`saveSecurity` have no
-callers, and the Security page manages the account through Clerk instead. It is listed
-rather than deleted because removing it is a decision about the Security pane, not
-about this layer.
+**The security record was never a setting.** `getSecurity`/`saveSecurity` had no
+callers; the fields it held (`twoFactorEnabled`, `passwordChangedAt`,
+`sessionTimeoutMinutes`) are Clerk's facts, and a local copy would have been a second
+source of truth that drifts the first time someone enrols a second factor. The Security
+page opens Clerk's own profile panel and holds nothing else. #95 was open on the
+question of *what to do with the Security pane*; the answer was to give it no state.
 
 **The four limitations this used to state, and where they went:**
 
-1. *"`localStorage` is not a database."* Still true of the one record left, and no
-   longer true of anything anyone cares about.
+1. *"`localStorage` is not a database."* **Resolved.** There is no `localStorage`.
 2. *"The contact form tells the business nothing."* **Fixed 2026-10-22.** `/contact`
    POSTs, the row is stored, the email is sent, and `/admin/inquiries` reads the same
    row from any device.
 3. *"No migration is possible."* Moot: the server started empty on purpose, and the
-   only browser data worth carrying was the seeded demo inbox.
+   only browser data worth carrying was the seeded demo inbox — which was itself a
+   fixture, and is now gone.
 4. *"No server authorization on the data."* **Fixed.** Every admin endpoint calls
    `requireCapability()` before it touches the database, so the browser-only Clerk
    check is a UI courtesy rather than the boundary.
@@ -289,10 +337,7 @@ it.
 
 **What the server does not do yet**, named so it is not assumed:
 
-1. **One record is still browser-only.** `security` (`getSecurity`/`saveSecurity`) has
-   no callers and no table — the Security page manages the account through Clerk. It is
-   dead surface, not a plan.
-2. **Spam protection is still the client-side captcha.** The honeypot is now also
+1. **Spam protection is still the client-side captcha.** The honeypot is now also
    checked on the server, which stops naive bots; a determined one is unaffected.
    That is proposal A6 and it is not in this change.
 

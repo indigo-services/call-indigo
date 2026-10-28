@@ -15,7 +15,7 @@ The former shared-credential prototype is retained only as a historical record i
 | **`/admin` identity** | Clerk Invite-only mode is active; both Production users are Admin members of the `Indigo Services` organization, and that membership is the only thing that grants dashboard access. Sign-in still awaits deployment of this build. | Clerk Dashboard; `src/admin/AdminArea.tsx`, `src/admin/RequireAuth.tsx`, `src/admin/clerkAuth.ts` |
 | **Admin authorization** | Re-checked on the server by `requireCapability()` in every admin endpoint, against a capability matrix that lives in code. The browser gate decides which screens are *shown*; it authorizes nothing. | `api/_lib/auth.ts`, `api/_lib/roles.ts` |
 | **Role assignment** | Two parts, because custom Clerk roles are a paid feature: the person must be a member of `Indigo Services` in Clerk, and their level (`admin` / `service_manager` / `service_rep`) is a row in `staff`. A Clerk `org:admin` is admin regardless of the row. Levels are set on `/admin/team`; `GET` needs `settings:read`, `PUT` needs `settings:write` | `resolveOrgAccess()` + `GET /api/me`; `api/staff.ts`; `db/migrations/0003_staff.sql` |
-| **Dashboard data** | Postgres (Neon) for inquiries and every settings record. The only browser-held record left is `security`, which nothing reads (#95) | `api/inquiries.ts`, `api/settings.ts` |
+| **Dashboard data** | Postgres (Neon) for inquiries, every settings record, the staff levels and the audit log. **No app data is held in the browser** — the last `localStorage` record was deleted on 2026-10-28 (#95) | `api/inquiries.ts`, `api/settings.ts`, `api/staff.ts` |
 | **The contact form** | POSTs to `/api/inquiry`, which stores the lead in Postgres and emails it | `src/lib/data/api.ts` → `createInquiry` |
 | **Clerk secret** | Vercel's Development environment has `CLERK_SECRET_KEY`; Production has only the publishable key. The Vite client does not read or bundle the secret | Vercel environment metadata; `vite.config.ts` loads only `VITE_*` and `NEXT_PUBLIC_*` values |
 | **Clerk publishable key** | Public key mapped from Vercel's `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` to Vite | `vite.config.ts` |
@@ -117,8 +117,8 @@ was once allowed to read a customer's phone number.
   is a bot that did not execute the page's JavaScript. The arithmetic question is kept
   as a speed bump for a person with devtools and nothing more, and the honeypot is
   unchanged — a filled one answers `200` and stores nothing.
-- **The repository is public.** Source, demo fixtures, and the localStorage shape are
-  readable by anyone. No secret is committed: `.env*` is ignored with `!.env.example`.
+- **The repository is public.** Source and the shipped `DEFAULT_*` records are readable
+  by anyone. No secret is committed: `.env*` is ignored with `!.env.example`.
 - **No secret scanning or dependency-advisory build gate is configured in CI.**
 - **The API has a rate limit on the one endpoint that writes.** `POST /api/inquiry` is
   capped at **5 submissions per 10 minutes per address**, enforced in
