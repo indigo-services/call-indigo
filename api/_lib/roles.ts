@@ -55,6 +55,7 @@ export type Capability =
   | "settings:read"
   | "settings:write"
   | "reference:read"
+  | "accounts:read"
 
 /** Every capability, in a stable order, so a test can assert the set exactly. */
 export const ALL_CAPABILITIES: readonly Capability[] = [
@@ -64,6 +65,7 @@ export const ALL_CAPABILITIES: readonly Capability[] = [
   "settings:read",
   "settings:write",
   "reference:read",
+  "accounts:read",
 ]
 
 /**
@@ -102,6 +104,7 @@ export const ACCESS_ROLES: readonly AccessRole[] = [...STAFF_ROLES, "member"]
  * | delete a lead | ✓ | ✓ | | |
  * | read the notification address | ✓ | ✓ | | |
  * | change any setting | ✓ | | | |
+ * | see the vendor dashboards | ✓ | | | |
  *
  * `settings:read` is granted to a manager on purpose: the notification address
  * decides where every future lead is emailed, and the person who runs the desk is
@@ -112,6 +115,15 @@ export const ACCESS_ROLES: readonly AccessRole[] = [...STAFF_ROLES, "member"]
  * documents — so it only decides whether the nav shows them. It is in the table
  * anyway, rather than derived from "is admin", so that adding a server-side
  * surface later means adding a check, not inventing a capability.
+ *
+ * `accounts:read` is here for the same reason, and it is the one that was
+ * missing for a release: it guards no endpoint, and it decides whether the
+ * sidebar shows Clerk, Vercel, GitHub and the business's own social accounts.
+ * Until #104 those links were unfiltered, so a `service_rep` — who can open none
+ * of them, each being an organization-level vendor account — was shown all
+ * three. A nav-only capability is still a real capability; the alternative is
+ * the sidebar holding its own access rule, which is the client/server drift
+ * #100 spent a release removing.
  */
 export const CAPABILITIES: Record<AccessRole, readonly Capability[]> = {
   admin: ALL_CAPABILITIES,

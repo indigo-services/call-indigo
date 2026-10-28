@@ -62,7 +62,7 @@
  * (#73 collapses Design and Reference into Settings sub-panes) and must not
  * change who can see what. One area per *reason* someone is trusted with it.
  */
-export type AdminFeature = "inbox" | "settings" | "design" | "reference" | "team"
+export type AdminFeature = "inbox" | "settings" | "design" | "reference" | "team" | "accounts"
 
 export const ALL_ADMIN_FEATURES: readonly AdminFeature[] = [
   "inbox",
@@ -70,6 +70,7 @@ export const ALL_ADMIN_FEATURES: readonly AdminFeature[] = [
   "design",
   "reference",
   "team",
+  "accounts",
 ]
 
 /**
@@ -116,6 +117,7 @@ export const KNOWN_CAPABILITIES = [
   "settings:read",
   "settings:write",
   "reference:read",
+  "accounts:read",
 ] as const
 
 export type Capability = (typeof KNOWN_CAPABILITIES)[number]
@@ -138,6 +140,12 @@ export type Capability = (typeof KNOWN_CAPABILITIES)[number]
  * `settings:write` opens two areas because the Design page writes the `site` key,
  * and writing any key is `settings:write`.
  *
+ * `accounts:read` opens `accounts` and nothing else. Like `reference:read` it
+ * guards no page in `ADMIN_ROUTES` — the group it opens is the sidebar's external
+ * links, which leave the app. It is mapped here rather than compared against
+ * `role === "admin"` so that the sidebar holds one predicate (`can`) instead of
+ * two rules that can disagree (#104).
+ *
  * An unknown capability opens nothing, so a server that grows a capability before
  * this table does hides a page instead of inventing one.
  */
@@ -146,6 +154,7 @@ const FEATURES_FOR_CAPABILITY: Partial<Record<Capability, readonly AdminFeature[
   "settings:read": ["team"],
   "settings:write": ["settings", "design"],
   "reference:read": ["reference"],
+  "accounts:read": ["accounts"],
 }
 
 /**

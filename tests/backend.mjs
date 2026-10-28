@@ -160,7 +160,7 @@ export async function run() {
     // The matrix is the artifact a reviewer reads, so the check restates it
     // independently rather than importing the expectation from the same file.
     const expected = {
-      admin: ["inbox:read", "inbox:write", "inbox:delete", "settings:read", "settings:write", "reference:read"],
+      admin: ["inbox:read", "inbox:write", "inbox:delete", "settings:read", "settings:write", "reference:read", "accounts:read"],
       service_manager: ["inbox:read", "inbox:write", "inbox:delete", "settings:read", "reference:read"],
       service_rep: ["inbox:read", "inbox:write"],
       member: ["inbox:read"],
@@ -182,6 +182,17 @@ export async function run() {
     if (roles.hasCapability("service_rep", "inbox:delete")) out.push("a service rep can delete a lead")
     if (!roles.hasCapability("service_manager", "inbox:delete")) out.push("a service manager cannot delete a lead")
     if (roles.hasCapability("member", "inbox:write")) out.push("a member with no staff row can change a lead")
+
+    // #104. `accounts:read` guards no endpoint, so nothing on the server fails
+    // when it is mis-granted — the only symptom is a sidebar link to a vendor
+    // dashboard the holder cannot open. Asserted per role rather than left to
+    // the exact-set comparison above, because that comparison says "these seven"
+    // and this one says "not this one, and here is why it matters".
+    if (!roles.hasCapability("admin", "accounts:read")) out.push("an admin cannot see the vendor dashboards")
+    if (roles.hasCapability("service_manager", "accounts:read")) {
+      out.push("a service manager can see the vendor dashboards — they are org-level accounts, not desk tools")
+    }
+    if (roles.hasCapability("service_rep", "accounts:read")) out.push("a service rep can see the vendor dashboards")
     return out
   })
 

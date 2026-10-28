@@ -195,12 +195,20 @@ export async function run() {
 
   const routesModel = await load("src/admin/routes.ts", "admin-routes")
   const externalNav = await load("src/admin/ExternalNav.tsx", "external-nav")
+  const clerkAuth = await load("src/admin/clerkAuth.ts", "policy-clerk-auth")
   const externalItems = routesModel.ADMIN_EXTERNAL_NAV.flatMap((g) => g.items)
-  const externalHtml = await (async () => {
-    const { renderToStaticMarkup } = await import("react-dom/server")
-    const { createElement } = await import("react")
-    return renderToStaticMarkup(createElement(externalNav.ExternalNavLinks))
-  })()
+
+  // Rendered against two real access objects, not against a bare component.
+  // #104 is the reason: the group rendered correctly for everybody, so a check
+  // that only proves it renders could not see the defect.
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { createElement } = await import("react")
+  const renderExternal = (access) =>
+    renderToStaticMarkup(createElement(externalNav.ExternalNavLinks, { access }))
+  const adminAccess = clerkAuth.accessFrom("admin", clerkAuth.KNOWN_CAPABILITIES)
+  const repAccess = clerkAuth.accessFrom("service_rep", ["inbox:read", "inbox:write"])
+  const externalHtml = renderExternal(adminAccess)
+  const repExternalHtml = renderExternal(repAccess)
 
   check("every external nav item is an absolute https URL", () => {
     if (externalItems.length === 0) return ["ADMIN_EXTERNAL_NAV is empty — this check would pass vacuously"]
@@ -251,14 +259,48 @@ export async function run() {
     return out
   })
 
-  check("the sidebar renders the external group", () => {
+  check("the sidebar renders the external group, with the caller's access", () => {
     // The one thing the two checks above cannot see: whether the group is
     // mounted at all. A component that passes its own tests but is never
     // rendered is the exact failure this repo has paid for before.
     const sidebar = stripJsComments(read(path.join(ROOT, "src", "components", "app-sidebar.tsx")))
     const out = []
-    if (!/<ExternalNavLinks\s*\/>/.test(sidebar)) out.push("app-sidebar.tsx does not render <ExternalNavLinks />")
+    if (!/<ExternalNavLinks\s+access=\{access\}\s*\/>/.test(sidebar)) {
+      out.push("app-sidebar.tsx does not render <ExternalNavLinks access={access} /> — the group is ungated")
+    }
     if (!/ADMIN_NAV\.map/.test(sidebar)) out.push("app-sidebar.tsx no longer renders ADMIN_NAV — the internal groups are gone")
+    return out
+  })
+
+  check("the external group is gated: a rep sees no anchor, an admin sees every one", () => {
+    // Issue #104. The defect was never that the group failed to render — it
+    // rendered for everybody. So the assertion that carries this is the
+    // NEGATIVE one, and the admin count exists only to prove the component
+    // still works: a component that returned null would satisfy the rep case
+    // and hide the whole group from the people who need it.
+    const out = []
+    const anchors = (html) => [...html.matchAll(/<a\b[^>]*>/g)].length
+
+    const repAnchors = anchors(repExternalHtml)
+    if (repAnchors !== 0) {
+      out.push(`a service_rep sees ${repAnchors} external links, expected 0 — they cannot open any of them`)
+    }
+
+    if (externalItems.length === 0) out.push("ADMIN_EXTERNAL_NAV is empty — the counts below prove nothing")
+    const adminAnchors = anchors(externalHtml)
+    if (adminAnchors !== externalItems.length) {
+      out.push(`an admin sees ${adminAnchors} external links, expected ${externalItems.length}`)
+    }
+
+    // An empty group label is still a promise of something a rep cannot reach.
+    if (/Dashboards/.test(repExternalHtml)) out.push("a service_rep sees the Dashboards group label")
+
+    // The decision must be the capability, not a role string. If either of
+    // these flips, the gate moved to a second rule that can drift from the
+    // server's — which is what #100 spent a release removing.
+    if (clerkAuth.can(repAccess, "accounts")) out.push("a service_rep holds the accounts feature")
+    if (!clerkAuth.can(adminAccess, "accounts")) out.push("an admin does not hold the accounts feature")
+
     return out
   })
 
