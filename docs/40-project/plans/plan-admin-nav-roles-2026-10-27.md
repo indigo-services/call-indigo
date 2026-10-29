@@ -333,9 +333,23 @@ capability (§9 Q3).
 **Exit criteria**
 
 ```bash
-git grep -n "openUserProfile" src/components/app-sidebar.tsx   # 1 hit
+~~git grep -n "openUserProfile" src/components/app-sidebar.tsx   # 1 hit~~
 node tests/run.mjs                                             # green
 ```
+
+> **Corrected 2026-10-28.** The first criterion was wrong as written, and wrong in the
+> direction that reads as a pass. `git grep` counts **matching lines**, not call sites: the
+> shipped file reports **4** — two in the docblock, the `useClerk()` destructure, and the
+> call. The `1` could only describe a tree with no docblock, so it never measured the code
+> that exists. It is also **comment-blind**: the two docblock lines alone satisfy it, which
+> is the same defect shape as #93's first guard and the five documents in #116.
+>
+> The property it meant is **one call site, no route**, and that is what `tests/auth.mjs`
+> asserts now — on comment-stripped source, in *"the sidebar displays Clerk identity and
+> exposes account management and sign-out"*: `openUserProfile()` exactly once, the visible
+> label `Your account` present, `<UserButton` absent. Negative-controlled in #106 by pointing
+> the control at `/admin/profile`, which fails the check and the rep-specific one in
+> `tests/policy.mjs`.
 
 ### v2.5.0 — R4: the Navigation pane (#107)
 
@@ -498,6 +512,10 @@ Unchanged and re-checked: `app-sidebar.tsx:130-138` (the false comment), `:139`,
 "9 → 10" when the Navigation pane lands. It is already 10, so the pane takes it to **11** and
 moves four assertions (`policy.mjs:279`, `:286`, `:322`, and the `EXPECTED` map). Read the
 issue's arithmetic as stale, not the plan's.
+
+**Also corrected 2026-10-28, after R3 shipped** (`f38e591`, PR #127). R3's first exit
+criterion was a `git grep` line count and it could not have passed — see the note under R3
+in §4. Nothing in the citation table above moved; `ADMIN_ROUTES` is still 10.
 
 ---
 

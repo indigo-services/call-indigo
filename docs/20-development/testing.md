@@ -75,14 +75,22 @@ drawer is rendered. ⚠️ **It appears to work under `node -e`**, which evaluat
 CommonJS scope where the shim finds a real `require`; it fails under `node tests/run.mjs`,
 which is what CI runs. Never judge a bundling change by a one-liner.
 
-**A component that reads the router needs `stubRouter`.** `react-router-dom` is bundled,
-not external, so a `MemoryRouter` the test imports itself is a *second copy* of the
-context — `useLocation()` throws and the message names the hook, not the cause.
-`load(path, name, { stubRouter: true })` swaps in a virtual module whose `Link` renders
-`<a href={to}>`, which is all a static render can see anyway. Its companion trap:
-**a provider and the component it wraps must come from one bundle**, or the context is a
-different object. `tests/fixtures/sidebar-entry.mjs` exists to put `SidebarProvider`,
-`AdminAccessContext.Provider` and `AppSidebar` in a single build for exactly this reason.
+**`react-router-dom` is external too, and not for the CJS reason.** A React context object
+is only equal to itself, so a router *bundled into* the output is a different context from
+a `MemoryRouter` the test imports — `useLocation()` throws, and the message names the hook
+rather than the cause. #106 shipped a virtual `stubRouter` to work around that; it was the
+wrong repair. Externalising the package means both halves share one instance, the test
+wraps the render in the **real** `MemoryRouter`, and `href` is the router's own resolution
+instead of a stub's passthrough. `react-router` is listed beside `-dom` because v7's `-dom`
+is a thin re-export: bundling it would pull a second `react-router`, and a second context,
+straight back in.
+
+The failure mode is now loud rather than silent: render a router-reading component with no
+router and you get *"useLocation() may be used only in the context of a `<Router>`"*.
+**The companion trap survives**: a provider and the component it wraps must come from one
+bundle, or the context is a different object. `tests/fixtures/sidebar-entry.mjs` exists to
+put `SidebarProvider`, `AdminAccessContext.Provider` and `AppSidebar` in a single build for
+exactly this reason.
 
 Assertions run on **rendered output**, not on source text. That is the difference
 between "the file contains an anchor" and "the component renders an anchor", and it is

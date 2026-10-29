@@ -127,32 +127,6 @@ export const SignedOut = ({ children }) => children ?? null
 `
 
 /**
- * A router that renders links as plain anchors, for `stubRouter`.
- *
- * Needed because `react-router-dom` is **bundled into** each `load()` output
- * (only React and lucide are external), so a `MemoryRouter` imported by the test
- * from `node_modules` would be a *different* context object than the one the
- * bundled component reads — `useLocation()` would throw, and nothing would say
- * why. A virtual module replaces it inside the bundle instead.
- *
- * It is faithful for the only thing a static render can check: which `href` a
- * `to` produces. `Link` renders an `<a>` with the resolved href, exactly as the
- * real component does for a path that needs no basename. What it cannot model is
- * navigation — which is not a claim any assertion here makes, because
- * `renderToStaticMarkup` runs no effects and handles no clicks.
- */
-const ROUTER_STUB = `
-import { createElement } from "react"
-const location = { pathname: "/admin/inquiries", search: "", hash: "", state: null, key: "static" }
-export const useLocation = () => location
-export const useNavigate = () => () => {}
-export const useParams = () => ({})
-export const Link = ({ to, children, ref, ...rest }) => createElement("a", { href: to, ...rest }, children)
-export const NavLink = Link
-export const Outlet = () => null
-`
-
-/**
  * Bundle a project module to ESM in `tests/.tmp` and import it.
  *
  * `packages: "external"` is NOT used: it would also externalise the `@/…`
@@ -173,10 +147,17 @@ export const Outlet = () => null
  * substitute for authorization testing: a stubbed session proves the page
  * renders, and nothing about who is allowed to see it.
  *
- * `stubRouter` does the same for `react-router-dom`, for a sharper reason: that
- * package is *bundled into* the output rather than left external, so a
- * `MemoryRouter` imported by the test would be a second copy of the context and
- * could not satisfy the component's `useLocation()`. See `ROUTER_STUB`.
+ * `react-router-dom` is external for a reason that is not about CJS at all: a
+ * React context object is only equal to itself, so a router bundled into the
+ * output is a *different* context from a `MemoryRouter` the test imports, and
+ * `useLocation()` throws — an error that names neither the cause nor the fix.
+ * External means both halves share one module instance, and a test that forgets
+ * the wrapper gets react-router's own message ("useHref() may be used only in
+ * the context of a <Router>") instead of a mystery.
+ *
+ * ⚠️ `react-router` is listed too, not just `-dom`: v7's `-dom` package is a
+ * thin re-export, so bundling it would pull a second `react-router` — and with
+ * it a second context — straight back in.
  */
 export async function load(relativePath, name, options = {}) {
   if (loaded.has(name)) return loaded.get(name)
@@ -211,6 +192,8 @@ export async function load(relativePath, name, options = {}) {
       "react/jsx-runtime",
       "lucide-react",
       "react-remove-scroll",
+      "react-router-dom",
+      "react-router",
     ],
     define: { "process.env.NODE_ENV": '"test"' },
     logLevel: "silent",
@@ -226,23 +209,6 @@ export async function load(relativePath, name, options = {}) {
                 }))
                 b.onLoad({ filter: /.*/, namespace: "clerk-stub" }, () => ({
                   contents: CLERK_STUB,
-                  loader: "js",
-                }))
-              },
-            },
-          ]
-        : []),
-      ...(options.stubRouter
-        ? [
-            {
-              name: "router-stub",
-              setup(b) {
-                b.onResolve({ filter: /^react-router(-dom)?$/ }, () => ({
-                  path: "react-router-dom",
-                  namespace: "router-stub",
-                }))
-                b.onLoad({ filter: /.*/, namespace: "router-stub" }, () => ({
-                  contents: ROUTER_STUB,
                   loader: "js",
                 }))
               },
