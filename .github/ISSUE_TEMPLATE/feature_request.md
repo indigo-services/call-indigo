@@ -17,19 +17,21 @@ assignees: ""
   problem; "add a phone filter" is one solution to it, and usually not the best one.
 -->
 
-## Where it sits in the plan
+## Where it sits
 
 <!--
-  Much of the roadmap is already written down. Check these before proposing — and if
-  your request contradicts one of them, say so explicitly rather than quietly.
+  Check the open issues and the board before proposing, and if this contradicts one of them,
+  say so explicitly rather than quietly.
 
-  - docs/40-project/roadmap.md        the phases and their releases
-  - docs/40-project/tasks.md          the live punch list and PRD §16.2 F1–F12
-  - PRD.md §16.2                      what is explicitly deferred, and what it waits on
-  - docs/60-reference/dashboard-scope.md   where the build already departs from the PRD
+  - https://github.com/indigo-services/call-indigo/issues
+  - https://github.com/users/indigo-services/projects/3
+
+  docs/40-project/roadmap.md and tasks.md are FROZEN records of what was believed on a date.
+  They are not the plan. Citing one is not a priority, and an item listed there has no
+  standing until it is filed here as its own issue.
 -->
 
-- [ ] I checked `docs/40-project/tasks.md` and this is not already listed
+- [ ] I checked the open issues and this is not already there
 - [ ] This does not contradict a decision recorded in `docs/40-project/decisions/`
       (or it does, and I have said why below)
 
@@ -48,4 +50,10 @@ assignees: ""
 
 ## What "done" looks like
 
-<!-- Acceptance criteria you would accept. -->
+<!--
+  The condition that closes this, written so someone else can check it without asking you.
+  "It works" is not a condition. Name a command and its output, a page and what it shows, or
+  a count that changes — every claim in this repository is supposed to be checkable
+  (docs/20-development/standards.md §1). An issue without one cannot be reviewed, only argued
+  about.
+-->

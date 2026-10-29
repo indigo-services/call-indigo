@@ -2,6 +2,16 @@
 
 **Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-28 against `7645316` (v2.3.0)
 
+> ⚠️ **Frozen 2026-10-29 — this is a record, not the plan.** Open work lives in
+> [issues](https://github.com/indigo-services/call-indigo/issues) and is ordered on the
+> [project board](https://github.com/users/indigo-services/projects/3). Do not add to this
+> document; file an issue. `tests/policy.mjs` asserts this notice is still here, because the
+> way this document fails is by being read as a queue.
+>
+> What it is still good for: the reasoning behind a phase, and the evidence a claim rested on
+> at the time. Read §2 as history — its *"Open"* rows were accurate on the date stated above,
+> and two of them had already merged when that date was written.
+
 Two roadmaps, deliberately separate: **the product** and **the documentation**. They
 ship on their own clocks, and the documentation one exists because the product one had
 grown a library of documents nobody could find.

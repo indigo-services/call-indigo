@@ -5,6 +5,16 @@
   purpose: a PR that cannot fill it in is a PR whose scope is not yet clear.
 -->
 
+## Issue
+
+<!--
+  `Closes #N`, on its own line. That link is what moves the project board and what makes the
+  release notes derivable rather than remembered. If there is genuinely no issue, say why in
+  one line instead — a PR with neither is invisible to both.
+-->
+
+Closes #
+
 ## What this changes
 
 <!-- One paragraph. What is different after this merges? -->

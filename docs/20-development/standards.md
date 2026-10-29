@@ -130,6 +130,29 @@ intended.
 
 ## 4. PR flow
 
+### Where the work comes from
+
+**GitHub is the system of record.** An issue is the only place a unit of work exists, and the
+[project board](https://github.com/users/indigo-services/projects/3) is the only place its
+order exists.
+
+- **A document is not a backlog.** `docs/` holds specifications, decisions and records of what
+  was true on a date. A document that lists open work is a backlog wearing a different hat,
+  and it rots at the speed of the code: `roadmap.md` §2.1 is dated *"last verified 2026-10-28"*
+  and still names two issues as open that had already merged.
+- **Nothing is "already on the roadmap".** If it is not an issue it is not planned. Filing the
+  issue is what makes it real; a sentence in a dated document is not.
+- **`docs/40-project/roadmap.md` and `tasks.md` are frozen** as of 2026-10-29. Read them as a
+  record of what was believed, never as a queue. `tests/policy.mjs` asserts the freeze notice
+  is still there, because the failure mode is a future session reading the old list and
+  treating it as live — which is exactly what happened before the freeze.
+- **A PR names its issue** with `Closes #N`. That link is what moves the board, and what makes
+  the release notes derivable rather than remembered.
+
+Why this is strict: a plan kept in two places is a plan kept in neither. The repo has already
+paid for the milder version of this — #116 swept five documents that still described a product
+with no backend, and the roadmap kept a stale section through that same sweep.
+
 ### Before opening a PR
 
 1. **Rebase on `main`** — no merge commits into features. Keep history linear.
