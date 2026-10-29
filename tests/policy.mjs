@@ -10,6 +10,7 @@
  */
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
 import path from "node:path"
+import { MemoryRouter } from "react-router-dom"
 import { ROOT, check, load, stripJsComments, suite } from "./harness.mjs"
 
 function walk(dir, out = []) {
@@ -427,25 +428,34 @@ export async function run() {
    *
    * Rendered through `tests/fixtures/sidebar-entry.mjs`; see that file for why
    * the provider, the component and the access context must come from one
-   * bundle, and `ROUTER_STUB` in `harness.mjs` for why the router is virtual.
+   * bundle, and `load()` in `harness.mjs` for why `react-router-dom` is external
+   * to it.
    */
 
   suite("Sidebar home and account links (issue #106)", "tests/policy.mjs")
 
   const sidebarEntry = await load("tests/fixtures/sidebar-entry.mjs", "sidebar-entry", {
     stubClerk: true,
-    stubRouter: true,
   })
 
+  // A real `MemoryRouter`, not a stand-in: `react-router-dom` is external to the
+  // bundle (see `load()`), so this is the same module instance the component
+  // reads. That makes `href` the router's own resolution rather than a stub's
+  // passthrough — and it means a render without this wrapper fails with
+  // react-router's message instead of a silent second context.
   const renderSidebar = (access) =>
     renderToStaticMarkup(
       createElement(
-        sidebarEntry.SidebarProvider,
-        null,
+        MemoryRouter,
+        { initialEntries: ["/admin/inquiries"] },
         createElement(
-          sidebarEntry.AdminAccessContext.Provider,
-          { value: access },
-          createElement(sidebarEntry.AppSidebar),
+          sidebarEntry.SidebarProvider,
+          null,
+          createElement(
+            sidebarEntry.AdminAccessContext.Provider,
+            { value: access },
+            createElement(sidebarEntry.AppSidebar),
+          ),
         ),
       ),
     )
