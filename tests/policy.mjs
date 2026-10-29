@@ -653,4 +653,30 @@ export async function run() {
 
     return out
   })
+
+  /* ── Where work lives (GitHub is the system of record) ────────────────────
+   *
+   * The two backlog documents are frozen, and the way they fail is by being read as a queue:
+   * on 2026-10-29 `roadmap.md` was dated *"last verified 2026-10-28"* and still named #93 and
+   * #114 as open — both merged. The notice is the only thing telling a later session, human or
+   * otherwise, that the list underneath it is history rather than a plan.
+   *
+   * Asserted on the HEADER, not the file: the bodies are meant to stay as they were, so a scan
+   * of the whole document would pass on a quotation of the notice anywhere inside it.
+   */
+  suite("Where work lives (GitHub is the system of record)", "tests/policy.mjs")
+
+  check("the two frozen backlog documents say so, and point at the issue tracker", () => {
+    const out = []
+    for (const p of ["docs/40-project/roadmap.md", "docs/40-project/tasks.md"]) {
+      const head = read(p).split("\n").slice(0, 16).join("\n")
+      if (!/Frozen \d{4}-\d{2}-\d{2}/.test(head)) {
+        out.push(`${p} does not declare itself frozen in its first 16 lines`)
+      }
+      if (!/github\.com\/indigo-services\/call-indigo\/issues/.test(head)) {
+        out.push(`${p} does not point at the issue tracker`)
+      }
+    }
+    return out
+  })
 }

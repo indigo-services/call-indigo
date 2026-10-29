@@ -2,6 +2,16 @@
 
 **Kind:** dated · **Owner:** the repo · **Last verified:** 2026-10-16 in the uncommitted working tree
 
+> ⚠️ **Frozen 2026-10-29 — this is a record, not the plan.** Open work lives in
+> [issues](https://github.com/indigo-services/call-indigo/issues) and is ordered on the
+> [project board](https://github.com/users/indigo-services/projects/3). Do not add to this
+> document; file an issue. `tests/policy.mjs` asserts this notice is still here.
+>
+> The `T`, `E` and `F` numbers below are **historical labels, not issue numbers.** They were
+> never unique across this repo — see §1 of [`README.md`](./README.md) for the collision — and
+> nothing now tracks them. An item here that still matters should be re-filed as an issue with
+> its own exit criteria, not cited by letter.
+
 > ⚠️ **Two `T`-numbering schemes collide in this repo.** The ones below are the
 > **client punch list**. A phase PRD's `T2` is a different thing entirely — see
 > [`README.md` §1](./README.md#1-the-two-numbering-schemes--read-this-first).

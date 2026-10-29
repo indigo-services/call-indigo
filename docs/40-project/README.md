@@ -1,12 +1,15 @@
 # 40 — Project: management, roadmap, decisions
 
-Where the work is tracked. Everything in this domain is **dated** — it describes an
-intention at a moment, not a fact about the tree.
+Where the work **used to be** tracked, and where its specifications, decisions and
+client-facing record still live. Everything in this domain is **dated** — it describes an
+intention at a moment, not a fact about the tree. Since 2026-10-29 open work exists only as a
+[GitHub issue](https://github.com/indigo-services/call-indigo/issues); `roadmap.md` and
+`tasks.md` are frozen records of what was believed.
 
 | Document | Kind | Answers |
 |---|---|---|
 | [`roadmap.md`](./roadmap.md) | dated | The five phases, their releases, and their exit criteria |
-| [`tasks.md`](./tasks.md) | dated | **The live punch list** — client items T2/T5–T7, and PRD §16.2's F1–F12 |
+| [`tasks.md`](./tasks.md) | dated | **The punch list, frozen 2026-10-29** — client items T2/T5–T7, and PRD §16.2's F1–F12 |
 | [`artifacts.md`](./artifacts.md) | dated | Where generated things live, and what may be deleted |
 | [`client-disclosure.md`](./client-disclosure.md) | dated | **The client-facing full disclosure** — the unabridged position, for an audience that will not read this library |
 | [`prd/`](./prd/) | dated | One PRD per phase — `phase-1` … `phase-5` |
